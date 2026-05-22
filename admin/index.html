@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MIG Admin — Proposal Submissions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+  :root {
+    --bg: #fafaf7;
+    --surface: #ffffff;
+    --surface-alt: #f4f3ee;
+    --border: #e5e2d8;
+    --border-strong: #d8d2c2;
+    --ink: #0b1424;
+    --muted: #6b6f7a;
+    --mig: #1f3864;
+    --mig-light: #e8eef8;
+    --accent: #a87446;
+    --success: #2d7a3e;
+    --warning: #b8860b;
+    --error: #b53737;
+    --new: #1f3864;
+    --in-review: #b8860b;
+    --quoted: #2d7a3e;
+    --bound: #1a5d2e;
+    --declined: #b53737;
+    --withdrawn: #6b6f7a;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: 'Inter Tight', system-ui, -apple-system, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* === LAYOUT === */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 24px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 10;
+  }
+  .topbar .brand {
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 600;
+  }
+  .topbar .brand-mark {
+    width: 28px; height: 28px;
+    background: var(--mig);
+    color: white;
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px;
+  }
+  .topbar .user-info {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 13px; color: var(--muted);
+  }
+  .btn {
+    background: var(--mig); color: white; border: none;
+    padding: 8px 14px; border-radius: 6px;
+    font-family: inherit; font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: background 120ms;
+  }
+  .btn:hover:not(:disabled) { background: #16294a; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-secondary {
+    background: var(--surface-alt); color: var(--ink);
+    border: 1px solid var(--border-strong);
+  }
+  .btn-secondary:hover:not(:disabled) { background: var(--border); }
+  .btn-ghost {
+    background: transparent; color: var(--mig);
+    padding: 6px 10px;
+  }
+  .btn-ghost:hover:not(:disabled) { background: var(--mig-light); }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+
+  input[type=text], input[type=email], input[type=password], textarea, select {
+    font-family: inherit; font-size: 14px;
+    padding: 8px 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--ink);
+    width: 100%;
+  }
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--mig);
+    box-shadow: 0 0 0 3px rgba(31, 56, 100, 0.1);
+  }
+  label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; font-weight: 500; }
+
+  /* === LOGIN SCREEN === */
+  .login-wrap {
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .login-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 4px 16px rgba(11, 20, 36, 0.04);
+  }
+  .login-card h1 {
+    font-size: 20px; font-weight: 600; margin: 0 0 4px 0;
+    color: var(--mig);
+  }
+  .login-card .subtitle {
+    font-size: 13px; color: var(--muted); margin-bottom: 24px;
+  }
+  .login-tabs {
+    display: flex; gap: 4px; margin-bottom: 16px;
+    background: var(--surface-alt);
+    padding: 4px;
+    border-radius: 8px;
+  }
+  .login-tab {
+    flex: 1; padding: 8px;
+    text-align: center;
+    font-size: 13px; font-weight: 500;
+    cursor: pointer;
+    border-radius: 6px;
+    color: var(--muted);
+    transition: all 120ms;
+  }
+  .login-tab.active { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .form-field { margin-bottom: 12px; }
+  .login-error {
+    color: var(--error);
+    background: #fef1f1;
+    border: 1px solid #f5c8c8;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+  .login-success {
+    color: var(--success);
+    background: #f0f7f1;
+    border: 1px solid #c8e0cc;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+
+  /* === LIST VIEW === */
+  .list-wrap { padding: 24px; max-width: 1400px; margin: 0 auto; }
+  .filters {
+    display: flex; gap: 12px; margin-bottom: 16px;
+    flex-wrap: wrap; align-items: end;
+  }
+  .filter-group { min-width: 180px; }
+  .filter-group label { font-size: 11px; }
+  .filters-spacer { flex: 1; }
+  .submission-count {
+    font-size: 13px;
+    color: var(--muted);
+    align-self: center;
+  }
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  table.submissions {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  table.submissions th {
+    text-align: left;
+    background: var(--surface-alt);
+    padding: 10px 14px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+  table.submissions td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  table.submissions tr {
+    transition: background 80ms;
+    cursor: pointer;
+  }
+  table.submissions tr:hover { background: var(--surface-alt); }
+  table.submissions tr:last-child td { border-bottom: none; }
+  .product-pill {
+    display: inline-block;
+    background: var(--mig-light);
+    color: var(--mig);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    margin-right: 4px;
+    margin-bottom: 2px;
+  }
+  .status-badge {
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .status-badge.new       { background: #e8eef8; color: var(--new); }
+  .status-badge.in_review { background: #fbf3dc; color: var(--in-review); }
+  .status-badge.quoted    { background: #e6f3e8; color: var(--quoted); }
+  .status-badge.bound     { background: #d4ebd8; color: var(--bound); }
+  .status-badge.declined  { background: #fdeaea; color: var(--declined); }
+  .status-badge.withdrawn { background: #ececec; color: var(--withdrawn); }
+  .empty-state {
+    padding: 64px 24px;
+    text-align: center;
+    color: var(--muted);
+  }
+  .empty-state .icon {
+    font-size: 32px; margin-bottom: 8px;
+    color: var(--border-strong);
+  }
+
+  /* === DETAIL VIEW === */
+  .detail-wrap {
+    padding: 24px;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  .breadcrumb {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--muted);
+    margin-bottom: 16px;
+  }
+  .breadcrumb a { color: var(--mig); text-decoration: none; cursor: pointer; }
+  .breadcrumb a:hover { text-decoration: underline; }
+  .detail-header {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .detail-title {
+    font-size: 20px; font-weight: 600;
+    color: var(--mig);
+    margin: 0 0 4px 0;
+  }
+  .detail-meta {
+    display: flex; gap: 16px; flex-wrap: wrap;
+    font-size: 12px; color: var(--muted);
+    margin-bottom: 12px;
+  }
+  .detail-meta span {
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .detail-actions {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 16px;
+  }
+  @media (max-width: 900px) {
+    .detail-grid { grid-template-columns: 1fr; }
+  }
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px;
+  }
+  .panel h3 {
+    margin: 0 0 12px 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--mig);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .panel h4 {
+    margin: 16px 0 6px 0;
+    font-size: 12px; font-weight: 600;
+    color: var(--ink);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .field-display {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 8px 16px;
+    margin-bottom: 4px;
+    padding: 6px 0;
+    border-bottom: 1px solid #f0eee6;
+  }
+  .field-display:last-child { border-bottom: none; }
+  .field-display .label {
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .field-display .value {
+    font-size: 13px;
+    color: var(--ink);
+    word-break: break-word;
+  }
+  .field-display .value.empty {
+    color: #c8c4b8;
+    font-style: italic;
+  }
+  .ai-analysis-box {
+    background: linear-gradient(180deg, #f9f7f2 0%, #faf8f3 100%);
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .ai-analysis-box h4 {
+    color: var(--accent);
+    font-size: 11px;
+    margin: 0 0 8px 0;
+  }
+  .ai-analysis-content {
+    font-size: 13px;
+    white-space: pre-wrap;
+    line-height: 1.55;
+  }
+  .ai-placeholder {
+    padding: 32px 16px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    padding: 12px 18px;
+    border-radius: 6px;
+    color: white;
+    font-size: 13px;
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    animation: slideIn 200ms ease-out;
+  }
+  .toast.success { background: var(--success); }
+  .toast.error { background: var(--error); }
+  @keyframes slideIn {
+    from { transform: translateX(20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+
+  /* === HIDE / SHOW === */
+  .hidden { display: none !important; }
+  .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- VIEW 1: LOGIN SCREEN -->
+<!-- ============================================================ -->
+<div id="view-login" class="login-wrap">
+  <div class="login-card">
+    <h1>MIG Admin</h1>
+    <div class="subtitle">Proposal submissions dashboard</div>
+
+    <div class="login-tabs">
+      <div class="login-tab active" data-tab="magic">Magic link</div>
+      <div class="login-tab" data-tab="password">Password</div>
+    </div>
+
+    <div id="login-msg"></div>
+
+    <!-- Magic link tab -->
+    <div id="login-magic">
+      <div class="form-field">
+        <label for="magic-email">Work email</label>
+        <input type="email" id="magic-email" placeholder="you@example.com" autocomplete="email" />
+      </div>
+      <button class="btn" id="magic-send" style="width: 100%;">Send magic link</button>
+      <div style="font-size: 12px; color: var(--muted); margin-top: 12px; text-align: center;">
+        We'll email you a one-time login link.
+      </div>
+    </div>
+
+    <!-- Password tab -->
+    <div id="login-password" class="hidden">
+      <div class="form-field">
+        <label for="pw-email">Email</label>
+        <input type="email" id="pw-email" placeholder="you@example.com" autocomplete="email" />
+      </div>
+      <div class="form-field">
+        <label for="pw-password">Password</label>
+        <input type="password" id="pw-password" placeholder="At least 8 characters" autocomplete="current-password" />
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn" id="pw-signin" style="flex: 1;">Sign in</button>
+        <button class="btn btn-secondary" id="pw-signup" style="flex: 1;">Sign up</button>
+      </div>
+      <div style="font-size: 12px; color: var(--muted); margin-top: 12px; text-align: center;">
+        New users need approval from an admin before they can see submissions.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- VIEW 2: SUBMISSIONS LIST -->
+<!-- ============================================================ -->
+<div id="view-list" class="hidden">
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">M</div>
+      <span>MIG Admin</span>
+      <span style="color: var(--muted); font-weight: 400; margin-left: 8px;">Submissions</span>
+    </div>
+    <div class="user-info">
+      <span id="user-email"></span>
+      <button class="btn btn-secondary btn-sm" id="btn-signout">Sign out</button>
+    </div>
+  </div>
+
+  <div class="list-wrap">
+    <div class="filters">
+      <div class="filter-group">
+        <label>Search proposer</label>
+        <input type="text" id="filter-search" placeholder="Company name…" />
+      </div>
+      <div class="filter-group" style="min-width: 160px;">
+        <label>Status</label>
+        <select id="filter-status">
+          <option value="">All statuses</option>
+          <option value="new">New</option>
+          <option value="in_review">In review</option>
+          <option value="quoted">Quoted</option>
+          <option value="bound">Bound</option>
+          <option value="declined">Declined</option>
+          <option value="withdrawn">Withdrawn</option>
+        </select>
+      </div>
+      <div class="filters-spacer"></div>
+      <div class="submission-count" id="submission-count">—</div>
+      <button class="btn btn-secondary btn-sm" id="btn-refresh">Refresh</button>
+    </div>
+
+    <div class="table-wrap">
+      <table class="submissions">
+        <thead>
+          <tr>
+            <th style="width: 140px;">Date</th>
+            <th>Proposer</th>
+            <th style="width: 200px;">Products</th>
+            <th style="width: 100px;">Lang</th>
+            <th style="width: 110px;">Status</th>
+            <th style="width: 100px;">AI</th>
+          </tr>
+        </thead>
+        <tbody id="submissions-tbody">
+          <tr><td colspan="6" style="text-align: center; padding: 24px; color: var(--muted);">
+            <span class="spinner"></span> Loading submissions…
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- VIEW 3: SUBMISSION DETAIL -->
+<!-- ============================================================ -->
+<div id="view-detail" class="hidden">
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">M</div>
+      <span>MIG Admin</span>
+    </div>
+    <div class="user-info">
+      <span id="user-email-detail"></span>
+      <button class="btn btn-secondary btn-sm" id="btn-signout-detail">Sign out</button>
+    </div>
+  </div>
+
+  <div class="detail-wrap">
+    <div class="breadcrumb">
+      <a id="link-back-to-list">← Back to submissions</a>
+    </div>
+
+    <div class="detail-header">
+      <h1 class="detail-title" id="detail-proposer">—</h1>
+      <div class="detail-meta">
+        <span><strong>Submitted:</strong> <span id="detail-date">—</span></span>
+        <span><strong>ID:</strong> <span class="mono" id="detail-id" style="font-size: 11px;">—</span></span>
+        <span><strong>Language:</strong> <span id="detail-lang">—</span></span>
+        <span id="detail-products-meta"></span>
+      </div>
+      <div class="detail-actions">
+        <select id="detail-status-select" style="width: 160px;">
+          <option value="new">New</option>
+          <option value="in_review">In review</option>
+          <option value="quoted">Quoted</option>
+          <option value="bound">Bound</option>
+          <option value="declined">Declined</option>
+          <option value="withdrawn">Withdrawn</option>
+        </select>
+        <button class="btn btn-secondary" id="btn-download-pdf">Download PDF</button>
+        <button class="btn" id="btn-analyze-ai">Analyze with AI</button>
+      </div>
+    </div>
+
+    <div class="detail-grid">
+      <!-- LEFT: structured submission data -->
+      <div id="detail-content" class="panel">
+        <h3>Submission data</h3>
+        <div id="detail-fields">
+          <em style="color: var(--muted);">Loading…</em>
+        </div>
+      </div>
+
+      <!-- RIGHT: AI analysis + notes -->
+      <div>
+        <div class="ai-analysis-box" style="margin-bottom: 16px;">
+          <h4>AI underwriting analysis</h4>
+          <div id="ai-analysis-content">
+            <div class="ai-placeholder">
+              Click <strong>Analyze with AI</strong> above to generate an underwriting analysis powered by Claude.
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Internal notes</h3>
+          <textarea id="internal-notes" rows="8" placeholder="Underwriter notes, terms, follow-up actions…"></textarea>
+          <button class="btn btn-secondary btn-sm" id="btn-save-notes" style="margin-top: 8px; width: 100%;">Save notes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+// ============================================================
+// CONFIG — paste your Supabase credentials below
+// ============================================================
+const SUPABASE_URL = "https://iyazmdzqyogyrvexpasf.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_WzcB0OuI5sYof_abgUsNRQ_U_iRoE2b";
+
+// ============================================================
+// STATE
+// ============================================================
+let sb = null;
+try {
+  if (typeof supabase === 'undefined' || !supabase.createClient) {
+    throw new Error('Supabase SDK failed to load. Check your network connection.');
+  }
+  if (SUPABASE_URL.includes('YOUR-PROJECT') || SUPABASE_PUBLISHABLE_KEY.includes('REPLACE_ME')) {
+    throw new Error('Supabase credentials not configured. Edit admin/index.html and paste your project URL and publishable key.');
+  }
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+} catch (e) {
+  // Show the error in the login card so the user knows what's wrong
+  document.addEventListener('DOMContentLoaded', () => {
+    const msg = document.getElementById('login-msg');
+    if (msg) msg.innerHTML = `<div class="login-error">${e.message.replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))}</div>`;
+  });
+  console.error('Supabase init failed:', e);
+}
+let currentUser = null;
+let currentSubmission = null;
+let allSubmissions = [];
+
+// ============================================================
+// UTILITY
+// ============================================================
+function show(viewId) {
+  ['view-login', 'view-list', 'view-detail'].forEach(id => {
+    document.getElementById(id).classList.toggle('hidden', id !== viewId);
+  });
+}
+function toast(msg, type = 'success') {
+  const div = document.createElement('div');
+  div.className = 'toast ' + type;
+  div.textContent = msg;
+  document.getElementById('toast-container').appendChild(div);
+  setTimeout(() => div.remove(), 3500);
+}
+function fmtDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+function fmtDateOnly(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function setLoginMsg(text, type = 'error') {
+  const el = document.getElementById('login-msg');
+  if (!text) { el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="login-${type}">${escapeHtml(text)}</div>`;
+}
+
+// ============================================================
+// LOGIN TAB SWITCHING
+// ============================================================
+document.querySelectorAll('.login-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.login-tab').forEach(t => t.classList.toggle('active', t === tab));
+    const which = tab.dataset.tab;
+    document.getElementById('login-magic').classList.toggle('hidden', which !== 'magic');
+    document.getElementById('login-password').classList.toggle('hidden', which !== 'password');
+    setLoginMsg('');
+  });
+});
+
+// ============================================================
+// AUTH HANDLERS
+// ============================================================
+document.getElementById('magic-send').addEventListener('click', async () => {
+  const email = document.getElementById('magic-email').value.trim();
+  if (!email) { setLoginMsg('Enter your email.'); return; }
+  const btn = document.getElementById('magic-send');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Sending…';
+  const { error } = await sb.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: window.location.origin + window.location.pathname }
+  });
+  btn.disabled = false; btn.textContent = 'Send magic link';
+  if (error) setLoginMsg(error.message);
+  else setLoginMsg('Check your inbox — magic link sent to ' + email, 'success');
+});
+
+document.getElementById('pw-signin').addEventListener('click', async () => {
+  const email = document.getElementById('pw-email').value.trim();
+  const password = document.getElementById('pw-password').value;
+  if (!email || !password) { setLoginMsg('Enter email and password.'); return; }
+  const btn = document.getElementById('pw-signin');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  btn.disabled = false; btn.textContent = 'Sign in';
+  if (error) setLoginMsg(error.message);
+  // success path: onAuthStateChange handler will switch the view
+});
+
+document.getElementById('pw-signup').addEventListener('click', async () => {
+  const email = document.getElementById('pw-email').value.trim();
+  const password = document.getElementById('pw-password').value;
+  if (!email || !password) { setLoginMsg('Enter email and password.'); return; }
+  if (password.length < 8) { setLoginMsg('Password must be at least 8 characters.'); return; }
+  const btn = document.getElementById('pw-signup');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  const { data, error } = await sb.auth.signUp({
+    email,
+    password,
+    options: { emailRedirectTo: window.location.origin + window.location.pathname }
+  });
+  btn.disabled = false; btn.textContent = 'Sign up';
+  if (error) { setLoginMsg(error.message); return; }
+  if (data && data.user && !data.session) {
+    setLoginMsg('Confirmation email sent. Click the link, then come back here.', 'success');
+  } else {
+    setLoginMsg('Account created. You may need admin approval before you can view submissions.', 'success');
+  }
+});
+
+async function signOut() {
+  await sb.auth.signOut();
+  currentUser = null;
+  show('view-login');
+  setLoginMsg('');
+}
+document.getElementById('btn-signout').addEventListener('click', signOut);
+document.getElementById('btn-signout-detail').addEventListener('click', signOut);
+
+// ============================================================
+// AUTH STATE
+// ============================================================
+if (sb) {
+  sb.auth.onAuthStateChange((event, session) => {
+    if (session && session.user) {
+      currentUser = session.user;
+      document.getElementById('user-email').textContent = currentUser.email;
+      document.getElementById('user-email-detail').textContent = currentUser.email;
+      show('view-list');
+      loadSubmissions();
+    } else if (event === 'SIGNED_OUT') {
+      currentUser = null;
+      show('view-login');
+    }
+  });
+}
+
+// On page load, check existing session
+(async function init() {
+  if (!sb) {
+    // SDK failed or credentials missing — already shown error in login card
+    show('view-login');
+    return;
+  }
+  // Check if returning from magic link (the URL may have a #access_token=...)
+  const { data: { session } } = await sb.auth.getSession();
+  if (session && session.user) {
+    currentUser = session.user;
+    document.getElementById('user-email').textContent = currentUser.email;
+    document.getElementById('user-email-detail').textContent = currentUser.email;
+    show('view-list');
+    loadSubmissions();
+  } else {
+    show('view-login');
+  }
+})();
+
+// ============================================================
+// SUBMISSIONS LIST
+// ============================================================
+async function loadSubmissions() {
+  const tbody = document.getElementById('submissions-tbody');
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 24px;"><span class="spinner"></span> Loading…</td></tr>';
+
+  // We exclude the heavy `payload` blob from the list query — fetch it lazily on detail view.
+  const { data, error } = await sb
+    .from('submissions')
+    .select('id, created_at, updated_at, proposer_name, products, language, status, ai_analyzed_at, assigned_to')
+    .order('created_at', { ascending: false })
+    .limit(500);
+
+  if (error) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 24px; color: var(--error);">
+      Could not load submissions: ${escapeHtml(error.message)}
+      <br><span style="font-size: 12px; color: var(--muted);">You may need to be added to mig_staff. See deploy instructions.</span>
+    </td></tr>`;
+    return;
+  }
+  allSubmissions = data || [];
+  renderSubmissions();
+}
+
+function renderSubmissions() {
+  const search = document.getElementById('filter-search').value.toLowerCase().trim();
+  const statusFilter = document.getElementById('filter-status').value;
+
+  let rows = allSubmissions;
+  if (search) rows = rows.filter(r => (r.proposer_name || '').toLowerCase().includes(search));
+  if (statusFilter) rows = rows.filter(r => r.status === statusFilter);
+
+  document.getElementById('submission-count').textContent =
+    rows.length === allSubmissions.length
+      ? `${rows.length} submissions`
+      : `${rows.length} of ${allSubmissions.length} submissions`;
+
+  const tbody = document.getElementById('submissions-tbody');
+  if (rows.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state">
+      <div>No submissions match the filter.</div>
+    </div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = rows.map(r => {
+    const products = (r.products || []).map(p => `<span class="product-pill">${escapeHtml(productLabel(p))}</span>`).join('');
+    const aiCell = r.ai_analyzed_at
+      ? `<span style="color: var(--success); font-size: 11px;">● Analyzed</span>`
+      : `<span style="color: var(--muted); font-size: 11px;">—</span>`;
+    return `<tr data-id="${r.id}">
+      <td><span class="mono" style="font-size: 12px;">${escapeHtml(fmtDateOnly(r.created_at))}</span></td>
+      <td><strong>${escapeHtml(r.proposer_name || '(no name)')}</strong></td>
+      <td>${products || '<span style="color: var(--muted); font-size: 11px;">—</span>'}</td>
+      <td><span class="mono" style="font-size: 11px; text-transform: uppercase; color: var(--muted);">${escapeHtml(r.language || '—')}</span></td>
+      <td><span class="status-badge ${r.status}">${escapeHtml(statusLabel(r.status))}</span></td>
+      <td>${aiCell}</td>
+    </tr>`;
+  }).join('');
+
+  tbody.querySelectorAll('tr').forEach(tr => {
+    tr.addEventListener('click', () => openDetail(tr.dataset.id));
+  });
+}
+
+function productLabel(code) {
+  return {
+    auto: 'Auto', property: 'Property', cgl: 'CGL', car: 'CAR',
+    dno: 'D&O', pi: 'PI', crime: 'Crime', cyber: 'Cyber'
+  }[code] || code;
+}
+function statusLabel(s) {
+  return {
+    new: 'New', in_review: 'In review', quoted: 'Quoted',
+    bound: 'Bound', declined: 'Declined', withdrawn: 'Withdrawn'
+  }[s] || s;
+}
+
+document.getElementById('filter-search').addEventListener('input', renderSubmissions);
+document.getElementById('filter-status').addEventListener('change', renderSubmissions);
+document.getElementById('btn-refresh').addEventListener('click', loadSubmissions);
+
+// ============================================================
+// DETAIL VIEW
+// ============================================================
+async function openDetail(id) {
+  show('view-detail');
+  document.getElementById('detail-proposer').textContent = 'Loading…';
+  document.getElementById('detail-fields').innerHTML = '<em style="color: var(--muted);">Loading full submission…</em>';
+  document.getElementById('ai-analysis-content').innerHTML = '<div class="ai-placeholder"><span class="spinner"></span> Loading…</div>';
+  document.getElementById('internal-notes').value = '';
+
+  const { data, error } = await sb
+    .from('submissions')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error || !data) {
+    document.getElementById('detail-proposer').textContent = 'Error loading';
+    document.getElementById('detail-fields').innerHTML = `<div style="color: var(--error);">Could not load submission: ${escapeHtml(error?.message || 'unknown error')}</div>`;
+    return;
+  }
+
+  currentSubmission = data;
+  renderDetail(data);
+}
+
+function renderDetail(s) {
+  document.getElementById('detail-proposer').textContent = s.proposer_name || '(no proposer name)';
+  document.getElementById('detail-date').textContent = fmtDate(s.created_at);
+  document.getElementById('detail-id').textContent = s.id;
+  document.getElementById('detail-lang').textContent = (s.language || '—').toUpperCase();
+  document.getElementById('detail-products-meta').innerHTML =
+    '<strong>Products:</strong> ' + (s.products || []).map(p => `<span class="product-pill">${escapeHtml(productLabel(p))}</span>`).join('') || '<span style="color: var(--muted);">—</span>';
+
+  document.getElementById('detail-status-select').value = s.status || 'new';
+  document.getElementById('internal-notes').value = s.internal_notes || '';
+
+  // Render structured fields from payload.fields
+  const fields = s.payload?.fields || {};
+  document.getElementById('detail-fields').innerHTML = renderFields(fields, s.products || []);
+
+  // AI analysis
+  if (s.ai_analysis) {
+    renderAIAnalysis(s.ai_analysis, s.ai_analyzed_at);
+  } else {
+    document.getElementById('ai-analysis-content').innerHTML = `
+      <div class="ai-placeholder">
+        Click <strong>Analyze with AI</strong> above to generate an underwriting analysis powered by Claude.
+      </div>`;
+  }
+}
+
+function renderFields(fields, products) {
+  // Group fields by section prefix
+  const sections = {
+    'General Information': [],
+    'Auto': [],
+    'Property': [],
+    'CGL': [],
+    'CAR': [],
+    'D&O': [],
+    'PI': [],
+    'Crime': [],
+    'Cyber': [],
+    'Other': []
+  };
+
+  // Heuristic grouping by field name prefix
+  for (const [k, v] of Object.entries(fields)) {
+    if (v == null || v === '' || v === false) continue;
+    let section = 'Other';
+    if (k.startsWith('proposer_') || k.startsWith('annual_') || k.startsWith('contact_') || k.startsWith('nature_') || k.startsWith('geo_') || k.startsWith('reg_') || k.includes('beneficiary') || k.includes('prev_') || k.includes('loss_') || k.includes('audit_') || k.startsWith('emp_') || k.startsWith('industry')) {
+      section = 'General Information';
+    } else if (k.startsWith('vs_') || k.startsWith('auto_') || k.startsWith('vehicle')) {
+      section = 'Auto';
+    } else if (k.startsWith('prop_') || k.startsWith('property')) {
+      section = 'Property';
+    } else if (k.startsWith('cgl_')) {
+      section = 'CGL';
+    } else if (k.startsWith('car_')) {
+      section = 'CAR';
+    } else if (k.startsWith('dno_') || k.startsWith('do_')) {
+      section = 'D&O';
+    } else if (k.startsWith('pi_')) {
+      section = 'PI';
+    } else if (k.startsWith('crime_')) {
+      section = 'Crime';
+    } else if (k.startsWith('cyber_')) {
+      section = 'Cyber';
+    } else if (k.startsWith('signed_') || k.startsWith('declaration') || k === 'signed_name' || k === 'signed_title' || k === 'signed_place' || k === 'signed_date') {
+      section = 'General Information';
+    }
+    sections[section].push([k, v]);
+  }
+
+  // Render only sections that have data
+  let html = '';
+  for (const [name, items] of Object.entries(sections)) {
+    if (items.length === 0) continue;
+    html += `<h4>${escapeHtml(name)} <span style="color: var(--muted); font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 11px;">(${items.length} fields)</span></h4>`;
+    html += items.map(([k, v]) => {
+      const label = humanizeFieldName(k);
+      const val = formatFieldValue(v);
+      return `<div class="field-display">
+        <div class="label" title="${escapeHtml(k)}">${escapeHtml(label)}</div>
+        <div class="value ${val ? '' : 'empty'}">${val ? escapeHtml(val) : '(empty)'}</div>
+      </div>`;
+    }).join('');
+  }
+
+  if (!html) html = '<em style="color: var(--muted);">No data captured.</em>';
+  return html;
+}
+
+function humanizeFieldName(k) {
+  // proposer_name → Proposer Name
+  return k.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function formatFieldValue(v) {
+  if (v === true) return 'Yes';
+  if (v === false) return 'No';
+  if (v == null) return '';
+  return String(v);
+}
+
+function renderAIAnalysis(analysis, analyzedAt) {
+  const html = `
+    <div style="font-size: 11px; color: var(--muted); margin-bottom: 8px;">
+      Generated ${fmtDate(analyzedAt)} · model: ${escapeHtml(analysis.model || '—')}
+    </div>
+    ${analysis.summary ? `<h4 style="color: var(--mig); font-size: 11px; margin-top: 8px;">Risk Summary</h4><div class="ai-analysis-content">${escapeHtml(analysis.summary)}</div>` : ''}
+    ${analysis.concerns ? `<h4 style="color: var(--mig); font-size: 11px; margin-top: 12px;">Key Concerns</h4><div class="ai-analysis-content">${escapeHtml(analysis.concerns)}</div>` : ''}
+    ${analysis.recommended_loading ? `<h4 style="color: var(--mig); font-size: 11px; margin-top: 12px;">Recommended Loading</h4><div class="ai-analysis-content">${escapeHtml(analysis.recommended_loading)}</div>` : ''}
+    ${analysis.opinion ? `<h4 style="color: var(--mig); font-size: 11px; margin-top: 12px;">Bind / Decline Opinion</h4><div class="ai-analysis-content">${escapeHtml(analysis.opinion)}</div>` : ''}
+    <div style="font-size: 11px; color: var(--muted); margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); font-style: italic;">
+      AI-generated decision support. A human underwriter must verify and sign any binder.
+    </div>
+  `;
+  document.getElementById('ai-analysis-content').innerHTML = html;
+}
+
+document.getElementById('link-back-to-list').addEventListener('click', () => {
+  show('view-list');
+  currentSubmission = null;
+});
+
+// Status change
+document.getElementById('detail-status-select').addEventListener('change', async (e) => {
+  if (!currentSubmission) return;
+  const newStatus = e.target.value;
+  const { error } = await sb
+    .from('submissions')
+    .update({ status: newStatus })
+    .eq('id', currentSubmission.id);
+  if (error) { toast('Could not save status: ' + error.message, 'error'); e.target.value = currentSubmission.status; }
+  else { currentSubmission.status = newStatus; toast('Status updated to ' + statusLabel(newStatus)); }
+});
+
+// Save notes
+document.getElementById('btn-save-notes').addEventListener('click', async () => {
+  if (!currentSubmission) return;
+  const notes = document.getElementById('internal-notes').value;
+  const btn = document.getElementById('btn-save-notes');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Saving…';
+  const { error } = await sb
+    .from('submissions')
+    .update({ internal_notes: notes })
+    .eq('id', currentSubmission.id);
+  btn.disabled = false; btn.textContent = 'Save notes';
+  if (error) toast('Could not save notes: ' + error.message, 'error');
+  else { currentSubmission.internal_notes = notes; toast('Notes saved'); }
+});
+
+// Download PDF — recreate from stored base64 in payload
+document.getElementById('btn-download-pdf').addEventListener('click', () => {
+  if (!currentSubmission) return;
+  const b64 = currentSubmission.payload?.pdfBase64;
+  if (!b64) { toast('No PDF was stored with this submission.', 'error'); return; }
+  try {
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const blob = new Blob([bytes], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = currentSubmission.payload?.pdfFilename || `MIG_Proposal_${currentSubmission.id.slice(0,8)}.pdf`;
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 200);
+  } catch (e) {
+    toast('Could not decode PDF: ' + e.message, 'error');
+  }
+});
+
+// Analyze with AI — Phase 4 will wire this up via an Edge Function
+document.getElementById('btn-analyze-ai').addEventListener('click', async () => {
+  if (!currentSubmission) return;
+  const btn = document.getElementById('btn-analyze-ai');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Analyzing…';
+
+  document.getElementById('ai-analysis-content').innerHTML = '<div class="ai-placeholder"><span class="spinner"></span> Running underwriting analysis…<br><span style="font-size: 11px;">Usually takes 10–25 seconds.</span></div>';
+
+  try {
+    // Call the Supabase Edge Function (Phase 4 deploys this)
+    const { data, error } = await sb.functions.invoke('analyze-submission', {
+      body: { submission_id: currentSubmission.id }
+    });
+    if (error) throw error;
+    if (data && data.analysis) {
+      currentSubmission.ai_analysis = data.analysis;
+      currentSubmission.ai_analyzed_at = new Date().toISOString();
+      renderAIAnalysis(data.analysis, currentSubmission.ai_analyzed_at);
+      toast('Analysis complete');
+    } else if (data && data.error) {
+      throw new Error(data.error);
+    } else {
+      throw new Error('Edge function returned no analysis');
+    }
+  } catch (e) {
+    document.getElementById('ai-analysis-content').innerHTML = `
+      <div class="ai-placeholder" style="color: var(--error);">
+        <strong>Could not run analysis</strong><br>
+        ${escapeHtml(e.message)}
+        <br><span style="font-size: 11px; color: var(--muted);">If you haven't deployed the <code>analyze-submission</code> Edge Function yet, this is expected. See Phase 4 instructions.</span>
+      </div>`;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Analyze with AI';
+  }
+});
+</script>
+</body>
+</html>
