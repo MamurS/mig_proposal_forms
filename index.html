@@ -2069,7 +2069,7 @@
         <div>
           <div class="field-label mb-2" data-i18n="fl_signature_142">Signature</div>
           <canvas id="sig-canvas" class="sig-canvas"></canvas>
-          <div class="flex justify-between mt-2 text-xs">
+          <div class="flex justify-between mt-2 text-xs no-pdf">
             <span style="color: var(--muted);" data-i18n="hint_draw_with_mouse_or_touch_or_le_484">Draw with mouse or touch — or leave blank to sign by hand on the printed PDF.</span>
             <button type="button" id="sig-clear" class="text-xs underline" style="color: var(--mig);" data-i18n="btn_clear_486">Clear</button>
           </div>
@@ -2079,7 +2079,7 @@
           <div class="stamp-box" id="stamp-preview">
             <span class="text-xs" style="color: var(--muted);" data-i18n="hint_upload_png">Upload a transparent PNG / JPG</span>
           </div>
-          <div class="flex justify-between mt-2 text-xs">
+          <div class="flex justify-between mt-2 text-xs no-pdf">
             <label class="underline cursor-pointer" style="color: var(--mig);"><span data-i18n="lbl_upload_stamp_image_490">Upload stamp image</span><input type="file" id="stamp-input" accept="image/png,image/jpeg" class="hidden" style="display:none;" />
             </label>
             <button type="button" id="stamp-clear" class="text-xs underline" style="color: var(--mig);" data-i18n="btn_clear_487">Clear</button>
@@ -3733,6 +3733,10 @@ async function generatePDF() {
   // Helper: clone a section from the live form and "flatten" inputs into static text
   function cloneAndFlatten(sourceSection) {
     const clone = sourceSection.cloneNode(true);
+    // Strip elements marked as no-pdf (UI controls like Clear buttons, file
+    // upload labels, and the instruction hint under the signature pad —
+    // they're meaningful in the live form but dead text in the printed PDF).
+    clone.querySelectorAll('.no-pdf').forEach(el => el.remove());
     // Strip elements that shouldn't appear in PDF
     clone.querySelectorAll('.hidden-section').forEach(el => {
       // If it's deliberately hidden, drop it
