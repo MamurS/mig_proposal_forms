@@ -75,6 +75,7 @@
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
   :root {
     --ink: #0b1424;
@@ -3247,9 +3248,23 @@ window.__MIG_INLINE_TRANSLATIONS = {
 const LOGO_B64 = "/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCABtAG0DASIAAhEBAxEB/8QAHAAAAgIDAQEAAAAAAAAAAAAABgcEBQIDCAAB/8QAPRAAAQMDAQQHBgUDAgcAAAAAAQIDBAAFEQYHEiExExRBUWFxkSIygaGxwQgjQmJyFlLhFdEXM3OSsvDx/8QAHAEAAwADAQEBAAAAAAAAAAAABAUGAgMHAQAI/8QALxEAAgEEAQMCBQMEAwAAAAAAAQIDAAQFESEGEjFBURMUYXGBIjKxQlLh8aHB8P/aAAwDAQACEQMRAD8A7JcWltBWo4SBk1XOXqEnkoqPcKzv6ym3LweJoPpddXTRN2rWp3K0UG/xP7HPSpsCa3MaLjaSEg440FUUWbDdlWtPPdKvlWFtdSSMd14jk1Ij3i3PuFtEpAUDjCuH1qck5GQQRSidKg8s7xzvHjVvY9Qy4DiUOqLrGeKVHl5UPDlwW7ZB+awWfZ0aY55V8z41phymZcZL7Ct5ChmqTWGpGLFE3U7rkpY9hHd4mmNzewWsJnkbSijIkaVu1PNXcuVHitlyS+2ygcytQArGLNjS4nWorgeawcFPbSNu12n3N8vS5C3DnIGeA8hR5sinFcaVAWonoyFp8jwNSuO6tF/e/LqvapB0T536Uwmx3woviE7NE6r7HScdEusk32ITxQ4PSqO6NBqc4gDhvcKi0NJn76KQoSODrxW9bKFlB5ouZucR1W6HMHxFTc54gigZBwsHuNGkRXSRWl96QafYbJy3vcsg5HtQN3bLDoj1qu1ScQE/z+1C9FmoGHZEVDbSCo7/AGeVVrFgeUMurSnwzRN3C7yntFLXUk8VS0UaeUHbWts+XyrWiwRx7zpPwqdboLUIKDThIVzzWVtbuj7bxXiIQeaV8ttTUlbauaTg+fbWr58KObxpUTJjkliQEFZ3ikjt7ap/6XuDMxpKmw4yVgKUk8hSeawmRv28bodomBq90NDfj24uvLUEu8UIPIDvpdbQGJLGp5XWHFObyt5Clf2nkB5cvhRrrC8qtepNOWthRQ249vOAdoxugH1NVW2GMEyYUsDipCkH4HI+poDqaNJMc0aHmIjf5qgxamGRfrS/ow2UOlGpFNjk4yoH4YP2oPos2WAnVKMDk0uobBMRkYSP7hTm75gbftRpqRITPJ7wDVYKK59sRLkB1xZAAxgCtQtttb4LWM+K6vL7CzS3DvwATxs0shvEWMDyaGs0Y2zJt7P8BUJVstzgwhzj+1QqyYb6JlDSTkJGM0xwWNltJWZiCCPSh724WVQAK03WS5DtsiU210qmkFW534pYXPW16kqUllxMZHchPH1NNhaUqQUkAgjBFJvWVlctF0WAk9XcO80rHDHd51uzzXCIrxnS+uqTXJYDamoL94uj5y7PkL83Ca1puE5JymW+D4LNRa9UkZpCdljQPcT61cRNTXuMQUXB5QHYtW8PnRdpDWUu43Ji3zGWyp0kBxPDGAT9qXNTLHMMC7RpYOOjWCfEZoyzyE8Ei7c6rZHKwI5oj2lNOHaPYDx3VbgT5hZz9RVptiI6pBSee+r7UQ3a0MXm4We6oWk9UcLg/ckjl6gUHbW5PS3eNDT7RabyQO8//BRWfi+Xs7lz4kZdVUWbiSWPXpugbnR1shjlVxlyseyhvcHmTn7UOQNNXuagLjwHSnsKvZHqedMvQ1neslmWh9vEhaipSQQT4CpnpbFzvepM6EKvO9Udf3CCIqDyar9TXKT/AKi6y0+pLaTjANUinHCSStRPnUi5NyRKW4+0tBUoniKijuxSPJXU89y7OT5PH+KNt40WNQuqk2xLr85ppKlZUoDNMhAwkDuFDGj7YpGZryME+4D9aKa6T0dj3t7RpZPLnf49KRZOYPL2r6V8PDnUO726JdIao0psLSeR7UnvFTCOeRQptG1rb9HWoPyPzpboIYYB4qPee4VZC3Nwfha3v0pPcTRwxl5DoCqhjZ2ozHOmnARwfZ3U5UR9qsVWDR1rGJslneTz6aRg+gxSh05tovsS8Ov3dCJkN5eeiSAktDuSf96YEOTsy104kpW0xOeI/L3yy4pR8BwUfWh7rpg2S9yRBvvyKU2eVsrriMjfsavMbPlYT1i3eH52PvWTmkdNXBBXb5ISeYLTwWPvVcdlmko6+kfelpR3LeCR64rVM1Rs20DGc6vLil/d3S3HX0zy/AnJx8SKCgxzTt2vCuvp5/imEjxRDcugKMdNW2TaoRiPyhIbSfyju4IHdWDOnoAuz9zfSZEhxWRvjggdwFBWyHXV313fbtOMZqLZYqUNMN4y4XCc5KvIcuXEV7bFK1Rp5bOo7Jc3RFTht+MoBSEnsVjxoi9s4rZFWVdhPzqmODAyTBIH7e7YBPG/91cax1Hqq2uqas2lHJaE8A8pwYPkkcaEGNdbT+nG/pJC0Z93q60n13qqLftxuzYAm2qK8QOJbUUZ+HGrBW3Qbvs2I73i9w+lBteQt4kI+mqr06fvoR2G2Vvr3f5ph6Yud2vjBavumV2/KffU4lST8OYqYzpyI3N6bJU3zDZ76TF222agkIUiBDiw88lHK1D14UO2PaPqe334XORcXpgXwdZdVlCk9wHIUHdHHXDoZU7iPXX/ALdZJ0tkirsNJx+3e66lSEpSEpwABwFZZHbVHo7Udv1PZm7jAXkHg42feQrtBq7IP/oqijKsoK+KjZonicxuNEea1S5DcaO4+6oJbbQVrUeQAGTXIW0HUT+p9USrm6tRbKihhJPuoB4CuodoMG6XLR1wt9nCDMkN9GneXu+ySN7j34zXOMjZdrhpwoNkdXg+8laVD5GqPBmGPukdgD6bqL6nFzL2RRqSvngHzQXTG/D5aU3HXrUlxIUiG2Xhkfq5D61GtuyPW8xYCrYiMnPvPvJAHpk/KnJsh2fP6LTKkTJrUmTJSlJDaTuoAOeZ5+lMsjkIVgZUbZPtSfD4m5a6R5EIUHyeKUH4pb6qbrSPZULPQwGAVJB4b6+P0xSdzkZ7aJ9q803DaPf5RVvAzXEJP7UndHyFDHZWFrGI4lWl2RuDPdO/ua6k2AtJsuxaRdCN1ThfkE/xGB/41ZbOLkrXmx1aJ6y4+UOxnFniSpPFJ88FNQNn56T8N60tcT1CQOHflVR/wqtqY2bTnpGEsruDigVHAwG0An5Uguow6Sk++qusXPJBNarGf6d/ng0jXE7i1JIOUnBHdWNdD3vZJpa9EybXMXEW5lWWlhxHHw/zQhP2H31tRMK5wpCf3hSD9D9ahJMdOv7V39q/QNt1VjZV/W3afqDSor1Mb/gzrHOAmB59Y/xVhA2IX9xQ65cYMdPbubyz9B9awFjcHgIaLfqHGIN/GH81SbFNSuWLVzMZbmIc5QZcBPAH9J9eFdOZ7u2lfYNkmmrItEy5y3JbrZCsuKCEAjw+HfTMYcaeZQ60sLbUMpUOIIp9joZYoyslc26nvbW+uBNbA+NE60Cf9UL7Tr9O09Z48y39H0inwghad4EYJoJZ2s3QIAet0NxXeN5P3ok25NlWlo6xx3ZQz/2qpKVWWFtFLDths7rneQupop9K2hqmDM2rXxxJTGiw2M9u4VEepxRjsmvdxvtvnSLlILziXQE8AAkYPICkbTV2CyAE3KLnnuLA8sis7y2jSElF0a12N1LJOA7brmLVm9/VN1KufXHs+e+arRzoo2swVW/aRfopSUjrri0/xUd4fI0LU0iO0BHsKgrhSsrg+5rp38M05q77M7hYnF5XHecbIPYhxOR896ra4x2tn+yZmwJcQZTyVIJT+pSlEqI8gcUGfhT09emJM3UDu8xa32uhShQ/5ygQd4eAwRnxq422wbsL03OfUXIKk7jG6PZb8D4+NRuclaEOI+Qf+K690PaJePC0/BUcb9QPGvvQPAulxgqCoc19g/sWRTN2RauutzvbltukxcgLaKmivmCOYz5fSlLRLsweUxrm2qSSMu7p+II+9SNnM6Sro8V13MWMU9rISo3okHXsKZettTXmzXtUZhbXRKSFIygZxQ3I1pqB4Y66UfxSB9KutsKEpnw3APaU0Qfgf80B0XeTSrKVDHVIMXaW8tsjlBv7VKm3GdMUVSpTrp/comnLoxZc0tb1EY/KAwfA4pIDicd9PTSqC3py3pUMHoE5HwrfiiWkYn2oTqMKkKKo1z/1VTtTgPXDR0huO0px1C0rSlIyeBwfkTSEdjSGVFDrDiFDsKSDXUuOFR5EaM9wejtO5/uQDVVa5D5dewjYrnt5jvmX7w2jXLpBB4ijLZFckwNWtNLOESUlo57+z50412CxuHKrRDJ/6QrJixWZhxLrNriIWk5Cg0Mg0RLlI5IypU80LFiZIpA4YcUgfxJaLukvW8O5We2ypip7QQtLDRUQtPDjgcOGOJ7qy2b7B5rzzM/V6hHYThXUm1ArX4KUOAHlXRoArx7eFDjIS/CEY41XhwFs1yZ352fHpWqDEjQorUWIwhlhlAQ2hAwEgcgBWu62+Jc4LkOayl5lwYKVCpQ5Zr36aAYdw/VT1CYyCvGqSuq9l1xiOrfsh62xxPRKICx/vVTs6s1xZ13AblQ32C2srUHEFJ4Ant+FP/tHDsr26kkKIGR20sOMi+IHXjmqVep7o27QyANsa360str7oXdIjIzlDWT8SaBgCTgAn4U/JNst8pzpZENl1fLK0AmtabLaUkFNtjA9/RisJ8c80hfdfWWdjtoFi7CdUkIMR+RJbaQ0sqUoAYFPdhoMxmmhwCEBPoK+sxo7XBphtGP7UgVuHCirO0+W3zvdL8nlfnSv6dAbr//Z";
 
 // ============================================================
-// CONFIGURATION
+// SUPABASE CONFIGURATION
 // ============================================================
-const WEBHOOK_URL = "https://example.com/mig-proposal-webhook"; // <-- replace with your real endpoint
+// IMPORTANT: replace BOTH placeholders below with your actual Supabase project values.
+// The publishable key is safe to expose in client-side code (it's gated by RLS policies).
+// The secret key must NEVER appear here — it's used only inside Edge Functions.
+const SUPABASE_URL = "https://iyazmdzqyogyrvexpasf.supabase.co";  // <-- paste your Project URL
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_WzcB0OuI5sYof_abgUsNRQ_U_iRoE2b";  // <-- paste your publishable key
+
+// Initialize client (only if config has been filled in)
+let supabaseClient = null;
+if (SUPABASE_URL && !SUPABASE_URL.includes('YOUR-PROJECT') && SUPABASE_PUBLISHABLE_KEY && !SUPABASE_PUBLISHABLE_KEY.includes('REPLACE_ME')) {
+  if (typeof supabase !== 'undefined' && supabase.createClient) {
+    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+      auth: { persistSession: false }  // Form doesn't need auth state
+    });
+  }
+}
 const MIG_BLUE = [0.122, 0.220, 0.392]; // #1F3864
 
 // ============================================================
@@ -3984,16 +3999,26 @@ document.getElementById('btn-submit').addEventListener('click', async () => {
     document.body.appendChild(a); a.click();
     setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 100);
 
-    if (WEBHOOK_URL && WEBHOOK_URL.startsWith('http')) {
+    if (supabaseClient) {
       try {
-        const res = await fetch(WEBHOOK_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        if (res.ok) toast(T('toast_submitted_ok', 'Proposal submitted and PDF downloaded.'), 'success');
-        else toast(T('toast_webhook_status', 'Webhook responded') + ' ' + res.status + ' — ' + T('toast_pdf_saved_locally', 'PDF saved locally.'), 'error');
+        // Pull a handful of high-value fields up to dedicated columns for the list view.
+        // The rest stays in the payload JSON for the detail view.
+        const insertRow = {
+          proposer_name: data.proposer_name || null,
+          products: data._products || [],
+          language: currentLang,
+          user_agent: navigator.userAgent.slice(0, 200),
+          payload: payload  // includes fields, pdfBase64, pdfFilename
+        };
+        const { error } = await supabaseClient.from('submissions').insert(insertRow);
+        if (error) {
+          console.error('Supabase insert error:', error);
+          toast(T('toast_submit_failed', 'Submit failed') + ': ' + (error.message || 'database error') + ' — ' + T('toast_pdf_saved_locally', 'PDF saved locally.'), 'error');
+        } else {
+          toast(T('toast_submitted_ok', 'Proposal submitted and PDF downloaded.'), 'success');
+        }
       } catch (e) {
+        console.error('Submit exception:', e);
         toast(T('toast_webhook_unreachable', 'Webhook unreachable — PDF saved locally instead.'), 'error');
       }
     } else {
