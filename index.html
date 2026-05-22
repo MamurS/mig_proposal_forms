@@ -3253,8 +3253,8 @@ const LOGO_B64 = "/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAA
 // IMPORTANT: replace BOTH placeholders below with your actual Supabase project values.
 // The publishable key is safe to expose in client-side code (it's gated by RLS policies).
 // The secret key must NEVER appear here — it's used only inside Edge Functions.
-const SUPABASE_URL = "https://iyazmdzqyogyrvexpasf.supabase.co";  // <-- paste your Project URL
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_WzcB0OuI5sYof_abgUsNRQ_U_iRoE2b";  // <-- paste your publishable key
+const SUPABASE_URL = "https://YOUR-PROJECT.supabase.co";  // <-- paste your Project URL
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_REPLACE_ME";  // <-- paste your publishable key
 
 // Initialize client (only if config has been filled in)
 let supabaseClient = null;
@@ -3891,42 +3891,234 @@ async function generatePDF() {
     const imgW = pdfW;
     const imgH = (canvas.height * imgW) / canvas.width;
 
-    // If content taller than one page, slice it into per-page canvases.
-    // (We avoid the "single tall JPEG, shift it on each page" trick because
-    // some PDF viewers — notably Edge's bundled reader — refuse to render
-    // images with extreme aspect ratios. Per-page JPEGs are universally safe.)
-    if (imgH <= pdfH) {
-      pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, imgW, imgH);
+    // === SMART PAGINATION WITH ATOMIC UNITS ===
+    //
+    // Two element classes participate in pagination:
+    //
+    //   1. ATOMIC UNITS — things that must not split if at all possible.
+    //      A table whose top half is on page 3 and bottom on page 4 is
+    //      hard to read; a question whose Yes/No appears on a different
+    //      page from its text is worse. We collect these elements'
+    //      [start, end] Y-ranges. When the algorithm considers a page,
+    //      it forbids ending the page mid-atom.
+    //
+    //   2. BREAK CANDIDATES — Y-positions where it's safe to end a page.
+    //      Typically the *start* of a section, sub-title, or stand-alone
+    //      question block.
+    //
+    // Algorithm: greedy fit, page by page.
+    //   - From current yStart, find the LATEST break-point that fits in
+    //     usable page height AND doesn't fall inside any atomic unit.
+    //   - If no such break-point exists (e.g. a giant atom fills the
+    //     whole page), allow ending exactly at the atom's start or end
+    //     boundary, whichever fits.
+    //   - If even that's not possible (atom larger than a page),
+    //     fall back to hard cut at usablePageHeightPx.
+
+    const TOP_MARGIN_MM = 15;
+    const BOT_MARGIN_MM = 15;
+    const USABLE_PAGE_MM = pdfH - TOP_MARGIN_MM - BOT_MARGIN_MM;
+
+    if (imgH <= USABLE_PAGE_MM) {
+      // Whole thing fits on one page — center it with top margin.
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, TOP_MARGIN_MM, imgW, imgH);
     } else {
-      // Pixels-per-mm of the source canvas
       const pxPerMm = canvas.width / pdfW;
-      const pageHeightPx = Math.floor(pdfH * pxPerMm);
+      const usablePageHeightPx = Math.floor(USABLE_PAGE_MM * pxPerMm);
+      const renderScale = 2;  // matches html2canvas scale: 2
+      const printRootTop = printRoot.getBoundingClientRect().top;
+
+      // --- Helper: convert DOM Y position to canvas pixels ---
+      const domToCanvasY = (rect) => (rect.top - printRootTop) * renderScale;
+      const domToCanvasYBottom = (rect) => (rect.bottom - printRootTop) * renderScale;
+
+      // --- Collect ATOMIC UNITS (must not split) ---
+      // .grid-table  = any table on the form
+      // .qrow        = question row (text + Yes/No together)
+      // .qtext       = question line on its own (text + the controls below it)
+      // We also collect the final signature/stamp block as one atom (it's the
+      // sigStampBlock we appended to printRoot).
+      const atoms = [];
+      const atomSelectors = ['.grid-table', '.qrow', '.qtext'];
+      printRoot.querySelectorAll(atomSelectors.join(',')).forEach(el => {
+        const r = el.getBoundingClientRect();
+        const start = domToCanvasY(r);
+        const end = domToCanvasYBottom(r);
+        if (end > start && start >= 0) atoms.push({ start, end });
+      });
+
+      // SECTION-HEADER ATOMS: prevent orphaning a section title at the
+      // bottom of a page. A section header consists of the small "SECTION X"
+      // eyebrow followed by the main <h2> title and optional subtitle <p>.
+      // We extend the atom past the header to the first real content element
+      // so the title doesn't sit alone.
+      printRoot.querySelectorAll('.section-num').forEach(eyebrow => {
+        const parentSection = eyebrow.closest('section') || eyebrow.parentElement;
+        if (!parentSection) return;
+        // Find the first content element after the eyebrow. We accept many
+        // content kinds because section structure varies (some sections start
+        // with h3+qrow, others with paragraphs + field labels).
+        const followingMarkers = parentSection.querySelectorAll(
+          'h3, .qrow, .qtext, .grid-table, .field-label, p, .grid'
+        );
+        const eyebrowTop = eyebrow.getBoundingClientRect().top;
+        let firstContentY = null;
+        for (const m of followingMarkers) {
+          const t = m.getBoundingClientRect().top;
+          if (t > eyebrowTop) { firstContentY = t; break; }
+        }
+        if (firstContentY === null) return;
+        const startCanvas = domToCanvasY(eyebrow.getBoundingClientRect());
+        const endCanvas = (firstContentY - printRootTop) * renderScale;
+        if (endCanvas > startCanvas && startCanvas >= 0) {
+          atoms.push({ start: startCanvas, end: endCanvas });
+        }
+      });
+
+      // SUB-SECTION HEADER ATOMS: same idea for <h3> sub-titles within sections.
+      // An h3 like "A.5 Consolidated Loss History" shouldn't sit alone at page
+      // bottom either. Extend atom from h3 start to first following content.
+      printRoot.querySelectorAll('h3').forEach(h3 => {
+        const parent = h3.parentElement;
+        if (!parent) return;
+        // Look for the first qrow/qtext/grid-table or any block content that
+        // comes immediately after the h3
+        let next = h3.nextElementSibling;
+        let firstAtomEl = null;
+        while (next) {
+          if (next.matches && next.matches('.qrow, .qtext, .grid-table, .grid, .field-label, p, label')) {
+            firstAtomEl = next;
+            break;
+          }
+          // Also check descendants
+          const innerHit = next.querySelector && next.querySelector('.qrow, .qtext, .grid-table, .grid, .field-label');
+          if (innerHit) { firstAtomEl = innerHit; break; }
+          next = next.nextElementSibling;
+        }
+        if (!firstAtomEl) return;
+        const startCanvas = domToCanvasY(h3.getBoundingClientRect());
+        const endCanvas = domToCanvasY(firstAtomEl.getBoundingClientRect());
+        if (endCanvas > startCanvas && startCanvas >= 0) {
+          atoms.push({ start: startCanvas, end: endCanvas });
+        }
+      });
+
+      if (sigStampBlock && sigStampBlock.getBoundingClientRect) {
+        const r = sigStampBlock.getBoundingClientRect();
+        const start = domToCanvasY(r);
+        const end = domToCanvasYBottom(r);
+        if (end > start) atoms.push({ start, end });
+      }
+      // Sort by start
+      atoms.sort((a, b) => a.start - b.start);
+
+      // --- Helper: does Y fall inside an atomic unit? ---
+      // Returns the atom that contains Y, or null. Uses binary-search-friendly
+      // sorted order. "Inside" excludes exact boundaries — ending exactly at
+      // atom.start or atom.end is allowed.
+      const insideAtom = (y) => {
+        for (const a of atoms) {
+          if (a.start < y && y < a.end) return a;
+          if (a.start >= y) break;
+        }
+        return null;
+      };
+
+      // --- Collect BREAK CANDIDATES (safe page-end Y values) ---
+      const breakPoints = new Set();
+      const breakSelectors = [
+        'section',           // section boundaries
+        'h2',                // major section titles
+        'h3',                // sub-section titles
+        '.qrow', '.qtext',   // start of each question
+        '.grid-table',       // start of each table (we'll also add END below)
+      ];
+      printRoot.querySelectorAll(breakSelectors.join(',')).forEach(el => {
+        const r = el.getBoundingClientRect();
+        const top = domToCanvasY(r);
+        if (top > 0 && top < canvas.height) breakPoints.add(Math.round(top));
+        // For tables and atomic units, end-position is also a good break
+        if (el.classList.contains('grid-table') || el.classList.contains('qrow') || el.classList.contains('qtext')) {
+          const bottom = domToCanvasYBottom(r);
+          if (bottom > 0 && bottom < canvas.height) breakPoints.add(Math.round(bottom));
+        }
+      });
+      breakPoints.add(canvas.height);  // fallback: end of content
+      const sortedBreakPoints = [...breakPoints].sort((a, b) => a - b);
+
+      // --- Find safe slice boundaries ---
+      const slices = [];
+      let yStart = 0;
+      const minSliceHeight = usablePageHeightPx * 0.25;
+
+      while (yStart < canvas.height) {
+        const maxEnd = yStart + usablePageHeightPx;
+
+        // Find best break point: latest bp such that
+        //   yStart + minSliceHeight < bp <= maxEnd  AND  bp not inside an atom
+        let chosen = -1;
+        for (const bp of sortedBreakPoints) {
+          if (bp <= yStart + minSliceHeight) continue;
+          if (bp > maxEnd) break;
+          if (insideAtom(bp)) continue;
+          chosen = bp;
+        }
+
+        if (chosen < 0) {
+          // No safe break in range. Two sub-cases:
+          //  a) We're near the end and the rest fits — take all of it
+          if (canvas.height - yStart <= usablePageHeightPx) {
+            chosen = canvas.height;
+          } else {
+            // b) A giant atom blocks every candidate. Last-resort hard cut.
+            // Try to land on atom END just past maxEnd if any atom straddles
+            // the boundary (giving the atom slightly more space than usual).
+            const straddling = atoms.find(a => a.start <= maxEnd && a.end > maxEnd);
+            if (straddling && (straddling.end - yStart) <= usablePageHeightPx * 1.15) {
+              // Allow up to 15% overshoot to keep the atom whole
+              chosen = straddling.end;
+            } else if (straddling && straddling.start > yStart + minSliceHeight) {
+              // Push the atom to next page — end this page just before it
+              chosen = straddling.start;
+            } else {
+              // Truly stuck — hard cut. Atom is bigger than a page or starts
+              // too early to push. Accept the split.
+              chosen = maxEnd;
+            }
+          }
+        }
+
+        if (chosen > canvas.height) chosen = canvas.height;
+        if (chosen <= yStart) chosen = Math.min(canvas.height, yStart + usablePageHeightPx);
+        slices.push([yStart, chosen]);
+        yStart = chosen;
+      }
+
+      // --- Render each slice as its own page ---
       const sliceCanvas = document.createElement('canvas');
       sliceCanvas.width = canvas.width;
-      sliceCanvas.height = pageHeightPx;
       const sliceCtx = sliceCanvas.getContext('2d');
-
-      let yPx = 0;
-      let isFirst = true;
-      while (yPx < canvas.height) {
-        // Height of this slice (may be shorter for the last page)
-        const slicePx = Math.min(pageHeightPx, canvas.height - yPx);
-        // Resize the slice canvas to the actual slice height (avoids whitespace
-        // padding on the last page)
-        if (slicePx !== sliceCanvas.height) sliceCanvas.height = slicePx;
-        // White background under the slice (in case source has transparency)
+      for (let i = 0; i < slices.length; i++) {
+        const [s, e] = slices[i];
+        const slicePx = e - s;
+        sliceCanvas.height = slicePx;
         sliceCtx.fillStyle = '#ffffff';
         sliceCtx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
         sliceCtx.drawImage(
           canvas,
-          0, yPx, canvas.width, slicePx,   // source rect
-          0, 0,  canvas.width, slicePx     // dest rect
+          0, s, canvas.width, slicePx,
+          0, 0, canvas.width, slicePx
         );
-        const sliceImgH = (slicePx / pxPerMm); // mm
-        if (!isFirst) pdf.addPage();
-        pdf.addImage(sliceCanvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, imgW, sliceImgH);
-        isFirst = false;
-        yPx += slicePx;
+        const sliceImgH = slicePx / pxPerMm;
+        if (i > 0) pdf.addPage();
+        pdf.addImage(
+          sliceCanvas.toDataURL('image/jpeg', 0.92),
+          'JPEG',
+          0,                       // X
+          TOP_MARGIN_MM,           // Y (top margin)
+          imgW,                    // width
+          sliceImgH                // height
+        );
       }
     }
 
