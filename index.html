@@ -3423,26 +3423,51 @@ if (typeof window.TRANSLATIONS === 'object' && window.TRANSLATIONS) {
   }
 }
 let currentLang = 'en';
+// Capture the original (English) text of every data-i18n element on first run.
+// This becomes our source-of-truth fallback so that switching back to English
+// always restores the original markup, even if a key has no en: entry in the
+// dictionary. Same for placeholders and title attributes.
+const ORIGINAL_EN = { text: {}, placeholder: {}, title: {} };
+function captureOriginals() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (!(key in ORIGINAL_EN.text)) ORIGINAL_EN.text[key] = el.textContent;
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    if (!(key in ORIGINAL_EN.placeholder)) ORIGINAL_EN.placeholder[key] = el.getAttribute('placeholder') || '';
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => {
+    const key = el.getAttribute('data-i18n-title');
+    if (!(key in ORIGINAL_EN.title)) ORIGINAL_EN.title[key] = el.getAttribute('title') || '';
+  });
+}
+captureOriginals();
+
 function applyLanguage(lang) {
   currentLang = lang;
-  const dict = I18N[lang] || I18N.en;
-  const fallback = I18N.en || {};
+  const dict = I18N[lang] || {};
+  const enDict = I18N.en || {};
+  // Resolution order for a given attribute kind:
+  //   1. Active language (dict[key])
+  //   2. en: block in I18N (enDict[key])  — explicit English overrides
+  //   3. ORIGINAL_EN snapshot              — markup source-of-truth
   // Text content
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
-    const val = dict[key] || fallback[key];
+    const val = dict[key] || enDict[key] || ORIGINAL_EN.text[key];
     if (val !== undefined) el.textContent = val;
   });
   // Placeholders on inputs
   document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
     const key = el.getAttribute('data-i18n-placeholder');
-    const val = dict[key] || fallback[key];
+    const val = dict[key] || enDict[key] || ORIGINAL_EN.placeholder[key];
     if (val !== undefined) el.setAttribute('placeholder', val);
   });
   // Title attributes (e.g. progress dots, abbreviation tooltips)
   document.querySelectorAll('[data-i18n-title]').forEach(el => {
     const key = el.getAttribute('data-i18n-title');
-    const val = dict[key] || fallback[key];
+    const val = dict[key] || enDict[key] || ORIGINAL_EN.title[key];
     if (val !== undefined) el.setAttribute('title', val);
   });
   // Update lang pill state
@@ -3454,9 +3479,9 @@ function applyLanguage(lang) {
 // T() helper — fetch translation by key in current language with English fallback.
 // Used for dynamically-generated text (toasts, button states).
 function T(key, fallbackText) {
-  const dict = I18N[currentLang] || I18N.en || {};
-  const fallback = I18N.en || {};
-  return dict[key] || fallback[key] || fallbackText || key;
+  const dict = I18N[currentLang] || {};
+  const enDict = I18N.en || {};
+  return dict[key] || enDict[key] || ORIGINAL_EN.text[key] || fallbackText || key;
 }
 document.querySelectorAll('.lang-pill').forEach(p => {
   p.addEventListener('click', () => applyLanguage(p.dataset.lang));
@@ -3674,10 +3699,13 @@ async function generatePDF() {
   const header = document.createElement('div');
   header.style.cssText = 'border-bottom: 2px solid #1f3864; padding-bottom: 10px; margin-bottom: 20px;';
   header.innerHTML = `
-    <div style="display:flex; justify-content:space-between; align-items:flex-end;">
-      <div>
-        <div style="font-family:Fraunces,Georgia,serif; font-size:22px; color:#1f3864; font-weight:600;">Mosaic Insurance Group JSC</div>
-        <div style="font-size:10px; color:#6b6f7a; margin-top:2px;">${T('hero_eyebrow', 'UNIFIED COMMERCIAL INSURANCE PROPOSAL')}</div>
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:14px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <img src="data:image/jpeg;base64,${LOGO_B64}" alt="MIG" style="width:48px; height:48px; object-fit:contain; flex-shrink:0;" />
+        <div>
+          <div style="font-family:Fraunces,Georgia,serif; font-size:22px; color:#1f3864; font-weight:600; line-height:1.1;">Mosaic Insurance Group JSC</div>
+          <div style="font-size:10px; color:#6b6f7a; margin-top:3px; letter-spacing:0.08em; text-transform:uppercase;">${T('hero_eyebrow', 'UNIFIED COMMERCIAL INSURANCE PROPOSAL')}</div>
+        </div>
       </div>
       <div style="text-align:right; font-size:10px; color:#6b6f7a;">
         <div>${T('pdf_generated_label', 'Generated')}: ${today}</div>
