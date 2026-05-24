@@ -328,6 +328,14 @@
       <div class="mb-10">
         <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_A_1_proposer_details">A.1 &nbsp;Proposer Details</h3>
         <div class="grid md:grid-cols-2 gap-x-8 gap-y-5">
+          <!-- Honeypot anti-spam field: invisible to humans, bots typically fill all fields.
+               Visually hidden + accessibility hidden + tabindex -1 to avoid keyboard focus.
+               If non-empty on submit, we silently drop the submission. -->
+          <div aria-hidden="true" style="position:absolute; left:-9999px; top:-9999px; width:1px; height:1px; overflow:hidden;">
+            <label>Website (leave empty)
+              <input type="text" name="hp_website" tabindex="-1" autocomplete="off" />
+            </label>
+          </div>
           <div class="md:col-span-2">
             <div class="field-label" data-i18n="fl_name_of_proposer_company_1">1. Name of Proposer (Company)</div>
             <input type="text" name="proposer_name" />
@@ -4196,6 +4204,19 @@ document.getElementById('btn-submit').addEventListener('click', async () => {
     setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 100);
 
     if (supabaseClient) {
+      // Honeypot check — if a bot filled in the hidden hp_website field, silently
+      // pretend the submit succeeded. The user still gets their PDF; the bot
+      // never knows it was rejected. Keeps the DB clean of obvious spam.
+      const hpValue = (data.hp_website || '').trim();
+      if (hpValue) {
+        toast(T('toast_submitted_ok', 'Proposal submitted and PDF downloaded.'), 'success');
+        return;
+      }
+      // Drop the honeypot field from the payload before storing
+      if ('hp_website' in data) delete data.hp_website;
+      if (payload && payload.fields && 'hp_website' in payload.fields) {
+        delete payload.fields.hp_website;
+      }
       try {
         // Pull a handful of high-value fields up to dedicated columns for the list view.
         // The rest stays in the payload JSON for the detail view.
