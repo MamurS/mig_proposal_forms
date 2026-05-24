@@ -1,0 +1,39 @@
+# Cloudflare Pages security headers
+# Place this file at the root of your repo. Cloudflare reads it on every deploy
+# and applies the headers to matching paths.
+
+# Apply to all routes
+/*
+  # === Content Security Policy ===
+  # Restricts what the browser will load and execute.
+  #   default-src 'self'        — only same-origin by default
+  #   script-src                — same-origin + the three CDNs we actually use
+  #   style-src                 — same-origin + Google Fonts CSS + inline styles (form uses them heavily)
+  #   font-src                  — Google Fonts hosts only
+  #   img-src                   — same-origin + data: URIs (we embed PDFs/logos as base64)
+  #   connect-src               — same-origin + your Supabase project (REPLACE THE URL BELOW)
+  #   frame-ancestors 'none'    — prevents this page from being iframed by another site (clickjacking)
+  #   base-uri 'self'           — prevents <base> tag hijacking
+  #   form-action 'self'        — form submissions can only target same-origin
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co https://*.supabase.in; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+
+  # === Clickjacking ===
+  # Belt-and-suspenders with the CSP frame-ancestors above.
+  X-Frame-Options: DENY
+
+  # === MIME sniffing ===
+  # Prevents the browser from guessing content types (e.g. running text/plain as JS)
+  X-Content-Type-Options: nosniff
+
+  # === Referrer policy ===
+  # Don't leak the full URL when users click external links
+  Referrer-Policy: strict-origin-when-cross-origin
+
+  # === Permissions policy ===
+  # Disable browser features we don't use. Reduces attack surface.
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()
+
+  # === HSTS ===
+  # Tells the browser to always use HTTPS for this domain.
+  # max-age = 1 year. Only enable preload after you're sure the site is stable.
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
