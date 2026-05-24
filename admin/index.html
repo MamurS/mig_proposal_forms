@@ -800,12 +800,12 @@ function renderSubmissions() {
     const aiCell = r.ai_analyzed_at
       ? `<span style="color: var(--success); font-size: 11px;">● Analyzed</span>`
       : `<span style="color: var(--muted); font-size: 11px;">—</span>`;
-    return `<tr data-id="${r.id}">
+    return `<tr data-id="${escapeHtml(r.id)}">
       <td><span class="mono" style="font-size: 12px;">${escapeHtml(fmtDateOnly(r.created_at))}</span></td>
       <td><strong>${escapeHtml(r.proposer_name || '(no name)')}</strong></td>
       <td>${products || '<span style="color: var(--muted); font-size: 11px;">—</span>'}</td>
       <td><span class="mono" style="font-size: 11px; text-transform: uppercase; color: var(--muted);">${escapeHtml(r.language || '—')}</span></td>
-      <td><span class="status-badge ${r.status}">${escapeHtml(statusLabel(r.status))}</span></td>
+      <td><span class="status-badge ${escapeHtml(r.status)}">${escapeHtml(statusLabel(r.status))}</span></td>
       <td>${aiCell}</td>
     </tr>`;
   }).join('');
