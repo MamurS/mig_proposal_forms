@@ -623,6 +623,8 @@ window.TRANSLATIONS = {
     "h3_pi_prev_insurance": "G.7  Предыдущее страхование",
     "h3_crime_prev_insurance": "C.9  Предыдущее страхование",
     "h3_cyber_prev_insurance": "D.8  Предыдущее страхование",
+    "step1_error": "Пожалуйста, выберите хотя бы один вид страхования перед отправкой.",
+    "toast_select_cover": "Пожалуйста, выберите хотя бы один вид страхования.",
   },
   uz: {
     "fl_name_of_proposer_company_1": "1. Sug'urtalanuvchining nomi (kompaniya)",
@@ -1217,6 +1219,8 @@ window.TRANSLATIONS = {
     "h3_dno_prev_insurance": "F.7  Avvalgi sug'urta",
     "h3_pi_prev_insurance": "G.7  Avvalgi sug'urta",
     "h3_crime_prev_insurance": "C.9  Avvalgi sug'urta",
-    "h3_cyber_prev_insurance": "D.8  Avvalgi sug'urta"
+    "h3_cyber_prev_insurance": "D.8  Avvalgi sug'urta",
+    "step1_error": "Yuborishdan oldin kamida bitta sug'urta turini tanlang.",
+    "toast_select_cover": "Iltimos, kamida bitta sug'urta turini tanlang."
   }
 };
