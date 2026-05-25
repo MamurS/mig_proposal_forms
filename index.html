@@ -191,6 +191,10 @@
     text-transform: uppercase;
   }
   .grid-table input { padding: 2px 0; font-size: 13px; border: none; border-bottom: 1px solid #d8d2c2; background: transparent; }
+  /* Numeric fields with thousands formatting are right-aligned for easier comparison */
+  input.js-thousands { text-align: right; }
+  /* In tables specifically, also let the input fill the cell width */
+  .grid-table input.js-thousands { width: 100%; padding-right: 6px; }
   .grid-table input:focus { border-bottom-color: var(--mig); outline: none; }
 
   /* Zebra striping rules — generated for every column count used by tables in
@@ -489,33 +493,33 @@
           <div class="th" data-i18n="th_of_revenue_211">% of Revenue</div>
 
           <div data-i18n="lbl_domestic_uzbekistan_449">Domestic (Uzbekistan)</div>
-          <div><input type="text" name="region_dom_turnover" /></div>
-          <div><input type="text" name="region_dom_locations" /></div>
-          <div><input type="text" name="region_dom_employees" /></div>
+          <div><input type="text" name="region_dom_turnover" class="js-thousands" /></div>
+          <div><input type="text" name="region_dom_locations" class="js-thousands" /></div>
+          <div><input type="text" name="region_dom_employees" class="js-thousands" /></div>
           <div><input type="text" name="region_dom_pct" /></div>
 
           <div data-i18n="lbl_cis">CIS</div>
-          <div><input type="text" name="region_cis_turnover" /></div>
-          <div><input type="text" name="region_cis_locations" /></div>
-          <div><input type="text" name="region_cis_employees" /></div>
+          <div><input type="text" name="region_cis_turnover" class="js-thousands" /></div>
+          <div><input type="text" name="region_cis_locations" class="js-thousands" /></div>
+          <div><input type="text" name="region_cis_employees" class="js-thousands" /></div>
           <div><input type="text" name="region_cis_pct" /></div>
 
           <div data-i18n="lbl_european_union_450">European Union</div>
-          <div><input type="text" name="region_eu_turnover" /></div>
-          <div><input type="text" name="region_eu_locations" /></div>
-          <div><input type="text" name="region_eu_employees" /></div>
+          <div><input type="text" name="region_eu_turnover" class="js-thousands" /></div>
+          <div><input type="text" name="region_eu_locations" class="js-thousands" /></div>
+          <div><input type="text" name="region_eu_employees" class="js-thousands" /></div>
           <div><input type="text" name="region_eu_pct" /></div>
 
           <div data-i18n="lbl_united_states_canada_451">United States &amp; Canada</div>
-          <div><input type="text" name="region_us_turnover" /></div>
-          <div><input type="text" name="region_us_locations" /></div>
-          <div><input type="text" name="region_us_employees" /></div>
+          <div><input type="text" name="region_us_turnover" class="js-thousands" /></div>
+          <div><input type="text" name="region_us_locations" class="js-thousands" /></div>
+          <div><input type="text" name="region_us_employees" class="js-thousands" /></div>
           <div><input type="text" name="region_us_pct" /></div>
 
           <div data-i18n="lbl_rest_of_world_452">Rest of World</div>
-          <div><input type="text" name="region_row_turnover" /></div>
-          <div><input type="text" name="region_row_locations" /></div>
-          <div><input type="text" name="region_row_employees" /></div>
+          <div><input type="text" name="region_row_turnover" class="js-thousands" /></div>
+          <div><input type="text" name="region_row_locations" class="js-thousands" /></div>
+          <div><input type="text" name="region_row_employees" class="js-thousands" /></div>
           <div><input type="text" name="region_row_pct" /></div>
         </div>
       </div>
@@ -661,36 +665,36 @@
           <div><input type="text" name="vs_1_year" /></div>
           <div><input type="text" name="vs_1_reg" /></div>
           <div><input type="text" name="vs_1_vin" /></div>
-          <div><input type="text" name="vs_1_val" /></div>
-          <div><input type="text" name="vs_1_si" /></div>
+          <div><input type="text" name="vs_1_val" class="js-thousands" /></div>
+          <div><input type="text" name="vs_1_si" class="js-thousands" /></div>
           <div>2</div>
           <div><input type="text" name="vs_2_make" /></div>
           <div><input type="text" name="vs_2_year" /></div>
           <div><input type="text" name="vs_2_reg" /></div>
           <div><input type="text" name="vs_2_vin" /></div>
-          <div><input type="text" name="vs_2_val" /></div>
-          <div><input type="text" name="vs_2_si" /></div>
+          <div><input type="text" name="vs_2_val" class="js-thousands" /></div>
+          <div><input type="text" name="vs_2_si" class="js-thousands" /></div>
           <div>3</div>
           <div><input type="text" name="vs_3_make" /></div>
           <div><input type="text" name="vs_3_year" /></div>
           <div><input type="text" name="vs_3_reg" /></div>
           <div><input type="text" name="vs_3_vin" /></div>
-          <div><input type="text" name="vs_3_val" /></div>
-          <div><input type="text" name="vs_3_si" /></div>
+          <div><input type="text" name="vs_3_val" class="js-thousands" /></div>
+          <div><input type="text" name="vs_3_si" class="js-thousands" /></div>
           <div>4</div>
           <div><input type="text" name="vs_4_make" /></div>
           <div><input type="text" name="vs_4_year" /></div>
           <div><input type="text" name="vs_4_reg" /></div>
           <div><input type="text" name="vs_4_vin" /></div>
-          <div><input type="text" name="vs_4_val" /></div>
-          <div><input type="text" name="vs_4_si" /></div>
+          <div><input type="text" name="vs_4_val" class="js-thousands" /></div>
+          <div><input type="text" name="vs_4_si" class="js-thousands" /></div>
           <div>5</div>
           <div><input type="text" name="vs_5_make" /></div>
           <div><input type="text" name="vs_5_year" /></div>
           <div><input type="text" name="vs_5_reg" /></div>
           <div><input type="text" name="vs_5_vin" /></div>
-          <div><input type="text" name="vs_5_val" /></div>
-          <div><input type="text" name="vs_5_si" /></div>
+          <div><input type="text" name="vs_5_val" class="js-thousands" /></div>
+          <div><input type="text" name="vs_5_si" class="js-thousands" /></div>
         </div>
       </div>
 
@@ -2207,9 +2211,9 @@
             <div class="qtext"><span>1.</span><span data-i18n="q_is_pi_insurance_currently_purchased_291">Is PI insurance currently purchased?</span></div>
             <div class="yn"><label><input type="radio" name="pi_current_cover" value="Yes" /> <span data-i18n="yn_yes">Yes</span></label><label><input type="radio" name="pi_current_cover" value="No" /> <span data-i18n="yn_no">No</span></label></div>
             <div class="grid md:grid-cols-2 gap-x-8 gap-y-5 mt-3">
-              <div><div class="field-label" data-i18n="fl_limit_usd_125">Limit (USD)</div><input type="text" name="pi_cur_limit" /></div>
-              <div><div class="field-label" data-i18n="fl_retention_usd_126">Retention (USD)</div><input type="text" name="pi_cur_retention" /></div>
-              <div><div class="field-label" data-i18n="fl_premium_usd_127">Premium (USD)</div><input type="text" name="pi_cur_premium" /></div>
+              <div><div class="field-label" data-i18n="fl_limit_usd_125">Limit (USD)</div><input type="text" name="pi_cur_limit" class="js-thousands" /></div>
+              <div><div class="field-label" data-i18n="fl_retention_usd_126">Retention (USD)</div><input type="text" name="pi_cur_retention" class="js-thousands" /></div>
+              <div><div class="field-label" data-i18n="fl_premium_usd_127">Premium (USD)</div><input type="text" name="pi_cur_premium" class="js-thousands" /></div>
               <div><div class="field-label" data-i18n="fl_expiry_amp_retroactive_dates_128">Expiry &amp; Retroactive dates</div><input type="text" name="pi_cur_expiry" /></div>
             </div>
           </div>
@@ -4232,8 +4236,8 @@ const LOGO_B64 = "/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAA
 // IMPORTANT: replace BOTH placeholders below with your actual Supabase project values.
 // The publishable key is safe to expose in client-side code (it's gated by RLS policies).
 // The secret key must NEVER appear here — it's used only inside Edge Functions.
-const SUPABASE_URL = "https://YOUR-PROJECT.supabase.co";  // <-- paste your Project URL
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_REPLACE_ME";  // <-- paste your publishable key
+const SUPABASE_URL = "https://iyazmdzqyogyrvexpasf.supabase.co";  // <-- paste your Project URL
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_WzcB0OuI5sYof_abgUsNRQ_U_iRoE2b";  // <-- paste your publishable key
 
 // Initialize client (only if config has been filled in)
 let supabaseClient = null;
