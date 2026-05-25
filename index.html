@@ -369,39 +369,16 @@
             <input type="number" name="employees_total" min="0" />
           </div>
           <div>
-            <div class="field-label" data-i18n="fl_total_annual_payroll_usd_9">9. Total Annual Payroll (USD)</div>
-            <input type="number" name="payroll_total" min="0" />
-          </div>
-          <div>
-            <div class="field-label" data-i18n="fl_contact_person_title_10">10. Contact Person · Title</div>
+            <div class="field-label" data-i18n="fl_contact_person_title_10">9. Contact Person · Title</div>
             <input type="text" name="contact_person" />
           </div>
           <div>
-            <div class="field-label" data-i18n="fl_telephone_11">11. Telephone</div>
+            <div class="field-label" data-i18n="fl_telephone_11">10. Telephone</div>
             <input type="tel" name="contact_phone" />
           </div>
           <div class="md:col-span-2">
-            <div class="field-label" data-i18n="fl_e_mail_12">12. E-mail</div>
+            <div class="field-label" data-i18n="fl_e_mail_12">11. E-mail</div>
             <input type="email" name="contact_email" />
-          </div>
-          <div>
-            <div class="field-label" data-i18n="fl_period_of_insurance_from_13">13. Period of Insurance — From</div>
-            <input type="text" name="period_from" placeholder="dd.mm.yyyy" pattern="\d{2}\.\d{2}\.\d{4}" inputmode="numeric" data-date />
-          </div>
-          <div>
-            <div class="field-label" data-i18n="fl_period_of_insurance_to_14">14. Period of Insurance — To</div>
-            <input type="text" name="period_to" placeholder="dd.mm.yyyy" pattern="\d{2}\.\d{2}\.\d{4}" inputmode="numeric" data-date />
-          </div>
-          <div class="md:col-span-2">
-            <div class="field-label" data-i18n="fl_geographical_coverage_zone_15">15. Geographical Coverage Zone</div>
-            <div class="flex flex-wrap gap-x-6 gap-y-2 mt-2">
-              <label class="chk"><input type="checkbox" name="geo_uz" /><span data-i18n="chk_republic_of_uzbekistan_375">Republic of Uzbekistan</span></label>
-              <label class="chk"><input type="checkbox" name="geo_cis" /><span data-i18n="chk_cis_countries_376">CIS Countries</span></label>
-              <label class="chk"><input type="checkbox" name="geo_eu" /><span data-i18n="chk_european_union_377">European Union</span></label>
-              <label class="chk"><input type="checkbox" name="geo_us" /><span data-i18n="chk_united_states_378">United States</span></label>
-              <label class="chk"><input type="checkbox" name="geo_worldwide" /><span data-i18n="chk_worldwide_379">Worldwide</span></label>
-            </div>
-            <input type="text" name="geo_other" placeholder="If other, specify" data-i18n-placeholder="ph_if_other_specify_337" class="mt-2" />
           </div>
         </div>
       </div>
@@ -446,111 +423,6 @@
           <div><input type="text" name="region_row_locations" /></div>
           <div><input type="text" name="region_row_employees" /></div>
           <div><input type="text" name="region_row_pct" /></div>
-        </div>
-
-        <div class="mt-5">
-          <div class="text-sm mb-1"><span class="qno">M&amp;A.</span><span data-i18n="q_has_any_merger_acquisition_or_restructuring_in_the_445">Has any merger, acquisition or restructuring in the past 5 years resulted in an employee count change of ±15%?</span></div>
-          <div class="yn">
-            <label><input type="radio" name="ma_change" value="Yes" /> <span data-i18n="yn_yes">Yes</span></label>
-            <label><input type="radio" name="ma_change" value="No" /> <span data-i18n="yn_no">No</span></label>
-          </div>
-          <input type="text" name="ma_change_details" placeholder="If Yes, details" data-i18n-placeholder="ph_if_yes_details_338" class="mt-2" />
-        </div>
-      </div>
-
-      <!-- A.3 Beneficiary -->
-      <div class="mb-10">
-        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_A_3_beneficiary_loss_payee">A.3 &nbsp;Beneficiary / Loss Payee</h3>
-        <p class="text-xs mb-3" style="color: var(--muted);" data-i18n="p_complete_if_different_from_the_435">Complete if different from the Proposer.</p>
-        <div class="grid md:grid-cols-2 gap-x-8 gap-y-5">
-          <div>
-            <div class="field-label" data-i18n="fl_name_of_beneficiary_16">1. Name of Beneficiary</div>
-            <input type="text" name="benef_name" />
-          </div>
-          <div>
-            <div class="field-label" data-i18n="fl_relationship_to_proposer_17">2. Relationship to Proposer</div>
-            <input type="text" name="benef_relationship" />
-          </div>
-          <div class="md:col-span-2">
-            <div class="field-label" data-i18n="fl_address_18">3. Address</div>
-            <input type="text" name="benef_address" />
-          </div>
-          <div>
-            <div class="field-label" data-i18n="fl_passport_registration_no_19">4. Passport / Registration No.</div>
-            <input type="text" name="benef_id" />
-          </div>
-          <div>
-            <div class="field-label" data-i18n="fl_date_of_issue_issuing_authority_20">5. Date of Issue / Issuing Authority</div>
-            <input type="text" name="benef_id_issue" />
-          </div>
-        </div>
-      </div>
-
-      <!-- A.4 Previous Insurance -->
-      <div class="mb-10">
-        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_A_4_previous_insurance">A.4 &nbsp;Previous Insurance</h3>
-        <div class="grid md:grid-cols-2 gap-x-8 gap-y-5">
-          <div>
-            <div class="field-label" data-i18n="fl_name_of_previous_insurer_21">1. Name of Previous Insurer</div>
-            <input type="text" name="prev_insurer" />
-          </div>
-          <div>
-            <div class="field-label" data-i18n="fl_policy_number_amp_expiry_date_22">2. Policy Number &amp; Expiry Date</div>
-            <input type="text" name="prev_policy" />
-          </div>
-          <div class="md:col-span-2">
-            <div class="text-sm mb-1"><span class="qno">3.</span><span data-i18n="q_has_any_insurer_ever_declined_cancelled_refused_to_446">Has any insurer ever declined, cancelled, refused to renew, or imposed special terms on the Proposer?</span></div>
-            <div class="yn">
-              <label><input type="radio" name="prev_declined" value="Yes" /> <span data-i18n="yn_yes">Yes</span></label>
-              <label><input type="radio" name="prev_declined" value="No" /> <span data-i18n="yn_no">No</span></label>
-            </div>
-            <input type="text" name="prev_declined_details" placeholder="If Yes, details" data-i18n-placeholder="ph_if_yes_details_339" class="mt-2" />
-          </div>
-        </div>
-      </div>
-
-      <!-- A.5 Consolidated Loss History -->
-      <div class="mb-10">
-        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_A_5_consolidated_loss_history_past_5_years">A.5 &nbsp;Consolidated Loss History — Past 5 Years</h3>
-        <p class="text-xs mb-3" style="color: var(--muted);" data-i18n="p_all_losses_paid_outstanding_or_436">All losses (paid, outstanding or notified) across all lines, whether insured or not.</p>
-        <div class="grid-table" style="grid-template-columns: 0.5fr 0.9fr 1fr 1.8fr 1fr;">
-          <div class="th" data-i18n="th_year_212">Year</div>
-          <div class="th" data-i18n="th_line_of_cover_213">Line of Cover</div>
-          <div class="th" data-i18n="th_gross_amount_usd_214">Gross Amount (USD)</div>
-          <div class="th" data-i18n="th_description_cause_215">Description / Cause</div>
-          <div class="th" data-i18n="th_paid_outstanding_216">Paid / Outstanding</div>
-          <!-- 5 rows -->
-        </div>
-        <div class="grid-table" style="grid-template-columns: 0.5fr 0.9fr 1fr 1.8fr 1fr; border-top: none; margin-top: -1px;">
-          <div><input type="text" name="loss_1_year" /></div>
-          <div><input type="text" name="loss_1_line" /></div>
-          <div><input type="text" name="loss_1_amount" /></div>
-          <div><input type="text" name="loss_1_desc" /></div>
-          <div><input type="text" name="loss_1_status" /></div>
-          <div><input type="text" name="loss_2_year" /></div>
-          <div><input type="text" name="loss_2_line" /></div>
-          <div><input type="text" name="loss_2_amount" /></div>
-          <div><input type="text" name="loss_2_desc" /></div>
-          <div><input type="text" name="loss_2_status" /></div>
-          <div><input type="text" name="loss_3_year" /></div>
-          <div><input type="text" name="loss_3_line" /></div>
-          <div><input type="text" name="loss_3_amount" /></div>
-          <div><input type="text" name="loss_3_desc" /></div>
-          <div><input type="text" name="loss_3_status" /></div>
-          <div><input type="text" name="loss_4_year" /></div>
-          <div><input type="text" name="loss_4_line" /></div>
-          <div><input type="text" name="loss_4_amount" /></div>
-          <div><input type="text" name="loss_4_desc" /></div>
-          <div><input type="text" name="loss_4_status" /></div>
-          <div><input type="text" name="loss_5_year" /></div>
-          <div><input type="text" name="loss_5_line" /></div>
-          <div><input type="text" name="loss_5_amount" /></div>
-          <div><input type="text" name="loss_5_desc" /></div>
-          <div><input type="text" name="loss_5_status" /></div>
-        </div>
-        <div class="mt-4">
-          <div class="field-label" data-i18n="fl_corrective_measures_taken_to_prevent_sim_23">Corrective measures taken to prevent similar losses</div>
-          <textarea name="loss_corrective" rows="2"></textarea>
         </div>
       </div>
 
@@ -816,7 +688,124 @@
           </div>
         </div>
       </div>
-    </section>
+    
+      <!-- B.6 Period & Coverage Zone -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_auto_period_coverage">B.6 &nbsp;Period &amp; Coverage Zone</h3>
+        <div class="grid md:grid-cols-2 gap-x-8 gap-y-5">
+          <div>
+            <div class="field-label" data-i18n="fl_pl_period_from">Period of Insurance — From</div>
+            <input type="text" name="auto_period_from" placeholder="dd.mm.yyyy" pattern="\d{2}\.\d{2}\.\d{4}" inputmode="numeric" data-date />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_pl_period_to">Period of Insurance — To</div>
+            <input type="text" name="auto_period_to" placeholder="dd.mm.yyyy" pattern="\d{2}\.\d{2}\.\d{4}" inputmode="numeric" data-date />
+          </div>
+          <div class="md:col-span-2">
+            <div class="field-label" data-i18n="fl_pl_geo_zone">Geographical Coverage Zone</div>
+            <div class="flex flex-wrap gap-x-6 gap-y-2 mt-2">
+              <label class="chk"><input type="checkbox" name="auto_geo_uz" /><span data-i18n="chk_republic_of_uzbekistan_375">Republic of Uzbekistan</span></label>
+              <label class="chk"><input type="checkbox" name="auto_geo_cis" /><span data-i18n="chk_cis_countries_376">CIS Countries</span></label>
+              <label class="chk"><input type="checkbox" name="auto_geo_eu" /><span data-i18n="chk_european_union_377">European Union</span></label>
+              <label class="chk"><input type="checkbox" name="auto_geo_us" /><span data-i18n="chk_united_states_378">United States</span></label>
+              <label class="chk"><input type="checkbox" name="auto_geo_worldwide" /><span data-i18n="chk_worldwide_379">Worldwide</span></label>
+            </div>
+            <input type="text" name="auto_geo_other" placeholder="If other, specify" data-i18n-placeholder="ph_if_other_specify_337" class="mt-2" />
+          </div>
+        </div>
+      </div>
+
+      <!-- B.7 Beneficiary -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_auto_beneficiary">B.7 &nbsp;Beneficiary / Loss Payee</h3>
+        <p class="text-xs mb-3" style="color: var(--muted);" data-i18n="p_complete_if_different_from_the_435">Complete if different from the Proposer.</p>
+        <div class="grid md:grid-cols-2 gap-x-8 gap-y-5">
+          <div>
+            <div class="field-label" data-i18n="fl_pl_ben_name">Name of Beneficiary</div>
+            <input type="text" name="auto_ben_name" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_pl_ben_relation">Relationship to Proposer</div>
+            <input type="text" name="auto_ben_relation" />
+          </div>
+          <div class="md:col-span-2">
+            <div class="field-label" data-i18n="fl_pl_ben_address">Address</div>
+            <input type="text" name="auto_ben_address" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_pl_ben_passport">Passport / Registration No.</div>
+            <input type="text" name="auto_ben_passport" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_pl_ben_issue">Date of Issue / Issuing Authority</div>
+            <input type="text" name="auto_ben_issue" />
+          </div>
+        </div>
+      </div>
+
+      <!-- B.8 Loss History -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_auto_loss_history">B.8 &nbsp;Loss History — Past 5 Years</h3>
+        <p class="text-xs mb-3" style="color: var(--muted);" data-i18n="p_pl_losses_hint">All losses (paid, outstanding or notified) on this line, whether insured or not.</p>
+
+        <div id="loss-headers-auto" class="hidden" style="display:none;">
+          <div class="grid gap-3 mb-2" style="grid-template-columns: 0.7fr 1.0fr 1.6fr 1.0fr 40px;">
+            <div class="field-label" data-i18n="loss_col_year">Year</div>
+            <div class="field-label" data-i18n="loss_col_amount">Gross amount (USD)</div>
+            <div class="field-label" data-i18n="loss_col_desc">Description / cause</div>
+            <div class="field-label" data-i18n="loss_col_status">Paid / outstanding</div>
+            <div></div>
+          </div>
+        </div>
+
+        <div id="loss-rows-auto" data-loss-product="auto"></div>
+
+        <button type="button" data-loss-add="auto" class="btn-secondary no-pdf" style="margin-top: 8px; padding: 6px 14px; background: var(--surface-alt, #f4f3ee); border: 1px solid var(--border-strong, #d8d2c2); border-radius: 6px; font-family: inherit; font-size: 13px; cursor: pointer; color: var(--mig);">
+          <span data-i18n="loss_add_btn">+ Add a loss</span>
+        </button>
+      </div>
+
+
+      <!-- B.9 Previous Insurance (auto) -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_auto_prev_insurance">B.9 &nbsp;Previous Insurance</h3>
+        <p class="text-sm mb-3" style="color: var(--muted);" data-i18n="p_pl_prev_ins_hint">Most recent insurance period for this cover. Add a row for each insurer if covered by more than one.</p>
+
+        <!-- Table headers -->
+        <div id="prev-headers-auto">
+          <div class="grid gap-3 mb-2" style="grid-template-columns: 1.6fr 1.6fr 40px;">
+            <div class="field-label" data-i18n="prev_ins_col_insurer">Insurer</div>
+            <div class="field-label" data-i18n="prev_ins_col_policy">Policy № &amp; expiry</div>
+            <div></div>
+          </div>
+        </div>
+
+        <!-- Rows. Starts with one pre-rendered row (idx=1). Additional rows added by JS. -->
+        <div id="prev-rows-auto" data-prev-product="auto">
+          <div class="prev-pl-row" data-row-id="1" style="display:grid; grid-template-columns: 1.6fr 1.6fr 40px; gap: 12px; margin-bottom: 10px; align-items: start;">
+            <div><input type="text" name="auto_prev_1_insurer" data-i18n-placeholder="prev_ins_ph_insurer" placeholder="Insurer name" /></div>
+            <div><input type="text" name="auto_prev_1_policy" data-i18n-placeholder="prev_ins_ph_policy" placeholder="Policy № and expiry date" /></div>
+            <div class="no-pdf">
+              <button type="button" data-prev-remove="auto" data-row-id="1" aria-label="Remove row" title="Remove row" style="background:transparent; border:1px solid var(--border-strong, #d8d2c2); color:var(--muted); border-radius:4px; width:32px; height:32px; font-size:18px; cursor:pointer; padding:0; line-height:1;">×</button>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" data-prev-add="auto" class="btn-secondary no-pdf" style="margin-top: 4px; padding: 6px 14px; background: var(--surface-alt, #f4f3ee); border: 1px solid var(--border-strong, #d8d2c2); border-radius: 6px; font-family: inherit; font-size: 13px; cursor: pointer; color: var(--mig);">
+          <span data-i18n="prev_ins_add_btn">+ Add a previous policy</span>
+        </button>
+
+        <div class="mt-6">
+          <div class="text-sm mb-1"><span class="qno">●</span><span data-i18n="q_pl_prev_declined">Has any insurer ever declined, cancelled, refused to renew, or imposed special terms on the Proposer for this cover?</span></div>
+          <div class="yn">
+            <label><input type="radio" name="auto_prev_declined" value="Yes" /> <span data-i18n="yn_yes">Yes</span></label>
+            <label><input type="radio" name="auto_prev_declined" value="No" /> <span data-i18n="yn_no">No</span></label>
+          </div>
+          <input type="text" name="auto_prev_declined_details" data-i18n-placeholder="ph_if_yes_details_339" placeholder="If Yes, details" class="mt-2" />
+        </div>
+      </div>
+
+</section>
 
     <!-- ============================================== -->
     <!-- C. PROPERTY (short or long via toggle) -->
@@ -1082,7 +1071,124 @@
           </div>
         </div>
       </div>
-    </section>
+    
+      <!-- C.11 Period & Coverage Zone -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_prop_period_coverage">C.11 &nbsp;Period &amp; Coverage Zone</h3>
+        <div class="grid md:grid-cols-2 gap-x-8 gap-y-5">
+          <div>
+            <div class="field-label" data-i18n="fl_pl_period_from">Period of Insurance — From</div>
+            <input type="text" name="prop_period_from" placeholder="dd.mm.yyyy" pattern="\d{2}\.\d{2}\.\d{4}" inputmode="numeric" data-date />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_pl_period_to">Period of Insurance — To</div>
+            <input type="text" name="prop_period_to" placeholder="dd.mm.yyyy" pattern="\d{2}\.\d{2}\.\d{4}" inputmode="numeric" data-date />
+          </div>
+          <div class="md:col-span-2">
+            <div class="field-label" data-i18n="fl_pl_geo_zone">Geographical Coverage Zone</div>
+            <div class="flex flex-wrap gap-x-6 gap-y-2 mt-2">
+              <label class="chk"><input type="checkbox" name="prop_geo_uz" /><span data-i18n="chk_republic_of_uzbekistan_375">Republic of Uzbekistan</span></label>
+              <label class="chk"><input type="checkbox" name="prop_geo_cis" /><span data-i18n="chk_cis_countries_376">CIS Countries</span></label>
+              <label class="chk"><input type="checkbox" name="prop_geo_eu" /><span data-i18n="chk_european_union_377">European Union</span></label>
+              <label class="chk"><input type="checkbox" name="prop_geo_us" /><span data-i18n="chk_united_states_378">United States</span></label>
+              <label class="chk"><input type="checkbox" name="prop_geo_worldwide" /><span data-i18n="chk_worldwide_379">Worldwide</span></label>
+            </div>
+            <input type="text" name="prop_geo_other" placeholder="If other, specify" data-i18n-placeholder="ph_if_other_specify_337" class="mt-2" />
+          </div>
+        </div>
+      </div>
+
+      <!-- C.12 Beneficiary -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_prop_beneficiary">C.12 &nbsp;Beneficiary / Loss Payee</h3>
+        <p class="text-xs mb-3" style="color: var(--muted);" data-i18n="p_complete_if_different_from_the_435">Complete if different from the Proposer.</p>
+        <div class="grid md:grid-cols-2 gap-x-8 gap-y-5">
+          <div>
+            <div class="field-label" data-i18n="fl_pl_ben_name">Name of Beneficiary</div>
+            <input type="text" name="prop_ben_name" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_pl_ben_relation">Relationship to Proposer</div>
+            <input type="text" name="prop_ben_relation" />
+          </div>
+          <div class="md:col-span-2">
+            <div class="field-label" data-i18n="fl_pl_ben_address">Address</div>
+            <input type="text" name="prop_ben_address" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_pl_ben_passport">Passport / Registration No.</div>
+            <input type="text" name="prop_ben_passport" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_pl_ben_issue">Date of Issue / Issuing Authority</div>
+            <input type="text" name="prop_ben_issue" />
+          </div>
+        </div>
+      </div>
+
+      <!-- C.13 Loss History -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_prop_loss_history">C.13 &nbsp;Loss History — Past 5 Years</h3>
+        <p class="text-xs mb-3" style="color: var(--muted);" data-i18n="p_pl_losses_hint">All losses (paid, outstanding or notified) on this line, whether insured or not.</p>
+
+        <div id="loss-headers-prop" class="hidden" style="display:none;">
+          <div class="grid gap-3 mb-2" style="grid-template-columns: 0.7fr 1.0fr 1.6fr 1.0fr 40px;">
+            <div class="field-label" data-i18n="loss_col_year">Year</div>
+            <div class="field-label" data-i18n="loss_col_amount">Gross amount (USD)</div>
+            <div class="field-label" data-i18n="loss_col_desc">Description / cause</div>
+            <div class="field-label" data-i18n="loss_col_status">Paid / outstanding</div>
+            <div></div>
+          </div>
+        </div>
+
+        <div id="loss-rows-prop" data-loss-product="prop"></div>
+
+        <button type="button" data-loss-add="prop" class="btn-secondary no-pdf" style="margin-top: 8px; padding: 6px 14px; background: var(--surface-alt, #f4f3ee); border: 1px solid var(--border-strong, #d8d2c2); border-radius: 6px; font-family: inherit; font-size: 13px; cursor: pointer; color: var(--mig);">
+          <span data-i18n="loss_add_btn">+ Add a loss</span>
+        </button>
+      </div>
+
+
+      <!-- C.14 Previous Insurance (prop) -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_prop_prev_insurance">C.14 &nbsp;Previous Insurance</h3>
+        <p class="text-sm mb-3" style="color: var(--muted);" data-i18n="p_pl_prev_ins_hint">Most recent insurance period for this cover. Add a row for each insurer if covered by more than one.</p>
+
+        <!-- Table headers -->
+        <div id="prev-headers-prop">
+          <div class="grid gap-3 mb-2" style="grid-template-columns: 1.6fr 1.6fr 40px;">
+            <div class="field-label" data-i18n="prev_ins_col_insurer">Insurer</div>
+            <div class="field-label" data-i18n="prev_ins_col_policy">Policy № &amp; expiry</div>
+            <div></div>
+          </div>
+        </div>
+
+        <!-- Rows. Starts with one pre-rendered row (idx=1). Additional rows added by JS. -->
+        <div id="prev-rows-prop" data-prev-product="prop">
+          <div class="prev-pl-row" data-row-id="1" style="display:grid; grid-template-columns: 1.6fr 1.6fr 40px; gap: 12px; margin-bottom: 10px; align-items: start;">
+            <div><input type="text" name="prop_prev_1_insurer" data-i18n-placeholder="prev_ins_ph_insurer" placeholder="Insurer name" /></div>
+            <div><input type="text" name="prop_prev_1_policy" data-i18n-placeholder="prev_ins_ph_policy" placeholder="Policy № and expiry date" /></div>
+            <div class="no-pdf">
+              <button type="button" data-prev-remove="prop" data-row-id="1" aria-label="Remove row" title="Remove row" style="background:transparent; border:1px solid var(--border-strong, #d8d2c2); color:var(--muted); border-radius:4px; width:32px; height:32px; font-size:18px; cursor:pointer; padding:0; line-height:1;">×</button>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" data-prev-add="prop" class="btn-secondary no-pdf" style="margin-top: 4px; padding: 6px 14px; background: var(--surface-alt, #f4f3ee); border: 1px solid var(--border-strong, #d8d2c2); border-radius: 6px; font-family: inherit; font-size: 13px; cursor: pointer; color: var(--mig);">
+          <span data-i18n="prev_ins_add_btn">+ Add a previous policy</span>
+        </button>
+
+        <div class="mt-6">
+          <div class="text-sm mb-1"><span class="qno">●</span><span data-i18n="q_pl_prev_declined">Has any insurer ever declined, cancelled, refused to renew, or imposed special terms on the Proposer for this cover?</span></div>
+          <div class="yn">
+            <label><input type="radio" name="prop_prev_declined" value="Yes" /> <span data-i18n="yn_yes">Yes</span></label>
+            <label><input type="radio" name="prop_prev_declined" value="No" /> <span data-i18n="yn_no">No</span></label>
+          </div>
+          <input type="text" name="prop_prev_declined_details" data-i18n-placeholder="ph_if_yes_details_339" placeholder="If Yes, details" class="mt-2" />
+        </div>
+      </div>
+
+</section>
 
     <!-- ============================================== -->
     <!-- D. CGL — GENERAL LIABILITY -->
@@ -1185,23 +1291,146 @@
       <div class="mb-10">
         <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_D_4_exposure_indicators">D.4 &nbsp;Exposure Indicators</h3>
         <div class="space-y-3">
+          <div class="grid md:grid-cols-2 gap-x-8 gap-y-5 mb-4">
+            <div>
+              <div class="field-label" data-i18n="fl_total_annual_payroll_usd_9">1. Total Annual Payroll (USD)</div>
+              <input type="number" name="payroll_total" min="0" />
+            </div>
+          </div>
           <div class="qrow">
-            <div class="qtext"><span>1.</span><span data-i18n="q_are_products_sold_or_exported_to_us_canada_268">Are products sold or exported to US/Canada?</span></div>
+            <div class="qtext"><span>2.</span><span data-i18n="q_are_products_sold_or_exported_to_us_canada_268">Are products sold or exported to US/Canada?</span></div>
             <div class="yn"><label><input type="radio" name="cgl_us_exposure" value="Yes" /> <span data-i18n="yn_yes">Yes</span></label><label><input type="radio" name="cgl_us_exposure" value="No" /> <span data-i18n="yn_no">No</span></label></div>
             <input type="text" name="cgl_us_exposure_pct" placeholder="If Yes, percentage of revenue" data-i18n-placeholder="ph_if_yes_percentage_of_revenue_353" class="mt-2" />
           </div>
           <div class="qrow">
-            <div class="qtext"><span>2.</span><span data-i18n="q_does_the_company_manufacture_sell_or_distribute_pr_269">Does the company manufacture, sell or distribute products to be used in or near aircraft, automotive, pharmaceuticals, or weapons?</span></div>
+            <div class="qtext"><span>3.</span><span data-i18n="q_does_the_company_manufacture_sell_or_distribute_pr_269">Does the company manufacture, sell or distribute products to be used in or near aircraft, automotive, pharmaceuticals, or weapons?</span></div>
             <div class="yn"><label><input type="radio" name="cgl_high_hazard" value="Yes" /> <span data-i18n="yn_yes">Yes</span></label><label><input type="radio" name="cgl_high_hazard" value="No" /> <span data-i18n="yn_no">No</span></label></div>
             <input type="text" name="cgl_high_hazard_details" placeholder="If Yes, details" data-i18n-placeholder="ph_if_yes_details_354" class="mt-2" />
           </div>
           <div class="qrow">
-            <div class="qtext"><span>3.</span><span data-i18n="q_hold_harmless_indemnification_agreements_signed_in_270">Hold-Harmless / indemnification agreements signed in favour of others?</span></div>
+            <div class="qtext"><span>4.</span><span data-i18n="q_hold_harmless_indemnification_agreements_signed_in_270">Hold-Harmless / indemnification agreements signed in favour of others?</span></div>
             <div class="yn"><label><input type="radio" name="cgl_hold_harmless" value="Yes" /> <span data-i18n="yn_yes">Yes</span></label><label><input type="radio" name="cgl_hold_harmless" value="No" /> <span data-i18n="yn_no">No</span></label></div>
           </div>
         </div>
       </div>
-    </section>
+    
+      <!-- D.5 Period & Coverage Zone -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_cgl_period_coverage">D.5 &nbsp;Period &amp; Coverage Zone</h3>
+        <div class="grid md:grid-cols-2 gap-x-8 gap-y-5">
+          <div>
+            <div class="field-label" data-i18n="fl_pl_period_from">Period of Insurance — From</div>
+            <input type="text" name="cgl_period_from" placeholder="dd.mm.yyyy" pattern="\d{2}\.\d{2}\.\d{4}" inputmode="numeric" data-date />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_pl_period_to">Period of Insurance — To</div>
+            <input type="text" name="cgl_period_to" placeholder="dd.mm.yyyy" pattern="\d{2}\.\d{2}\.\d{4}" inputmode="numeric" data-date />
+          </div>
+          <div class="md:col-span-2">
+            <div class="field-label" data-i18n="fl_pl_geo_zone">Geographical Coverage Zone</div>
+            <div class="flex flex-wrap gap-x-6 gap-y-2 mt-2">
+              <label class="chk"><input type="checkbox" name="cgl_geo_uz" /><span data-i18n="chk_republic_of_uzbekistan_375">Republic of Uzbekistan</span></label>
+              <label class="chk"><input type="checkbox" name="cgl_geo_cis" /><span data-i18n="chk_cis_countries_376">CIS Countries</span></label>
+              <label class="chk"><input type="checkbox" name="cgl_geo_eu" /><span data-i18n="chk_european_union_377">European Union</span></label>
+              <label class="chk"><input type="checkbox" name="cgl_geo_us" /><span data-i18n="chk_united_states_378">United States</span></label>
+              <label class="chk"><input type="checkbox" name="cgl_geo_worldwide" /><span data-i18n="chk_worldwide_379">Worldwide</span></label>
+            </div>
+            <input type="text" name="cgl_geo_other" placeholder="If other, specify" data-i18n-placeholder="ph_if_other_specify_337" class="mt-2" />
+          </div>
+        </div>
+      </div>
+
+      <!-- D.6 Beneficiary -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_cgl_beneficiary">D.6 &nbsp;Beneficiary / Loss Payee</h3>
+        <p class="text-xs mb-3" style="color: var(--muted);" data-i18n="p_complete_if_different_from_the_435">Complete if different from the Proposer.</p>
+        <div class="grid md:grid-cols-2 gap-x-8 gap-y-5">
+          <div>
+            <div class="field-label" data-i18n="fl_pl_ben_name">Name of Beneficiary</div>
+            <input type="text" name="cgl_ben_name" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_pl_ben_relation">Relationship to Proposer</div>
+            <input type="text" name="cgl_ben_relation" />
+          </div>
+          <div class="md:col-span-2">
+            <div class="field-label" data-i18n="fl_pl_ben_address">Address</div>
+            <input type="text" name="cgl_ben_address" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_pl_ben_passport">Passport / Registration No.</div>
+            <input type="text" name="cgl_ben_passport" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_pl_ben_issue">Date of Issue / Issuing Authority</div>
+            <input type="text" name="cgl_ben_issue" />
+          </div>
+        </div>
+      </div>
+
+      <!-- D.7 Loss History -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_cgl_loss_history">D.7 &nbsp;Loss History — Past 5 Years</h3>
+        <p class="text-xs mb-3" style="color: var(--muted);" data-i18n="p_pl_losses_hint">All losses (paid, outstanding or notified) on this line, whether insured or not.</p>
+
+        <div id="loss-headers-cgl" class="hidden" style="display:none;">
+          <div class="grid gap-3 mb-2" style="grid-template-columns: 0.7fr 1.0fr 1.6fr 1.0fr 40px;">
+            <div class="field-label" data-i18n="loss_col_year">Year</div>
+            <div class="field-label" data-i18n="loss_col_amount">Gross amount (USD)</div>
+            <div class="field-label" data-i18n="loss_col_desc">Description / cause</div>
+            <div class="field-label" data-i18n="loss_col_status">Paid / outstanding</div>
+            <div></div>
+          </div>
+        </div>
+
+        <div id="loss-rows-cgl" data-loss-product="cgl"></div>
+
+        <button type="button" data-loss-add="cgl" class="btn-secondary no-pdf" style="margin-top: 8px; padding: 6px 14px; background: var(--surface-alt, #f4f3ee); border: 1px solid var(--border-strong, #d8d2c2); border-radius: 6px; font-family: inherit; font-size: 13px; cursor: pointer; color: var(--mig);">
+          <span data-i18n="loss_add_btn">+ Add a loss</span>
+        </button>
+      </div>
+
+
+      <!-- D.8 Previous Insurance (cgl) -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_cgl_prev_insurance">D.8 &nbsp;Previous Insurance</h3>
+        <p class="text-sm mb-3" style="color: var(--muted);" data-i18n="p_pl_prev_ins_hint">Most recent insurance period for this cover. Add a row for each insurer if covered by more than one.</p>
+
+        <!-- Table headers -->
+        <div id="prev-headers-cgl">
+          <div class="grid gap-3 mb-2" style="grid-template-columns: 1.6fr 1.6fr 40px;">
+            <div class="field-label" data-i18n="prev_ins_col_insurer">Insurer</div>
+            <div class="field-label" data-i18n="prev_ins_col_policy">Policy № &amp; expiry</div>
+            <div></div>
+          </div>
+        </div>
+
+        <!-- Rows. Starts with one pre-rendered row (idx=1). Additional rows added by JS. -->
+        <div id="prev-rows-cgl" data-prev-product="cgl">
+          <div class="prev-pl-row" data-row-id="1" style="display:grid; grid-template-columns: 1.6fr 1.6fr 40px; gap: 12px; margin-bottom: 10px; align-items: start;">
+            <div><input type="text" name="cgl_prev_1_insurer" data-i18n-placeholder="prev_ins_ph_insurer" placeholder="Insurer name" /></div>
+            <div><input type="text" name="cgl_prev_1_policy" data-i18n-placeholder="prev_ins_ph_policy" placeholder="Policy № and expiry date" /></div>
+            <div class="no-pdf">
+              <button type="button" data-prev-remove="cgl" data-row-id="1" aria-label="Remove row" title="Remove row" style="background:transparent; border:1px solid var(--border-strong, #d8d2c2); color:var(--muted); border-radius:4px; width:32px; height:32px; font-size:18px; cursor:pointer; padding:0; line-height:1;">×</button>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" data-prev-add="cgl" class="btn-secondary no-pdf" style="margin-top: 4px; padding: 6px 14px; background: var(--surface-alt, #f4f3ee); border: 1px solid var(--border-strong, #d8d2c2); border-radius: 6px; font-family: inherit; font-size: 13px; cursor: pointer; color: var(--mig);">
+          <span data-i18n="prev_ins_add_btn">+ Add a previous policy</span>
+        </button>
+
+        <div class="mt-6">
+          <div class="text-sm mb-1"><span class="qno">●</span><span data-i18n="q_pl_prev_declined">Has any insurer ever declined, cancelled, refused to renew, or imposed special terms on the Proposer for this cover?</span></div>
+          <div class="yn">
+            <label><input type="radio" name="cgl_prev_declined" value="Yes" /> <span data-i18n="yn_yes">Yes</span></label>
+            <label><input type="radio" name="cgl_prev_declined" value="No" /> <span data-i18n="yn_no">No</span></label>
+          </div>
+          <input type="text" name="cgl_prev_declined_details" data-i18n-placeholder="ph_if_yes_details_339" placeholder="If Yes, details" class="mt-2" />
+        </div>
+      </div>
+
+</section>
 
     <!-- ============================================== -->
     <!-- E. CAR — CONTRACTORS' ALL RISKS -->
@@ -1379,7 +1608,124 @@
           </div>
         </div>
       </div>
-    </section>
+    
+      <!-- E.5 Period & Coverage Zone -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_car_period_coverage">E.5 &nbsp;Period &amp; Coverage Zone</h3>
+        <div class="grid md:grid-cols-2 gap-x-8 gap-y-5">
+          <div>
+            <div class="field-label" data-i18n="fl_pl_period_from">Period of Insurance — From</div>
+            <input type="text" name="car_period_from" placeholder="dd.mm.yyyy" pattern="\d{2}\.\d{2}\.\d{4}" inputmode="numeric" data-date />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_pl_period_to">Period of Insurance — To</div>
+            <input type="text" name="car_period_to" placeholder="dd.mm.yyyy" pattern="\d{2}\.\d{2}\.\d{4}" inputmode="numeric" data-date />
+          </div>
+          <div class="md:col-span-2">
+            <div class="field-label" data-i18n="fl_pl_geo_zone">Geographical Coverage Zone</div>
+            <div class="flex flex-wrap gap-x-6 gap-y-2 mt-2">
+              <label class="chk"><input type="checkbox" name="car_geo_uz" /><span data-i18n="chk_republic_of_uzbekistan_375">Republic of Uzbekistan</span></label>
+              <label class="chk"><input type="checkbox" name="car_geo_cis" /><span data-i18n="chk_cis_countries_376">CIS Countries</span></label>
+              <label class="chk"><input type="checkbox" name="car_geo_eu" /><span data-i18n="chk_european_union_377">European Union</span></label>
+              <label class="chk"><input type="checkbox" name="car_geo_us" /><span data-i18n="chk_united_states_378">United States</span></label>
+              <label class="chk"><input type="checkbox" name="car_geo_worldwide" /><span data-i18n="chk_worldwide_379">Worldwide</span></label>
+            </div>
+            <input type="text" name="car_geo_other" placeholder="If other, specify" data-i18n-placeholder="ph_if_other_specify_337" class="mt-2" />
+          </div>
+        </div>
+      </div>
+
+      <!-- E.6 Beneficiary -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_car_beneficiary">E.6 &nbsp;Beneficiary / Loss Payee</h3>
+        <p class="text-xs mb-3" style="color: var(--muted);" data-i18n="p_complete_if_different_from_the_435">Complete if different from the Proposer.</p>
+        <div class="grid md:grid-cols-2 gap-x-8 gap-y-5">
+          <div>
+            <div class="field-label" data-i18n="fl_pl_ben_name">Name of Beneficiary</div>
+            <input type="text" name="car_ben_name" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_pl_ben_relation">Relationship to Proposer</div>
+            <input type="text" name="car_ben_relation" />
+          </div>
+          <div class="md:col-span-2">
+            <div class="field-label" data-i18n="fl_pl_ben_address">Address</div>
+            <input type="text" name="car_ben_address" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_pl_ben_passport">Passport / Registration No.</div>
+            <input type="text" name="car_ben_passport" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_pl_ben_issue">Date of Issue / Issuing Authority</div>
+            <input type="text" name="car_ben_issue" />
+          </div>
+        </div>
+      </div>
+
+      <!-- E.7 Loss History -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_car_loss_history">E.7 &nbsp;Loss History — Past 5 Years</h3>
+        <p class="text-xs mb-3" style="color: var(--muted);" data-i18n="p_pl_losses_hint">All losses (paid, outstanding or notified) on this line, whether insured or not.</p>
+
+        <div id="loss-headers-car" class="hidden" style="display:none;">
+          <div class="grid gap-3 mb-2" style="grid-template-columns: 0.7fr 1.0fr 1.6fr 1.0fr 40px;">
+            <div class="field-label" data-i18n="loss_col_year">Year</div>
+            <div class="field-label" data-i18n="loss_col_amount">Gross amount (USD)</div>
+            <div class="field-label" data-i18n="loss_col_desc">Description / cause</div>
+            <div class="field-label" data-i18n="loss_col_status">Paid / outstanding</div>
+            <div></div>
+          </div>
+        </div>
+
+        <div id="loss-rows-car" data-loss-product="car"></div>
+
+        <button type="button" data-loss-add="car" class="btn-secondary no-pdf" style="margin-top: 8px; padding: 6px 14px; background: var(--surface-alt, #f4f3ee); border: 1px solid var(--border-strong, #d8d2c2); border-radius: 6px; font-family: inherit; font-size: 13px; cursor: pointer; color: var(--mig);">
+          <span data-i18n="loss_add_btn">+ Add a loss</span>
+        </button>
+      </div>
+
+
+      <!-- E.8 Previous Insurance (car) -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_car_prev_insurance">E.8 &nbsp;Previous Insurance</h3>
+        <p class="text-sm mb-3" style="color: var(--muted);" data-i18n="p_pl_prev_ins_hint">Most recent insurance period for this cover. Add a row for each insurer if covered by more than one.</p>
+
+        <!-- Table headers -->
+        <div id="prev-headers-car">
+          <div class="grid gap-3 mb-2" style="grid-template-columns: 1.6fr 1.6fr 40px;">
+            <div class="field-label" data-i18n="prev_ins_col_insurer">Insurer</div>
+            <div class="field-label" data-i18n="prev_ins_col_policy">Policy № &amp; expiry</div>
+            <div></div>
+          </div>
+        </div>
+
+        <!-- Rows. Starts with one pre-rendered row (idx=1). Additional rows added by JS. -->
+        <div id="prev-rows-car" data-prev-product="car">
+          <div class="prev-pl-row" data-row-id="1" style="display:grid; grid-template-columns: 1.6fr 1.6fr 40px; gap: 12px; margin-bottom: 10px; align-items: start;">
+            <div><input type="text" name="car_prev_1_insurer" data-i18n-placeholder="prev_ins_ph_insurer" placeholder="Insurer name" /></div>
+            <div><input type="text" name="car_prev_1_policy" data-i18n-placeholder="prev_ins_ph_policy" placeholder="Policy № and expiry date" /></div>
+            <div class="no-pdf">
+              <button type="button" data-prev-remove="car" data-row-id="1" aria-label="Remove row" title="Remove row" style="background:transparent; border:1px solid var(--border-strong, #d8d2c2); color:var(--muted); border-radius:4px; width:32px; height:32px; font-size:18px; cursor:pointer; padding:0; line-height:1;">×</button>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" data-prev-add="car" class="btn-secondary no-pdf" style="margin-top: 4px; padding: 6px 14px; background: var(--surface-alt, #f4f3ee); border: 1px solid var(--border-strong, #d8d2c2); border-radius: 6px; font-family: inherit; font-size: 13px; cursor: pointer; color: var(--mig);">
+          <span data-i18n="prev_ins_add_btn">+ Add a previous policy</span>
+        </button>
+
+        <div class="mt-6">
+          <div class="text-sm mb-1"><span class="qno">●</span><span data-i18n="q_pl_prev_declined">Has any insurer ever declined, cancelled, refused to renew, or imposed special terms on the Proposer for this cover?</span></div>
+          <div class="yn">
+            <label><input type="radio" name="car_prev_declined" value="Yes" /> <span data-i18n="yn_yes">Yes</span></label>
+            <label><input type="radio" name="car_prev_declined" value="No" /> <span data-i18n="yn_no">No</span></label>
+          </div>
+          <input type="text" name="car_prev_declined_details" data-i18n-placeholder="ph_if_yes_details_339" placeholder="If Yes, details" class="mt-2" />
+        </div>
+      </div>
+
+</section>
 
     <!-- ============================================== -->
     <!-- F. D&O — DIRECTORS & OFFICERS -->
@@ -1419,15 +1765,20 @@
             <input type="text" name="dno_5y_details" placeholder="If any Yes, give details" data-i18n-placeholder="ph_if_any_yes_give_details_356" class="mt-3" />
           </div>
           <div class="qrow">
-            <div class="qtext"><span>5.</span><span data-i18n="q_any_acquisition_tender_offer_or_merger_pending_or__275">Any acquisition, tender offer or merger pending or under consideration?</span></div>
+            <div class="qtext"><span>5.</span><span data-i18n="q_has_any_merger_acquisition_or_restructuring_in_the_445">Has any merger, acquisition or restructuring in the past 5 years resulted in an employee count change of ±15%?</span></div>
+            <div class="yn"><label><input type="radio" name="ma_change" value="Yes" /> <span data-i18n="yn_yes">Yes</span></label><label><input type="radio" name="ma_change" value="No" /> <span data-i18n="yn_no">No</span></label></div>
+            <input type="text" name="ma_change_details" placeholder="If Yes, details" data-i18n-placeholder="ph_if_yes_details_338" class="mt-2" />
+          </div>
+          <div class="qrow">
+            <div class="qtext"><span>6.</span><span data-i18n="q_any_acquisition_tender_offer_or_merger_pending_or__275">Any acquisition, tender offer or merger pending or under consideration?</span></div>
             <div class="yn"><label><input type="radio" name="dno_ma_pending" value="Yes" /> <span data-i18n="yn_yes">Yes</span></label><label><input type="radio" name="dno_ma_pending" value="No" /> <span data-i18n="yn_no">No</span></label></div>
           </div>
           <div class="qrow">
-            <div class="qtext"><span>6.</span><span data-i18n="q_is_the_company_aware_of_any_proposal_for_its_acqui_276">Is the Company aware of any proposal for its acquisition by another company?</span></div>
+            <div class="qtext"><span>7.</span><span data-i18n="q_is_the_company_aware_of_any_proposal_for_its_acqui_276">Is the Company aware of any proposal for its acquisition by another company?</span></div>
             <div class="yn"><label><input type="radio" name="dno_acq_proposal" value="Yes" /> <span data-i18n="yn_yes">Yes</span></label><label><input type="radio" name="dno_acq_proposal" value="No" /> <span data-i18n="yn_no">No</span></label></div>
           </div>
           <div class="qrow">
-            <div class="qtext"><span>7.</span><span data-i18n="q_does_the_company_intend_a_new_public_offering_of_s_277">Does the Company intend a new public offering of securities (Uzbekistan or abroad) in the next 12 months?</span></div>
+            <div class="qtext"><span>8.</span><span data-i18n="q_does_the_company_intend_a_new_public_offering_of_s_277">Does the Company intend a new public offering of securities (Uzbekistan or abroad) in the next 12 months?</span></div>
             <div class="yn"><label><input type="radio" name="dno_ipo" value="Yes" /> <span data-i18n="yn_yes">Yes</span></label><label><input type="radio" name="dno_ipo" value="No" /> <span data-i18n="yn_no">No</span></label></div>
           </div>
         </div>
@@ -1522,7 +1873,102 @@
           </div>
         </div>
       </div>
-    </section>
+    
+      <!-- F.5 Period & Coverage Zone -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_dno_period_coverage">F.5 &nbsp;Period &amp; Coverage Zone</h3>
+        <div class="grid md:grid-cols-2 gap-x-8 gap-y-5">
+          <div>
+            <div class="field-label" data-i18n="fl_pl_period_from">Period of Insurance — From</div>
+            <input type="text" name="dno_period_from" placeholder="dd.mm.yyyy" pattern="\d{2}\.\d{2}\.\d{4}" inputmode="numeric" data-date />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_pl_period_to">Period of Insurance — To</div>
+            <input type="text" name="dno_period_to" placeholder="dd.mm.yyyy" pattern="\d{2}\.\d{2}\.\d{4}" inputmode="numeric" data-date />
+          </div>
+          <div class="md:col-span-2">
+            <div class="field-label" data-i18n="fl_pl_geo_zone">Geographical Coverage Zone</div>
+            <div class="flex flex-wrap gap-x-6 gap-y-2 mt-2">
+              <label class="chk"><input type="checkbox" name="dno_geo_uz" /><span data-i18n="chk_republic_of_uzbekistan_375">Republic of Uzbekistan</span></label>
+              <label class="chk"><input type="checkbox" name="dno_geo_cis" /><span data-i18n="chk_cis_countries_376">CIS Countries</span></label>
+              <label class="chk"><input type="checkbox" name="dno_geo_eu" /><span data-i18n="chk_european_union_377">European Union</span></label>
+              <label class="chk"><input type="checkbox" name="dno_geo_us" /><span data-i18n="chk_united_states_378">United States</span></label>
+              <label class="chk"><input type="checkbox" name="dno_geo_worldwide" /><span data-i18n="chk_worldwide_379">Worldwide</span></label>
+            </div>
+            <input type="text" name="dno_geo_other" placeholder="If other, specify" data-i18n-placeholder="ph_if_other_specify_337" class="mt-2" />
+          </div>
+        </div>
+      </div>
+
+      <!-- F.6 Beneficiary -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_dno_beneficiary">F.6 &nbsp;Beneficiary / Loss Payee</h3>
+        <p class="text-xs mb-3" style="color: var(--muted);" data-i18n="p_complete_if_different_from_the_435">Complete if different from the Proposer.</p>
+        <div class="grid md:grid-cols-2 gap-x-8 gap-y-5">
+          <div>
+            <div class="field-label" data-i18n="fl_pl_ben_name">Name of Beneficiary</div>
+            <input type="text" name="dno_ben_name" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_pl_ben_relation">Relationship to Proposer</div>
+            <input type="text" name="dno_ben_relation" />
+          </div>
+          <div class="md:col-span-2">
+            <div class="field-label" data-i18n="fl_pl_ben_address">Address</div>
+            <input type="text" name="dno_ben_address" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_pl_ben_passport">Passport / Registration No.</div>
+            <input type="text" name="dno_ben_passport" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_pl_ben_issue">Date of Issue / Issuing Authority</div>
+            <input type="text" name="dno_ben_issue" />
+          </div>
+        </div>
+      </div>
+
+
+      <!-- F.7 Previous Insurance (dno) -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_dno_prev_insurance">F.7 &nbsp;Previous Insurance</h3>
+        <p class="text-sm mb-3" style="color: var(--muted);" data-i18n="p_pl_prev_ins_hint">Most recent insurance period for this cover. Add a row for each insurer if covered by more than one.</p>
+
+        <!-- Table headers -->
+        <div id="prev-headers-dno">
+          <div class="grid gap-3 mb-2" style="grid-template-columns: 1.6fr 1.6fr 40px;">
+            <div class="field-label" data-i18n="prev_ins_col_insurer">Insurer</div>
+            <div class="field-label" data-i18n="prev_ins_col_policy">Policy № &amp; expiry</div>
+            <div></div>
+          </div>
+        </div>
+
+        <!-- Rows. Starts with one pre-rendered row (idx=1). Additional rows added by JS. -->
+        <div id="prev-rows-dno" data-prev-product="dno">
+          <div class="prev-pl-row" data-row-id="1" style="display:grid; grid-template-columns: 1.6fr 1.6fr 40px; gap: 12px; margin-bottom: 10px; align-items: start;">
+            <div><input type="text" name="dno_prev_1_insurer" data-i18n-placeholder="prev_ins_ph_insurer" placeholder="Insurer name" /></div>
+            <div><input type="text" name="dno_prev_1_policy" data-i18n-placeholder="prev_ins_ph_policy" placeholder="Policy № and expiry date" /></div>
+            <div class="no-pdf">
+              <button type="button" data-prev-remove="dno" data-row-id="1" aria-label="Remove row" title="Remove row" style="background:transparent; border:1px solid var(--border-strong, #d8d2c2); color:var(--muted); border-radius:4px; width:32px; height:32px; font-size:18px; cursor:pointer; padding:0; line-height:1;">×</button>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" data-prev-add="dno" class="btn-secondary no-pdf" style="margin-top: 4px; padding: 6px 14px; background: var(--surface-alt, #f4f3ee); border: 1px solid var(--border-strong, #d8d2c2); border-radius: 6px; font-family: inherit; font-size: 13px; cursor: pointer; color: var(--mig);">
+          <span data-i18n="prev_ins_add_btn">+ Add a previous policy</span>
+        </button>
+
+        <div class="mt-6">
+          <div class="text-sm mb-1"><span class="qno">●</span><span data-i18n="q_pl_prev_declined">Has any insurer ever declined, cancelled, refused to renew, or imposed special terms on the Proposer for this cover?</span></div>
+          <div class="yn">
+            <label><input type="radio" name="dno_prev_declined" value="Yes" /> <span data-i18n="yn_yes">Yes</span></label>
+            <label><input type="radio" name="dno_prev_declined" value="No" /> <span data-i18n="yn_no">No</span></label>
+          </div>
+          <input type="text" name="dno_prev_declined_details" data-i18n-placeholder="ph_if_yes_details_339" placeholder="If Yes, details" class="mt-2" />
+        </div>
+      </div>
+
+</section>
 
     <!-- ============================================== -->
     <!-- G. PI — PROFESSIONAL INDEMNITY -->
@@ -1702,7 +2148,102 @@
           </div>
         </div>
       </div>
-    </section>
+    
+      <!-- G.5 Period & Coverage Zone -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_pi_period_coverage">G.5 &nbsp;Period &amp; Coverage Zone</h3>
+        <div class="grid md:grid-cols-2 gap-x-8 gap-y-5">
+          <div>
+            <div class="field-label" data-i18n="fl_pl_period_from">Period of Insurance — From</div>
+            <input type="text" name="pi_period_from" placeholder="dd.mm.yyyy" pattern="\d{2}\.\d{2}\.\d{4}" inputmode="numeric" data-date />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_pl_period_to">Period of Insurance — To</div>
+            <input type="text" name="pi_period_to" placeholder="dd.mm.yyyy" pattern="\d{2}\.\d{2}\.\d{4}" inputmode="numeric" data-date />
+          </div>
+          <div class="md:col-span-2">
+            <div class="field-label" data-i18n="fl_pl_geo_zone">Geographical Coverage Zone</div>
+            <div class="flex flex-wrap gap-x-6 gap-y-2 mt-2">
+              <label class="chk"><input type="checkbox" name="pi_geo_uz" /><span data-i18n="chk_republic_of_uzbekistan_375">Republic of Uzbekistan</span></label>
+              <label class="chk"><input type="checkbox" name="pi_geo_cis" /><span data-i18n="chk_cis_countries_376">CIS Countries</span></label>
+              <label class="chk"><input type="checkbox" name="pi_geo_eu" /><span data-i18n="chk_european_union_377">European Union</span></label>
+              <label class="chk"><input type="checkbox" name="pi_geo_us" /><span data-i18n="chk_united_states_378">United States</span></label>
+              <label class="chk"><input type="checkbox" name="pi_geo_worldwide" /><span data-i18n="chk_worldwide_379">Worldwide</span></label>
+            </div>
+            <input type="text" name="pi_geo_other" placeholder="If other, specify" data-i18n-placeholder="ph_if_other_specify_337" class="mt-2" />
+          </div>
+        </div>
+      </div>
+
+      <!-- G.6 Beneficiary -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_pi_beneficiary">G.6 &nbsp;Beneficiary / Loss Payee</h3>
+        <p class="text-xs mb-3" style="color: var(--muted);" data-i18n="p_complete_if_different_from_the_435">Complete if different from the Proposer.</p>
+        <div class="grid md:grid-cols-2 gap-x-8 gap-y-5">
+          <div>
+            <div class="field-label" data-i18n="fl_pl_ben_name">Name of Beneficiary</div>
+            <input type="text" name="pi_ben_name" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_pl_ben_relation">Relationship to Proposer</div>
+            <input type="text" name="pi_ben_relation" />
+          </div>
+          <div class="md:col-span-2">
+            <div class="field-label" data-i18n="fl_pl_ben_address">Address</div>
+            <input type="text" name="pi_ben_address" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_pl_ben_passport">Passport / Registration No.</div>
+            <input type="text" name="pi_ben_passport" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_pl_ben_issue">Date of Issue / Issuing Authority</div>
+            <input type="text" name="pi_ben_issue" />
+          </div>
+        </div>
+      </div>
+
+
+      <!-- G.7 Previous Insurance (pi) -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_pi_prev_insurance">G.7 &nbsp;Previous Insurance</h3>
+        <p class="text-sm mb-3" style="color: var(--muted);" data-i18n="p_pl_prev_ins_hint">Most recent insurance period for this cover. Add a row for each insurer if covered by more than one.</p>
+
+        <!-- Table headers -->
+        <div id="prev-headers-pi">
+          <div class="grid gap-3 mb-2" style="grid-template-columns: 1.6fr 1.6fr 40px;">
+            <div class="field-label" data-i18n="prev_ins_col_insurer">Insurer</div>
+            <div class="field-label" data-i18n="prev_ins_col_policy">Policy № &amp; expiry</div>
+            <div></div>
+          </div>
+        </div>
+
+        <!-- Rows. Starts with one pre-rendered row (idx=1). Additional rows added by JS. -->
+        <div id="prev-rows-pi" data-prev-product="pi">
+          <div class="prev-pl-row" data-row-id="1" style="display:grid; grid-template-columns: 1.6fr 1.6fr 40px; gap: 12px; margin-bottom: 10px; align-items: start;">
+            <div><input type="text" name="pi_prev_1_insurer" data-i18n-placeholder="prev_ins_ph_insurer" placeholder="Insurer name" /></div>
+            <div><input type="text" name="pi_prev_1_policy" data-i18n-placeholder="prev_ins_ph_policy" placeholder="Policy № and expiry date" /></div>
+            <div class="no-pdf">
+              <button type="button" data-prev-remove="pi" data-row-id="1" aria-label="Remove row" title="Remove row" style="background:transparent; border:1px solid var(--border-strong, #d8d2c2); color:var(--muted); border-radius:4px; width:32px; height:32px; font-size:18px; cursor:pointer; padding:0; line-height:1;">×</button>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" data-prev-add="pi" class="btn-secondary no-pdf" style="margin-top: 4px; padding: 6px 14px; background: var(--surface-alt, #f4f3ee); border: 1px solid var(--border-strong, #d8d2c2); border-radius: 6px; font-family: inherit; font-size: 13px; cursor: pointer; color: var(--mig);">
+          <span data-i18n="prev_ins_add_btn">+ Add a previous policy</span>
+        </button>
+
+        <div class="mt-6">
+          <div class="text-sm mb-1"><span class="qno">●</span><span data-i18n="q_pl_prev_declined">Has any insurer ever declined, cancelled, refused to renew, or imposed special terms on the Proposer for this cover?</span></div>
+          <div class="yn">
+            <label><input type="radio" name="pi_prev_declined" value="Yes" /> <span data-i18n="yn_yes">Yes</span></label>
+            <label><input type="radio" name="pi_prev_declined" value="No" /> <span data-i18n="yn_no">No</span></label>
+          </div>
+          <input type="text" name="pi_prev_declined_details" data-i18n-placeholder="ph_if_yes_details_339" placeholder="If Yes, details" class="mt-2" />
+        </div>
+      </div>
+
+</section>
 
     <!-- ============================================== -->
     <!-- H. CRIME (was C, now H) -->
@@ -1854,7 +2395,124 @@
           </div>
         </div>
       </div>
-    </section>
+    
+      <!-- C.6 Period & Coverage Zone -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_crime_period_coverage">C.6 &nbsp;Period &amp; Coverage Zone</h3>
+        <div class="grid md:grid-cols-2 gap-x-8 gap-y-5">
+          <div>
+            <div class="field-label" data-i18n="fl_pl_period_from">Period of Insurance — From</div>
+            <input type="text" name="crime_period_from" placeholder="dd.mm.yyyy" pattern="\d{2}\.\d{2}\.\d{4}" inputmode="numeric" data-date />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_pl_period_to">Period of Insurance — To</div>
+            <input type="text" name="crime_period_to" placeholder="dd.mm.yyyy" pattern="\d{2}\.\d{2}\.\d{4}" inputmode="numeric" data-date />
+          </div>
+          <div class="md:col-span-2">
+            <div class="field-label" data-i18n="fl_pl_geo_zone">Geographical Coverage Zone</div>
+            <div class="flex flex-wrap gap-x-6 gap-y-2 mt-2">
+              <label class="chk"><input type="checkbox" name="crime_geo_uz" /><span data-i18n="chk_republic_of_uzbekistan_375">Republic of Uzbekistan</span></label>
+              <label class="chk"><input type="checkbox" name="crime_geo_cis" /><span data-i18n="chk_cis_countries_376">CIS Countries</span></label>
+              <label class="chk"><input type="checkbox" name="crime_geo_eu" /><span data-i18n="chk_european_union_377">European Union</span></label>
+              <label class="chk"><input type="checkbox" name="crime_geo_us" /><span data-i18n="chk_united_states_378">United States</span></label>
+              <label class="chk"><input type="checkbox" name="crime_geo_worldwide" /><span data-i18n="chk_worldwide_379">Worldwide</span></label>
+            </div>
+            <input type="text" name="crime_geo_other" placeholder="If other, specify" data-i18n-placeholder="ph_if_other_specify_337" class="mt-2" />
+          </div>
+        </div>
+      </div>
+
+      <!-- C.7 Beneficiary -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_crime_beneficiary">C.7 &nbsp;Beneficiary / Loss Payee</h3>
+        <p class="text-xs mb-3" style="color: var(--muted);" data-i18n="p_complete_if_different_from_the_435">Complete if different from the Proposer.</p>
+        <div class="grid md:grid-cols-2 gap-x-8 gap-y-5">
+          <div>
+            <div class="field-label" data-i18n="fl_pl_ben_name">Name of Beneficiary</div>
+            <input type="text" name="crime_ben_name" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_pl_ben_relation">Relationship to Proposer</div>
+            <input type="text" name="crime_ben_relation" />
+          </div>
+          <div class="md:col-span-2">
+            <div class="field-label" data-i18n="fl_pl_ben_address">Address</div>
+            <input type="text" name="crime_ben_address" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_pl_ben_passport">Passport / Registration No.</div>
+            <input type="text" name="crime_ben_passport" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_pl_ben_issue">Date of Issue / Issuing Authority</div>
+            <input type="text" name="crime_ben_issue" />
+          </div>
+        </div>
+      </div>
+
+      <!-- C.8 Loss History -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_crime_loss_history">C.8 &nbsp;Loss History — Past 5 Years</h3>
+        <p class="text-xs mb-3" style="color: var(--muted);" data-i18n="p_pl_losses_hint">All losses (paid, outstanding or notified) on this line, whether insured or not.</p>
+
+        <div id="loss-headers-crime" class="hidden" style="display:none;">
+          <div class="grid gap-3 mb-2" style="grid-template-columns: 0.7fr 1.0fr 1.6fr 1.0fr 40px;">
+            <div class="field-label" data-i18n="loss_col_year">Year</div>
+            <div class="field-label" data-i18n="loss_col_amount">Gross amount (USD)</div>
+            <div class="field-label" data-i18n="loss_col_desc">Description / cause</div>
+            <div class="field-label" data-i18n="loss_col_status">Paid / outstanding</div>
+            <div></div>
+          </div>
+        </div>
+
+        <div id="loss-rows-crime" data-loss-product="crime"></div>
+
+        <button type="button" data-loss-add="crime" class="btn-secondary no-pdf" style="margin-top: 8px; padding: 6px 14px; background: var(--surface-alt, #f4f3ee); border: 1px solid var(--border-strong, #d8d2c2); border-radius: 6px; font-family: inherit; font-size: 13px; cursor: pointer; color: var(--mig);">
+          <span data-i18n="loss_add_btn">+ Add a loss</span>
+        </button>
+      </div>
+
+
+      <!-- C.9 Previous Insurance (crime) -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_crime_prev_insurance">C.9 &nbsp;Previous Insurance</h3>
+        <p class="text-sm mb-3" style="color: var(--muted);" data-i18n="p_pl_prev_ins_hint">Most recent insurance period for this cover. Add a row for each insurer if covered by more than one.</p>
+
+        <!-- Table headers -->
+        <div id="prev-headers-crime">
+          <div class="grid gap-3 mb-2" style="grid-template-columns: 1.6fr 1.6fr 40px;">
+            <div class="field-label" data-i18n="prev_ins_col_insurer">Insurer</div>
+            <div class="field-label" data-i18n="prev_ins_col_policy">Policy № &amp; expiry</div>
+            <div></div>
+          </div>
+        </div>
+
+        <!-- Rows. Starts with one pre-rendered row (idx=1). Additional rows added by JS. -->
+        <div id="prev-rows-crime" data-prev-product="crime">
+          <div class="prev-pl-row" data-row-id="1" style="display:grid; grid-template-columns: 1.6fr 1.6fr 40px; gap: 12px; margin-bottom: 10px; align-items: start;">
+            <div><input type="text" name="crime_prev_1_insurer" data-i18n-placeholder="prev_ins_ph_insurer" placeholder="Insurer name" /></div>
+            <div><input type="text" name="crime_prev_1_policy" data-i18n-placeholder="prev_ins_ph_policy" placeholder="Policy № and expiry date" /></div>
+            <div class="no-pdf">
+              <button type="button" data-prev-remove="crime" data-row-id="1" aria-label="Remove row" title="Remove row" style="background:transparent; border:1px solid var(--border-strong, #d8d2c2); color:var(--muted); border-radius:4px; width:32px; height:32px; font-size:18px; cursor:pointer; padding:0; line-height:1;">×</button>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" data-prev-add="crime" class="btn-secondary no-pdf" style="margin-top: 4px; padding: 6px 14px; background: var(--surface-alt, #f4f3ee); border: 1px solid var(--border-strong, #d8d2c2); border-radius: 6px; font-family: inherit; font-size: 13px; cursor: pointer; color: var(--mig);">
+          <span data-i18n="prev_ins_add_btn">+ Add a previous policy</span>
+        </button>
+
+        <div class="mt-6">
+          <div class="text-sm mb-1"><span class="qno">●</span><span data-i18n="q_pl_prev_declined">Has any insurer ever declined, cancelled, refused to renew, or imposed special terms on the Proposer for this cover?</span></div>
+          <div class="yn">
+            <label><input type="radio" name="crime_prev_declined" value="Yes" /> <span data-i18n="yn_yes">Yes</span></label>
+            <label><input type="radio" name="crime_prev_declined" value="No" /> <span data-i18n="yn_no">No</span></label>
+          </div>
+          <input type="text" name="crime_prev_declined_details" data-i18n-placeholder="ph_if_yes_details_339" placeholder="If Yes, details" class="mt-2" />
+        </div>
+      </div>
+
+</section>
 
     <!-- ============================================== -->
     <!-- D. CYBER -->
@@ -2039,7 +2697,102 @@
           </div>
         </div>
       </div>
-    </section>
+    
+      <!-- D.6 Period & Coverage Zone -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_cyber_period_coverage">D.6 &nbsp;Period &amp; Coverage Zone</h3>
+        <div class="grid md:grid-cols-2 gap-x-8 gap-y-5">
+          <div>
+            <div class="field-label" data-i18n="fl_pl_period_from">Period of Insurance — From</div>
+            <input type="text" name="cyber_period_from" placeholder="dd.mm.yyyy" pattern="\d{2}\.\d{2}\.\d{4}" inputmode="numeric" data-date />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_pl_period_to">Period of Insurance — To</div>
+            <input type="text" name="cyber_period_to" placeholder="dd.mm.yyyy" pattern="\d{2}\.\d{2}\.\d{4}" inputmode="numeric" data-date />
+          </div>
+          <div class="md:col-span-2">
+            <div class="field-label" data-i18n="fl_pl_geo_zone">Geographical Coverage Zone</div>
+            <div class="flex flex-wrap gap-x-6 gap-y-2 mt-2">
+              <label class="chk"><input type="checkbox" name="cyber_geo_uz" /><span data-i18n="chk_republic_of_uzbekistan_375">Republic of Uzbekistan</span></label>
+              <label class="chk"><input type="checkbox" name="cyber_geo_cis" /><span data-i18n="chk_cis_countries_376">CIS Countries</span></label>
+              <label class="chk"><input type="checkbox" name="cyber_geo_eu" /><span data-i18n="chk_european_union_377">European Union</span></label>
+              <label class="chk"><input type="checkbox" name="cyber_geo_us" /><span data-i18n="chk_united_states_378">United States</span></label>
+              <label class="chk"><input type="checkbox" name="cyber_geo_worldwide" /><span data-i18n="chk_worldwide_379">Worldwide</span></label>
+            </div>
+            <input type="text" name="cyber_geo_other" placeholder="If other, specify" data-i18n-placeholder="ph_if_other_specify_337" class="mt-2" />
+          </div>
+        </div>
+      </div>
+
+      <!-- D.7 Beneficiary -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_cyber_beneficiary">D.7 &nbsp;Beneficiary / Loss Payee</h3>
+        <p class="text-xs mb-3" style="color: var(--muted);" data-i18n="p_complete_if_different_from_the_435">Complete if different from the Proposer.</p>
+        <div class="grid md:grid-cols-2 gap-x-8 gap-y-5">
+          <div>
+            <div class="field-label" data-i18n="fl_pl_ben_name">Name of Beneficiary</div>
+            <input type="text" name="cyber_ben_name" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_pl_ben_relation">Relationship to Proposer</div>
+            <input type="text" name="cyber_ben_relation" />
+          </div>
+          <div class="md:col-span-2">
+            <div class="field-label" data-i18n="fl_pl_ben_address">Address</div>
+            <input type="text" name="cyber_ben_address" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_pl_ben_passport">Passport / Registration No.</div>
+            <input type="text" name="cyber_ben_passport" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_pl_ben_issue">Date of Issue / Issuing Authority</div>
+            <input type="text" name="cyber_ben_issue" />
+          </div>
+        </div>
+      </div>
+
+
+      <!-- D.8 Previous Insurance (cyber) -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_cyber_prev_insurance">D.8 &nbsp;Previous Insurance</h3>
+        <p class="text-sm mb-3" style="color: var(--muted);" data-i18n="p_pl_prev_ins_hint">Most recent insurance period for this cover. Add a row for each insurer if covered by more than one.</p>
+
+        <!-- Table headers -->
+        <div id="prev-headers-cyber">
+          <div class="grid gap-3 mb-2" style="grid-template-columns: 1.6fr 1.6fr 40px;">
+            <div class="field-label" data-i18n="prev_ins_col_insurer">Insurer</div>
+            <div class="field-label" data-i18n="prev_ins_col_policy">Policy № &amp; expiry</div>
+            <div></div>
+          </div>
+        </div>
+
+        <!-- Rows. Starts with one pre-rendered row (idx=1). Additional rows added by JS. -->
+        <div id="prev-rows-cyber" data-prev-product="cyber">
+          <div class="prev-pl-row" data-row-id="1" style="display:grid; grid-template-columns: 1.6fr 1.6fr 40px; gap: 12px; margin-bottom: 10px; align-items: start;">
+            <div><input type="text" name="cyber_prev_1_insurer" data-i18n-placeholder="prev_ins_ph_insurer" placeholder="Insurer name" /></div>
+            <div><input type="text" name="cyber_prev_1_policy" data-i18n-placeholder="prev_ins_ph_policy" placeholder="Policy № and expiry date" /></div>
+            <div class="no-pdf">
+              <button type="button" data-prev-remove="cyber" data-row-id="1" aria-label="Remove row" title="Remove row" style="background:transparent; border:1px solid var(--border-strong, #d8d2c2); color:var(--muted); border-radius:4px; width:32px; height:32px; font-size:18px; cursor:pointer; padding:0; line-height:1;">×</button>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" data-prev-add="cyber" class="btn-secondary no-pdf" style="margin-top: 4px; padding: 6px 14px; background: var(--surface-alt, #f4f3ee); border: 1px solid var(--border-strong, #d8d2c2); border-radius: 6px; font-family: inherit; font-size: 13px; cursor: pointer; color: var(--mig);">
+          <span data-i18n="prev_ins_add_btn">+ Add a previous policy</span>
+        </button>
+
+        <div class="mt-6">
+          <div class="text-sm mb-1"><span class="qno">●</span><span data-i18n="q_pl_prev_declined">Has any insurer ever declined, cancelled, refused to renew, or imposed special terms on the Proposer for this cover?</span></div>
+          <div class="yn">
+            <label><input type="radio" name="cyber_prev_declined" value="Yes" /> <span data-i18n="yn_yes">Yes</span></label>
+            <label><input type="radio" name="cyber_prev_declined" value="No" /> <span data-i18n="yn_no">No</span></label>
+          </div>
+          <input type="text" name="cyber_prev_declined_details" data-i18n-placeholder="ph_if_yes_details_339" placeholder="If Yes, details" class="mt-2" />
+        </div>
+      </div>
+
+</section>
 
     <!-- ============================================== -->
     <!-- E. DECLARATION & SIGNATURE -->
@@ -2168,10 +2921,10 @@ window.__MIG_INLINE_TRANSLATIONS = {
     "fl_number_of_years_in_operation_6": "6. Количество лет работы",
     "fl_annual_turnover_usd_7": "7. Годовой оборот (USD)",
     "fl_total_number_of_employees_8": "8. Общая численность сотрудников",
-    "fl_total_annual_payroll_usd_9": "9. Общий годовой фонд оплаты труда (USD)",
+    "fl_total_annual_payroll_usd_9": "1. Общий годовой фонд оплаты труда (USD)",
     "fl_contact_person_title_10": "10. Контактное лицо · Должность",
     "fl_telephone_11": "11. Телефон",
-    "fl_e_mail_12": "12. E-mail",
+    "fl_e_mail_12": "11. E-mail",
     "fl_period_of_insurance_from_13": "13. Срок страхования — с",
     "fl_period_of_insurance_to_14": "14. Срок страхования — по",
     "fl_geographical_coverage_zone_15": "15. Территория страхового покрытия",
@@ -2693,6 +3446,66 @@ window.__MIG_INLINE_TRANSLATIONS = {
     "audit_toggle_label": "Дополнительный раздел:",
     "audit_toggle_text": "Включить A.6 — Вопросы по аудиту и корпоративному управлению",
     "audit_toggle_hint": "Отметьте только если покрытие требует раскрытия по корпоративному управлению / аудиту (например D&O, Crime, Cyber, или крупные риски, где страховщик запрашивает эти сведения). По умолчанию скрыто для краткости.",
+    "prev_ins_hint": "Добавьте по одной строке для каждого вида страхования, который Страхователь имел в прошлом или имеет сейчас. Виды, которые ранее не страховались, можно не указывать.",
+    "prev_ins_col_line": "Вид страхования",
+    "prev_ins_col_insurer": "Страховщик",
+    "prev_ins_col_policy": "№ полиса и срок",
+    "prev_ins_add_btn": "+ Добавить полис",
+    "prev_ins_select_line": "— выбрать —",
+    "prev_ins_ph_insurer": "Наименование страховщика",
+    "prev_ins_ph_policy": "№ полиса и дата окончания",
+    "prev_ins_remove": "Удалить строку",
+    "prev_ins_other": "Другое",
+    "fl_pl_period_from": "Период страхования — с",
+    "fl_pl_period_to": "Период страхования — по",
+    "fl_pl_geo_zone": "Зона покрытия",
+    "fl_pl_ben_name": "Наименование Выгодоприобретателя",
+    "fl_pl_ben_relation": "Связь со Страхователем",
+    "fl_pl_ben_address": "Адрес",
+    "fl_pl_ben_passport": "Паспорт / Регистрационный №",
+    "fl_pl_ben_issue": "Дата выдачи / Орган выдачи",
+    "p_pl_losses_hint": "Все убытки (оплаченные, в резерве или заявленные) по этому виду — застрахованные и нет.",
+    "loss_col_year": "Год",
+    "loss_col_amount": "Сумма-брутто (USD)",
+    "loss_col_desc": "Описание / причина",
+    "loss_col_status": "Оплачено / в резерве",
+    "loss_add_btn": "+ Добавить убыток",
+    "loss_remove": "Удалить строку",
+    "loss_ph_year": "напр. 2023",
+    "loss_ph_amount": "Сумма в USD",
+    "loss_ph_desc": "Краткое описание",
+    "loss_ph_status": "Оплачено / в резерве",
+    "h3_auto_period_coverage": "B.6  Период страхования и зона покрытия",
+    "h3_auto_beneficiary": "B.7  Выгодоприобретатель / Получатель",
+    "h3_auto_loss_history": "B.8  История убытков — за 5 лет",
+    "h3_prop_period_coverage": "C.11  Период страхования и зона покрытия",
+    "h3_prop_beneficiary": "C.12  Выгодоприобретатель / Получатель",
+    "h3_prop_loss_history": "C.13  История убытков — за 5 лет",
+    "h3_cgl_period_coverage": "D.5  Период страхования и зона покрытия",
+    "h3_cgl_beneficiary": "D.6  Выгодоприобретатель / Получатель",
+    "h3_cgl_loss_history": "D.7  История убытков — за 5 лет",
+    "h3_car_period_coverage": "E.5  Период страхования и зона покрытия",
+    "h3_car_beneficiary": "E.6  Выгодоприобретатель / Получатель",
+    "h3_car_loss_history": "E.7  История убытков — за 5 лет",
+    "h3_dno_period_coverage": "F.5  Период страхования и зона покрытия",
+    "h3_dno_beneficiary": "F.6  Выгодоприобретатель / Получатель",
+    "h3_pi_period_coverage": "G.5  Период страхования и зона покрытия",
+    "h3_pi_beneficiary": "G.6  Выгодоприобретатель / Получатель",
+    "h3_crime_period_coverage": "C.6  Период страхования и зона покрытия",
+    "h3_crime_beneficiary": "C.7  Выгодоприобретатель / Получатель",
+    "h3_crime_loss_history": "C.8  История убытков — за 5 лет",
+    "h3_cyber_period_coverage": "D.6  Период страхования и зона покрытия",
+    "h3_cyber_beneficiary": "D.7  Выгодоприобретатель / Получатель",
+    "p_pl_prev_ins_hint": "Последний период страхования по этому виду. Добавьте строку для каждого страховщика, если их было несколько.",
+    "q_pl_prev_declined": "Отказывал ли когда-либо страховщик в страховании, расторгал договор, отказывал в продлении или применял особые условия по этому виду?",
+    "h3_auto_prev_insurance": "B.9  Предыдущее страхование",
+    "h3_prop_prev_insurance": "C.14  Предыдущее страхование",
+    "h3_cgl_prev_insurance": "D.8  Предыдущее страхование",
+    "h3_car_prev_insurance": "E.8  Предыдущее страхование",
+    "h3_dno_prev_insurance": "F.7  Предыдущее страхование",
+    "h3_pi_prev_insurance": "G.7  Предыдущее страхование",
+    "h3_crime_prev_insurance": "C.9  Предыдущее страхование",
+    "h3_cyber_prev_insurance": "D.8  Предыдущее страхование",
   },
   uz: {
     "fl_name_of_proposer_company_1": "1. Sug'urtalanuvchining nomi (kompaniya)",
@@ -2703,10 +3516,10 @@ window.__MIG_INLINE_TRANSLATIONS = {
     "fl_number_of_years_in_operation_6": "6. Faoliyat yillari soni",
     "fl_annual_turnover_usd_7": "7. Yillik aylanma (USD)",
     "fl_total_number_of_employees_8": "8. Xodimlarning umumiy soni",
-    "fl_total_annual_payroll_usd_9": "9. Umumiy yillik ish haqi fondi (USD)",
+    "fl_total_annual_payroll_usd_9": "1. Umumiy yillik ish haqi fondi (USD)",
     "fl_contact_person_title_10": "10. Aloqa shaxsi · Lavozim",
     "fl_telephone_11": "11. Telefon",
-    "fl_e_mail_12": "12. E-mail",
+    "fl_e_mail_12": "11. E-mail",
     "fl_period_of_insurance_from_13": "13. Sug'urta muddati — dan",
     "fl_period_of_insurance_to_14": "14. Sug'urta muddati — gacha",
     "fl_geographical_coverage_zone_15": "15. Sug'urta qoplama hududi",
@@ -3228,6 +4041,66 @@ window.__MIG_INLINE_TRANSLATIONS = {
     "audit_toggle_label": "Qo'shimcha bo'lim:",
     "audit_toggle_text": "A.6 ni qo'shish — Audit va korporativ boshqaruv savollari",
     "audit_toggle_hint": "Faqat qoplama korporativ boshqaruv / audit ma'lumotlarini talab qilsa belgilang (masalan, D&O, Crime, Cyber yoki sug'urtachi ushbu ma'lumotlarni so'raydigan yirik xavf-xatarlar). Anketani qisqa saqlash uchun standart holatda yashirilgan.",
+    "prev_ins_hint": "Sug'urtalovchi ilgari sug'urtalagan yoki hozir sug'urtalangan har bir sug'urta turi uchun bitta qator qo'shing. Ilgari sug'urtalanmagan turlarni qoldirmasangiz ham bo'ladi.",
+    "prev_ins_col_line": "Sug'urta turi",
+    "prev_ins_col_insurer": "Sug'urtachi",
+    "prev_ins_col_policy": "Polis raqami va muddati",
+    "prev_ins_add_btn": "+ Polis qo'shish",
+    "prev_ins_select_line": "— tanlang —",
+    "prev_ins_ph_insurer": "Sug'urtachi nomi",
+    "prev_ins_ph_policy": "Polis raqami va tugash sanasi",
+    "prev_ins_remove": "Qatorni o'chirish",
+    "prev_ins_other": "Boshqa",
+    "fl_pl_period_from": "Sug'urta muddati — dan",
+    "fl_pl_period_to": "Sug'urta muddati — gacha",
+    "fl_pl_geo_zone": "Qoplama hududi",
+    "fl_pl_ben_name": "Foydalanuvchi nomi",
+    "fl_pl_ben_relation": "Sug'urtalovchi bilan aloqasi",
+    "fl_pl_ben_address": "Manzil",
+    "fl_pl_ben_passport": "Pasport / Ro'yxat raqami",
+    "fl_pl_ben_issue": "Berilgan sana / Bergan organ",
+    "p_pl_losses_hint": "Ushbu sug'urta turi bo'yicha barcha zararlar — sug'urtalangan yoki yo'q.",
+    "loss_col_year": "Yil",
+    "loss_col_amount": "Yalpi summa (USD)",
+    "loss_col_desc": "Tavsif / sabab",
+    "loss_col_status": "To'langan / rezervda",
+    "loss_add_btn": "+ Zarar qo'shish",
+    "loss_remove": "Qatorni o'chirish",
+    "loss_ph_year": "masalan, 2023",
+    "loss_ph_amount": "USDdagi summa",
+    "loss_ph_desc": "Qisqacha tavsif",
+    "loss_ph_status": "To'langan / rezervda",
+    "h3_auto_period_coverage": "B.6  Sug'urta muddati va qoplama hududi",
+    "h3_auto_beneficiary": "B.7  Foydalanuvchi / Tovon oluvchi",
+    "h3_auto_loss_history": "B.8  Zarar tarixi — so'nggi 5 yil",
+    "h3_prop_period_coverage": "C.11  Sug'urta muddati va qoplama hududi",
+    "h3_prop_beneficiary": "C.12  Foydalanuvchi / Tovon oluvchi",
+    "h3_prop_loss_history": "C.13  Zarar tarixi — so'nggi 5 yil",
+    "h3_cgl_period_coverage": "D.5  Sug'urta muddati va qoplama hududi",
+    "h3_cgl_beneficiary": "D.6  Foydalanuvchi / Tovon oluvchi",
+    "h3_cgl_loss_history": "D.7  Zarar tarixi — so'nggi 5 yil",
+    "h3_car_period_coverage": "E.5  Sug'urta muddati va qoplama hududi",
+    "h3_car_beneficiary": "E.6  Foydalanuvchi / Tovon oluvchi",
+    "h3_car_loss_history": "E.7  Zarar tarixi — so'nggi 5 yil",
+    "h3_dno_period_coverage": "F.5  Sug'urta muddati va qoplama hududi",
+    "h3_dno_beneficiary": "F.6  Foydalanuvchi / Tovon oluvchi",
+    "h3_pi_period_coverage": "G.5  Sug'urta muddati va qoplama hududi",
+    "h3_pi_beneficiary": "G.6  Foydalanuvchi / Tovon oluvchi",
+    "h3_crime_period_coverage": "C.6  Sug'urta muddati va qoplama hududi",
+    "h3_crime_beneficiary": "C.7  Foydalanuvchi / Tovon oluvchi",
+    "h3_crime_loss_history": "C.8  Zarar tarixi — so'nggi 5 yil",
+    "h3_cyber_period_coverage": "D.6  Sug'urta muddati va qoplama hududi",
+    "h3_cyber_beneficiary": "D.7  Foydalanuvchi / Tovon oluvchi",
+    "p_pl_prev_ins_hint": "Ushbu sug'urta turi bo'yicha so'nggi sug'urta davri. Bir nechta sug'urtachi bo'lsa, har biri uchun qator qo'shing.",
+    "q_pl_prev_declined": "Sug'urtachi hech qachon sug'urtalovchiga ushbu turi bo'yicha rad etganmi, bekor qilganmi, yangilashdan bosh tortganmi yoki maxsus shartlar qo'yganmi?",
+    "h3_auto_prev_insurance": "B.9  Avvalgi sug'urta",
+    "h3_prop_prev_insurance": "C.14  Avvalgi sug'urta",
+    "h3_cgl_prev_insurance": "D.8  Avvalgi sug'urta",
+    "h3_car_prev_insurance": "E.8  Avvalgi sug'urta",
+    "h3_dno_prev_insurance": "F.7  Avvalgi sug'urta",
+    "h3_pi_prev_insurance": "G.7  Avvalgi sug'urta",
+    "h3_crime_prev_insurance": "C.9  Avvalgi sug'urta",
+    "h3_cyber_prev_insurance": "D.8  Avvalgi sug'urta",
   }
 };
 
@@ -3570,6 +4443,196 @@ if (auditToggle) {
 }
 
 // ============================================================
+// PER-LINE PREVIOUS INSURANCE — dynamic rows for each product section
+// ============================================================
+// Each product section has a Previous Insurance sub-section with:
+//   - A "+ Add a previous policy" button: <button data-prev-add="<prefix>">
+//   - A rows container: <div id="prev-rows-<prefix>" data-prev-product="<prefix>">
+//   - One starter row pre-rendered (idx=1) with delete button data-prev-remove="<prefix>"
+//
+// Field names: <prefix>_prev_N_insurer, <prefix>_prev_N_policy
+// Rows are real DOM nodes so the PDF clone-and-flatten picks them up.
+
+const prevCounters = {};  // { auto: 1, prop: 1, ... } — initialized to 1 because starter row exists
+
+// Initialize counters based on existing pre-rendered starter rows
+document.querySelectorAll('[data-prev-product]').forEach(container => {
+  const prefix = container.dataset.prevProduct;
+  const existing = container.querySelectorAll('.prev-pl-row');
+  prevCounters[prefix] = existing.length;
+});
+
+function addPrevInsRow(prefix) {
+  if (!(prefix in prevCounters)) prevCounters[prefix] = 0;
+  prevCounters[prefix] += 1;
+  const idx = prevCounters[prefix];
+  const container = document.getElementById(`prev-rows-${prefix}`);
+  if (!container) return;
+
+  const row = document.createElement('div');
+  row.className = 'prev-pl-row';
+  row.dataset.rowId = String(idx);
+  row.style.cssText = 'display:grid; grid-template-columns: 1.6fr 1.6fr 40px; gap: 12px; margin-bottom: 10px; align-items: start;';
+
+  const insurerWrap = document.createElement('div');
+  const insurerInput = document.createElement('input');
+  insurerInput.type = 'text';
+  insurerInput.name = `${prefix}_prev_${idx}_insurer`;
+  insurerInput.placeholder = T('prev_ins_ph_insurer', 'Insurer name');
+  insurerWrap.appendChild(insurerInput);
+
+  const policyWrap = document.createElement('div');
+  const policyInput = document.createElement('input');
+  policyInput.type = 'text';
+  policyInput.name = `${prefix}_prev_${idx}_policy`;
+  policyInput.placeholder = T('prev_ins_ph_policy', 'Policy № and expiry date');
+  policyWrap.appendChild(policyInput);
+
+  const deleteWrap = document.createElement('div');
+  deleteWrap.className = 'no-pdf';
+  const deleteBtn = document.createElement('button');
+  deleteBtn.type = 'button';
+  deleteBtn.setAttribute('aria-label', T('prev_ins_remove', 'Remove row'));
+  deleteBtn.title = T('prev_ins_remove', 'Remove row');
+  deleteBtn.textContent = '×';
+  deleteBtn.dataset.prevRemove = prefix;
+  deleteBtn.dataset.rowId = String(idx);
+  deleteBtn.style.cssText = 'background:transparent; border:1px solid var(--border-strong, #d8d2c2); color:var(--muted); border-radius:4px; width:32px; height:32px; font-size:18px; cursor:pointer; padding:0; line-height:1;';
+  deleteBtn.addEventListener('click', () => row.remove());
+  deleteWrap.appendChild(deleteBtn);
+
+  row.appendChild(insurerWrap);
+  row.appendChild(policyWrap);
+  row.appendChild(deleteWrap);
+  container.appendChild(row);
+}
+
+// Wire up all add buttons
+document.querySelectorAll('[data-prev-add]').forEach(btn => {
+  const prefix = btn.dataset.prevAdd;
+  btn.addEventListener('click', () => addPrevInsRow(prefix));
+});
+
+// Wire up pre-rendered starter delete buttons (one per section)
+document.querySelectorAll('[data-prev-remove]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const row = btn.closest('.prev-pl-row');
+    if (row) row.remove();
+  });
+});
+
+function retranslatePrevInsRows() {
+  document.querySelectorAll('.prev-pl-row input').forEach(inp => {
+    if (inp.name.endsWith('_insurer')) inp.placeholder = T('prev_ins_ph_insurer', 'Insurer name');
+    else if (inp.name.endsWith('_policy')) inp.placeholder = T('prev_ins_ph_policy', 'Policy № and expiry date');
+  });
+  document.querySelectorAll('[data-prev-remove]').forEach(btn => {
+    btn.setAttribute('aria-label', T('prev_ins_remove', 'Remove row'));
+    btn.title = T('prev_ins_remove', 'Remove row');
+  });
+}
+
+// Hook into applyLanguage
+const _origApplyLanguage = applyLanguage;
+applyLanguage = function(lang) {
+  _origApplyLanguage(lang);
+  retranslatePrevInsRows();
+  retranslateLossHistoryRows();
+};
+
+// ============================================================
+// PER-LINE LOSS HISTORY — dynamic add/remove rows for each product section
+// ============================================================
+// Each product section that has a Loss History sub-section has:
+//   - A button: <button data-loss-add="<prefix>">
+//   - A container: <div id="loss-rows-<prefix>" data-loss-product="<prefix>">
+//   - A headers div: <div id="loss-headers-<prefix>">
+//
+// Field names per row: <prefix>_loss_N_year, _amount, _description, _status
+// Rows are real DOM nodes so the PDF clone-and-flatten step picks them up.
+
+const lossCounters = {};  // { auto: 0, prop: 0, ... }
+
+function addLossRow(prefix) {
+  if (!(prefix in lossCounters)) lossCounters[prefix] = 0;
+  lossCounters[prefix] += 1;
+  const idx = lossCounters[prefix];
+  const rowsContainer = document.getElementById(`loss-rows-${prefix}`);
+  const headersDiv = document.getElementById(`loss-headers-${prefix}`);
+  if (!rowsContainer || !headersDiv) return;
+
+  const row = document.createElement('div');
+  row.className = 'loss-row';
+  row.dataset.lossProduct = prefix;
+  row.dataset.rowId = String(idx);
+  row.style.cssText = 'display:grid; grid-template-columns: 0.7fr 1.0fr 1.6fr 1.0fr 40px; gap: 12px; margin-bottom: 10px; align-items: start;';
+
+  const makeInput = (suffix, phKey, phFallback) => {
+    const wrap = document.createElement('div');
+    const inp = document.createElement('input');
+    inp.type = 'text';
+    inp.name = `${prefix}_loss_${idx}_${suffix}`;
+    inp.placeholder = T(phKey, phFallback);
+    wrap.appendChild(inp);
+    return wrap;
+  };
+
+  row.appendChild(makeInput('year',        'loss_ph_year',   'e.g. 2023'));
+  row.appendChild(makeInput('amount',      'loss_ph_amount', 'Amount in USD'));
+  row.appendChild(makeInput('description', 'loss_ph_desc',   'Brief description'));
+  row.appendChild(makeInput('status',      'loss_ph_status', 'Paid / Outstanding'));
+
+  // Delete button
+  const deleteWrap = document.createElement('div');
+  deleteWrap.className = 'no-pdf';
+  const deleteBtn = document.createElement('button');
+  deleteBtn.type = 'button';
+  deleteBtn.setAttribute('aria-label', T('loss_remove', 'Remove row'));
+  deleteBtn.title = T('loss_remove', 'Remove row');
+  deleteBtn.textContent = '×';
+  deleteBtn.style.cssText = 'background: transparent; border: 1px solid var(--border-strong, #d8d2c2); color: var(--muted); border-radius: 4px; width: 32px; height: 32px; font-size: 18px; cursor: pointer; padding: 0; line-height: 1;';
+  deleteBtn.addEventListener('click', () => {
+    row.remove();
+    if (rowsContainer.children.length === 0) {
+      headersDiv.classList.add('hidden');
+      headersDiv.style.display = 'none';
+    }
+  });
+  deleteWrap.appendChild(deleteBtn);
+  row.appendChild(deleteWrap);
+
+  rowsContainer.appendChild(row);
+  headersDiv.classList.remove('hidden');
+  headersDiv.style.display = '';
+}
+
+// Wire up all data-loss-add buttons
+document.querySelectorAll('[data-loss-add]').forEach(btn => {
+  const prefix = btn.dataset.lossAdd;
+  btn.addEventListener('click', () => addLossRow(prefix));
+});
+
+function retranslateLossHistoryRows() {
+  document.querySelectorAll('.loss-row').forEach(row => {
+    const ph = [
+      ['year',        'loss_ph_year',   'e.g. 2023'],
+      ['amount',      'loss_ph_amount', 'Amount in USD'],
+      ['description', 'loss_ph_desc',   'Brief description'],
+      ['status',      'loss_ph_status', 'Paid / Outstanding'],
+    ];
+    ph.forEach(([suffix, key, fallback]) => {
+      const inp = row.querySelector(`input[name$="_loss_${row.dataset.rowId}_${suffix}"]`);
+      if (inp) inp.placeholder = T(key, fallback);
+    });
+    const delBtn = row.querySelector('button');
+    if (delBtn) {
+      delBtn.title = T('loss_remove', 'Remove row');
+      delBtn.setAttribute('aria-label', T('loss_remove', 'Remove row'));
+    }
+  });
+}
+
+// ============================================================
 // PROGRESS DOTS
 // ============================================================
 const dotOrder = ['general','auto','property','cgl','car','dno','pi','crime','cyber','declaration'];
@@ -3664,6 +4727,10 @@ function collectFormData() {
   // radios — only the checked one
   form.querySelectorAll('input[type=radio]').forEach(el => {
     if (el.name && el.checked) data[el.name] = el.value;
+  });
+  // select dropdowns (e.g. A.4 previous-insurance line-of-cover)
+  form.querySelectorAll('select').forEach(el => {
+    if (el.name) data[el.name] = el.value;
   });
   data._products = getSelectedProducts();
   data._timestamp = new Date().toISOString();
@@ -3790,6 +4857,20 @@ async function generatePDF() {
       span.textContent = isMe ? '● ' : '○ ';
       span.style.cssText = 'font-size: 13px; color: #1f3864; margin-right: 2px;';
       rb.parentNode.replaceChild(span, rb);
+    });
+    // Select dropdowns → show selected option's display text (not its code)
+    clone.querySelectorAll('select').forEach(sel => {
+      const live = document.querySelector(`select[name="${sel.name}"]`);
+      let displayText = '';
+      if (live && live.selectedIndex >= 0) {
+        displayText = live.options[live.selectedIndex].textContent;
+        // If the blank/placeholder option is selected (empty value), don't echo "— select —" to PDF
+        if (!live.value) displayText = '';
+      }
+      const span = document.createElement('div');
+      span.textContent = displayText || '\u00a0';
+      span.style.cssText = 'border-bottom: 1px solid #cfc8b5; min-height: 18px; padding: 2px 4px; font-size: 11px; color: #0b1424;';
+      sel.parentNode.replaceChild(span, sel);
     });
     return clone;
   }
