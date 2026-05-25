@@ -132,6 +132,22 @@
   .product-chip.selected .chip-label { color: white; }
   .product-chip input { accent-color: var(--mig); width: 14px; height: 14px; margin: 0; }
   .product-chip.selected input { filter: brightness(2) saturate(0); }
+
+  /* Step 1 error state — applied when user submits without selecting any cover */
+  #step1-section.has-error .section-num {
+    color: #b53737;
+    animation: step1-pulse 0.6s ease-out;
+  }
+  #step1-section.has-error .product-chip {
+    border-color: #f5c8c8;
+  }
+  @keyframes step1-pulse {
+    0%   { transform: translateX(0); }
+    25%  { transform: translateX(-3px); }
+    50%  { transform: translateX(3px); }
+    75%  { transform: translateX(-2px); }
+    100% { transform: translateX(0); }
+  }
   .lang-pill {
     border: 1px solid #d8d2c2; padding: 4px 10px; border-radius: 999px;
     cursor: pointer; transition: all .15s; background: white; font-size: 12px;
@@ -215,7 +231,7 @@
 </section>
 
 <!-- Product selector -->
-<section class="max-w-7xl mx-auto px-6 mb-10">
+<section id="step1-section" class="max-w-7xl mx-auto px-6 mb-10">
   <div class="section-num mb-3" data-i18n="step1">STEP 1 · SELECT COVERS</div>
   <p class="text-xs mb-4" style="color: var(--muted);" data-i18n="step1_hint">Tick one or more products. Only ticked sections will appear in the form and PDF.</p>
   <div id="product-chips" class="flex flex-wrap gap-2">
@@ -251,6 +267,11 @@
       <input type="checkbox" class="prod-checkbox" data-product="cyber" />
       <span class="chip-label" data-i18n="prod_cyber">Cyber Shield</span>
     </label>
+  </div>
+
+  <!-- Validation error slot — shown only when user tries to submit/download with zero products selected -->
+  <div id="step1-error" class="hidden mt-3" style="display:none; padding: 10px 14px; background: #fef1f1; border: 1px solid #f5c8c8; border-radius: 6px; color: #b53737; font-size: 13px;">
+    <span data-i18n="step1_error">Please select at least one type of cover before submitting.</span>
   </div>
 
   <!-- Property variant sub-control -->
@@ -3506,6 +3527,8 @@ window.__MIG_INLINE_TRANSLATIONS = {
     "h3_pi_prev_insurance": "G.7  Предыдущее страхование",
     "h3_crime_prev_insurance": "C.9  Предыдущее страхование",
     "h3_cyber_prev_insurance": "D.8  Предыдущее страхование",
+    "step1_error": "Пожалуйста, выберите хотя бы один вид страхования перед отправкой.",
+    "toast_select_cover": "Пожалуйста, выберите хотя бы один вид страхования.",
   },
   uz: {
     "fl_name_of_proposer_company_1": "1. Sug'urtalanuvchining nomi (kompaniya)",
@@ -4101,6 +4124,8 @@ window.__MIG_INLINE_TRANSLATIONS = {
     "h3_pi_prev_insurance": "G.7  Avvalgi sug'urta",
     "h3_crime_prev_insurance": "C.9  Avvalgi sug'urta",
     "h3_cyber_prev_insurance": "D.8  Avvalgi sug'urta",
+    "step1_error": "Yuborishdan oldin kamida bitta sug'urta turini tanlang.",
+    "toast_select_cover": "Iltimos, kamida bitta sug'urta turini tanlang.",
   }
 };
 
@@ -5235,7 +5260,52 @@ async function generatePDF() {
 // ============================================================
 // BUTTONS
 // ============================================================
+// ============================================================
+// VALIDATION — at least one cover must be selected
+// ============================================================
+// Called from both the Download Interactive PDF and Submit Proposal buttons.
+// Returns true if validation passes (≥1 product ticked), false otherwise.
+// On failure: highlights Step 1, shows inline error message, scrolls to it,
+// and emits a toast for redundancy. Auto-clears when the user ticks a product.
+function validateProductSelection() {
+  const selected = getSelectedProducts();
+  if (selected.length > 0) {
+    clearStep1Error();
+    return true;
+  }
+  const step1Section = document.getElementById('step1-section');
+  const errorSlot = document.getElementById('step1-error');
+  if (step1Section) {
+    step1Section.classList.add('has-error');
+    step1Section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  if (errorSlot) {
+    errorSlot.classList.remove('hidden');
+    errorSlot.style.display = '';
+  }
+  toast(T('toast_select_cover', 'Please select at least one type of cover.'), 'error');
+  return false;
+}
+
+function clearStep1Error() {
+  const step1Section = document.getElementById('step1-section');
+  const errorSlot = document.getElementById('step1-error');
+  if (step1Section) step1Section.classList.remove('has-error');
+  if (errorSlot) {
+    errorSlot.classList.add('hidden');
+    errorSlot.style.display = 'none';
+  }
+}
+
+// Auto-clear error state whenever the user ticks any product
+document.querySelectorAll('.prod-checkbox').forEach(cb => {
+  cb.addEventListener('change', () => {
+    if (getSelectedProducts().length > 0) clearStep1Error();
+  });
+});
+
 document.getElementById('btn-download').addEventListener('click', async () => {
+  if (!validateProductSelection()) return;
   try {
     document.getElementById('btn-download').disabled = true;
     const pdfBytes = await generatePDF();
@@ -5257,6 +5327,7 @@ document.getElementById('btn-download').addEventListener('click', async () => {
 });
 
 document.getElementById('btn-submit').addEventListener('click', async () => {
+  if (!validateProductSelection()) return;
   const btn = document.getElementById('btn-submit');
   try {
     btn.disabled = true; btn.textContent = T('btn_submitting', 'Submitting\u2026');
