@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MIG Admin — Accounts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+  /* === Design tokens copied from admin/index.html === */
+  :root {
+    --bg: #fafaf7; --surface: #ffffff; --surface-alt: #f4f3ee;
+    --border: #e5e2d8; --border-strong: #d8d2c2;
+    --ink: #0b1424; --muted: #6b6f7a; --mig: #1f3864; --mig-light: #e8eef8;
+    --accent: #a87446; --success: #2d7a3e; --warning: #b8860b; --error: #b53737;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: 'Inter Tight', system-ui, -apple-system, sans-serif;
+    color: var(--ink); background: var(--bg); font-size: 14px; line-height: 1.5;
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 24px; background: var(--surface); border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 10;
+  }
+  .topbar .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+  .topbar .brand-mark {
+    width: 28px; height: 28px; background: var(--mig); color: white;
+    border-radius: 4px; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px;
+  }
+  .topbar .user-info { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--muted); }
+
+  .btn {
+    background: var(--mig); color: white; border: none; padding: 8px 14px; border-radius: 6px;
+    font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 120ms;
+    text-decoration: none; display: inline-block;
+  }
+  .btn:hover:not(:disabled) { background: #16294a; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-secondary { background: var(--surface-alt); color: var(--ink); border: 1px solid var(--border-strong); }
+  .btn-secondary:hover:not(:disabled) { background: var(--border); }
+  .btn-ghost { background: transparent; color: var(--mig); padding: 6px 10px; }
+  .btn-ghost:hover:not(:disabled) { background: var(--mig-light); }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+
+  input[type=text], input[type=email], input[type=password], select {
+    font-family: inherit; font-size: 14px; padding: 8px 10px;
+    border: 1px solid var(--border-strong); border-radius: 6px;
+    background: var(--surface); color: var(--ink); width: 100%;
+  }
+  input:focus, select:focus { outline: none; border-color: var(--mig); box-shadow: 0 0 0 3px rgba(31, 56, 100, 0.1); }
+  label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; font-weight: 500; }
+
+  .gate { max-width: 460px; margin: 80px auto; padding: 0 24px; }
+  .muted { color: var(--muted); }
+
+  .wrap { padding: 28px 24px 48px; max-width: 960px; margin: 0 auto; }
+  .wrap h1 { font-size: 22px; font-weight: 600; color: var(--mig); margin: 0 0 4px 0; }
+  .wrap .intro { margin: 0 0 22px; color: var(--muted); font-size: 13px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 18px; }
+  .panel h3 {
+    margin: 0 0 12px 0; font-size: 13px; font-weight: 600; color: var(--mig);
+    text-transform: uppercase; letter-spacing: 0.05em; padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  .form-field { margin-bottom: 12px; }
+  .login-error { color: var(--error); background: #fef1f1; border: 1px solid #f5c8c8; padding: 8px 12px; border-radius: 6px; font-size: 13px; margin-bottom: 12px; }
+  .login-success { color: var(--success); background: #f0f7f1; border: 1px solid #c8e0cc; padding: 8px 12px; border-radius: 6px; font-size: 13px; margin-bottom: 12px; }
+  .field-display { display: grid; grid-template-columns: 110px 1fr; gap: 8px 16px; padding: 6px 0; border-bottom: 1px solid #f0eee6; }
+  .field-display:last-child { border-bottom: none; }
+  .field-display .label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .field-display .value { font-size: 13px; color: var(--ink); word-break: break-word; }
+
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 18px; border-radius: 6px; color: white; font-size: 13px; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+  .toast.success { background: var(--success); }
+  .toast.error { background: var(--error); }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-mark">M</div>
+    <span>MIG Admin</span>
+    <span style="color: var(--muted); font-weight: 400; margin-left: 8px;">Accounts</span>
+  </div>
+  <div class="user-info">
+    <a href="/" class="btn btn-ghost btn-sm" style="text-decoration: none;">Hub</a>
+    <a href="/admin/" class="btn btn-ghost btn-sm" style="text-decoration: none;">Submissions</a>
+    <span id="user-email"></span>
+    <button class="btn btn-secondary btn-sm hidden" id="btn-signout">Sign out</button>
+  </div>
+</div>
+
+<!-- Sign-in / authorization gate -->
+<div class="gate" id="auth-gate">
+  <div class="panel" style="border-radius: 12px; padding: 28px;">
+    <h3 id="gate-title" style="border: none; padding: 0; font-size: 18px; text-transform: none; letter-spacing: 0; color: var(--mig);">Sign in required</h3>
+    <p class="muted" id="gate-body" style="margin: 10px 0 18px;">Use your MIG admin account. If you are not signed in, log in on the admin page first — the session is shared.</p>
+    <a class="btn" href="/admin/" style="text-decoration: none;">Go to admin login</a>
+  </div>
+</div>
+
+<!-- App (admins only) -->
+<div class="wrap hidden" id="app">
+  <h1>Accounts</h1>
+  <p class="intro">Provision sign-in accounts for customers and staff. Credentials are shown once — copy and send them over a secure channel.</p>
+
+  <div class="grid">
+    <!-- New customer -->
+    <div class="panel">
+      <h3>New customer account</h3>
+      <div id="cust-msg"></div>
+      <div class="form-field"><label for="cust-email">Email</label>
+        <input type="email" id="cust-email" placeholder="client@company.com" autocomplete="off" /></div>
+      <div class="form-field"><label for="cust-name">Full name <span style="text-transform: none; color: var(--muted);">(optional)</span></label>
+        <input type="text" id="cust-name" /></div>
+      <div class="form-field"><label for="cust-company">Company <span style="text-transform: none; color: var(--muted);">(optional)</span></label>
+        <input type="text" id="cust-company" /></div>
+      <div class="form-field"><label for="cust-password">Password <span style="text-transform: none; color: var(--muted);">(optional — blank = auto-generate)</span></label>
+        <input type="text" id="cust-password" placeholder="auto-generate" autocomplete="off" /></div>
+      <button class="btn" id="btn-create-customer" style="width: 100%;">Create customer</button>
+      <div id="cust-result"></div>
+    </div>
+
+    <!-- New staff member -->
+    <div class="panel">
+      <h3>New staff member</h3>
+      <div id="staff-msg"></div>
+      <div class="form-field"><label for="staff-email">Email</label>
+        <input type="email" id="staff-email" placeholder="colleague@mig.uz" autocomplete="off" /></div>
+      <div class="form-field"><label for="staff-name">Full name <span style="text-transform: none; color: var(--muted);">(optional)</span></label>
+        <input type="text" id="staff-name" /></div>
+      <div class="form-field"><label for="staff-role">Role</label>
+        <select id="staff-role">
+          <option value="underwriter">Underwriter</option>
+          <option value="admin">Admin</option>
+        </select></div>
+      <div class="form-field"><label for="staff-password">Password <span style="text-transform: none; color: var(--muted);">(optional — blank = auto-generate)</span></label>
+        <input type="text" id="staff-password" placeholder="auto-generate" autocomplete="off" /></div>
+      <button class="btn" id="btn-create-staff" style="width: 100%;">Create staff member</button>
+      <div id="staff-result"></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<!-- Supabase credentials — centralised in /config.js -->
+<script src="/config.js"></script>
+<script>
+let sb = null;
+const $ = id => document.getElementById(id);
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function toast(msg, type = 'success') {
+  const div = document.createElement('div');
+  div.className = 'toast ' + type;
+  div.textContent = msg;
+  $('toast-container').appendChild(div);
+  setTimeout(() => div.remove(), 3500);
+}
+function showGate(title, body) {
+  $('app').classList.add('hidden');
+  $('auth-gate').classList.remove('hidden');
+  $('gate-title').textContent = title;
+  $('gate-body').textContent = body;
+}
+
+// ============================================================
+// Auth: require a signed-in MIG admin.
+// ============================================================
+(async function init() {
+  if (typeof supabase === 'undefined' || !supabase.createClient) return; // gate stays
+  if (SUPABASE_URL.includes('YOUR-PROJECT') || SUPABASE_PUBLISHABLE_KEY.includes('REPLACE_ME')) return;
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+  const { data } = await sb.auth.getSession();
+  const session = data.session;
+  if (!session) return; // sign-in gate stays as-is
+
+  const { data: isStaff } = await sb.rpc('is_mig_staff');
+  if (!isStaff) {
+    const email = (session.user.email || 'This account');
+    await sb.auth.signOut();
+    showGate('Account not authorized', email + ' is not on the MIG staff list. Sign in with an authorized account.');
+    return;
+  }
+  const { data: isAdmin } = await sb.rpc('is_mig_admin', { uid: session.user.id });
+  if (!isAdmin) {
+    showGate('Admin access required', 'Account provisioning is limited to administrators. Ask an admin if you need an account created.');
+    $('user-email').textContent = session.user.email || '';
+    $('btn-signout').classList.remove('hidden');
+    $('btn-signout').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+    return;
+  }
+
+  // Admin — reveal the app.
+  $('auth-gate').classList.add('hidden');
+  $('app').classList.remove('hidden');
+  $('user-email').textContent = session.user.email || '';
+  $('btn-signout').classList.remove('hidden');
+  $('btn-signout').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+})();
+
+// ============================================================
+// Create account
+// ============================================================
+function setAcctMsg(elId, text, type) {
+  $(elId).innerHTML = text ? `<div class="login-${type}">${escapeHtml(text)}</div>` : '';
+}
+
+function renderCredentials(elId, res) {
+  const el = $(elId);
+  const signinUrl = res.account_type === 'staff' ? (location.origin + '/admin/') : (location.origin + '/portal/');
+  el.innerHTML = `
+    <div class="login-success" style="margin-top: 12px;">
+      Account created. Send these credentials to the user — the password is shown only once.
+    </div>
+    <div class="panel" style="margin-top: 8px; background: var(--surface-alt);">
+      <div class="field-display"><div class="label">Email</div><div class="value mono">${escapeHtml(res.email)}</div></div>
+      <div class="field-display"><div class="label">Password</div><div class="value mono">${escapeHtml(res.password)}</div></div>
+      <div class="field-display"><div class="label">Sign-in</div><div class="value mono">${escapeHtml(signinUrl)}</div></div>
+      <button class="btn btn-secondary btn-sm" style="margin-top: 8px;" data-copy="${escapeHtml(res.email + '  /  ' + res.password)}">Copy email + password</button>
+    </div>`;
+  const copyBtn = el.querySelector('[data-copy]');
+  if (copyBtn) copyBtn.addEventListener('click', () => {
+    navigator.clipboard.writeText(copyBtn.getAttribute('data-copy')).then(
+      () => toast('Credentials copied'), () => toast('Copy failed', 'error'));
+  });
+}
+
+async function createAccount(payload, msgId, resultId, btn, origLabel) {
+  setAcctMsg(msgId, '', 'error');
+  $(resultId).innerHTML = '';
+  if (!payload.email || !payload.email.includes('@')) { setAcctMsg(msgId, 'Enter a valid email.', 'error'); return; }
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Creating…';
+  try {
+    const { data, error } = await sb.functions.invoke('create-account', { body: payload });
+    if (error) {
+      let detail = error.message;
+      try { const ctx = await error.context?.json?.(); if (ctx?.error) detail = ctx.error; } catch (_) {}
+      throw new Error(detail);
+    }
+    if (data && data.error) throw new Error(data.error);
+    if (!data || !data.user_id) throw new Error('Unexpected response from server.');
+    renderCredentials(resultId, data);
+  } catch (e) {
+    setAcctMsg(msgId, 'Could not create account: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = origLabel;
+  }
+}
+
+$('btn-create-customer').addEventListener('click', () => {
+  createAccount({
+    account_type: 'customer',
+    email: $('cust-email').value.trim(),
+    full_name: $('cust-name').value.trim() || null,
+    company: $('cust-company').value.trim() || null,
+    password: $('cust-password').value || undefined,
+  }, 'cust-msg', 'cust-result', $('btn-create-customer'), 'Create customer');
+});
+
+$('btn-create-staff').addEventListener('click', () => {
+  createAccount({
+    account_type: 'staff',
+    email: $('staff-email').value.trim(),
+    full_name: $('staff-name').value.trim() || null,
+    role: $('staff-role').value,
+    password: $('staff-password').value || undefined,
+  }, 'staff-msg', 'staff-result', $('btn-create-staff'), 'Create staff member');
+});
+</script>
+</body>
+</html>

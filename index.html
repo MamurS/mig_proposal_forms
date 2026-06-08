@@ -261,6 +261,20 @@
       </a>
     </div>
   </div>
+
+  <!-- Administration (admins only) -->
+  <div class="group hidden" id="group-admin">
+    <div class="group-head">Administration</div>
+    <div class="grid">
+      <a class="tile" href="/admin/accounts/">
+        <div class="tile-top">
+          <span class="tile-title">Accounts</span>
+          <span class="tile-mark">⚙</span>
+        </div>
+        <div class="tile-desc">Create customer and staff sign-in accounts and copy their credentials.</div>
+      </a>
+    </div>
+  </div>
 </div>
 
 <!-- Supabase credentials — centralised in /config.js -->
@@ -308,6 +322,10 @@ let sb = null;
   const signout = document.getElementById('btn-signout');
   signout.classList.remove('hidden');
   signout.onclick = async () => { await sb.auth.signOut(); location.reload(); };
+
+  // Account provisioning is admin-only — show the Administration group for admins.
+  const { data: isAdmin } = await sb.rpc('is_mig_admin', { uid: session.user.id });
+  if (isAdmin) document.getElementById('group-admin').classList.remove('hidden');
 })();
 </script>
 </body>

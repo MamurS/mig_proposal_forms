@@ -449,7 +449,6 @@
     </div>
     <div class="user-info">
       <a href="/" class="btn btn-ghost btn-sm" style="text-decoration: none;">Hub</a>
-      <button class="btn btn-ghost btn-sm hidden" id="link-accounts" style="cursor: pointer;">Accounts</button>
       <span id="user-email"></span>
       <button class="btn btn-secondary btn-sm" id="btn-signout">Sign out</button>
     </div>
@@ -573,70 +572,6 @@
   </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- VIEW 4: ACCOUNTS (admin only) -->
-<!-- ============================================================ -->
-<div id="view-accounts" class="hidden">
-  <div class="topbar">
-    <div class="brand">
-      <div class="brand-mark">M</div>
-      <span>MIG Admin</span>
-      <span style="color: var(--muted); font-weight: 400; margin-left: 8px;">Accounts</span>
-    </div>
-    <div class="user-info">
-      <a href="/" class="btn btn-ghost btn-sm" style="text-decoration: none;">Hub</a>
-      <button class="btn btn-ghost btn-sm" id="link-back-submissions" style="cursor: pointer;">← Submissions</button>
-      <span id="user-email-accounts"></span>
-      <button class="btn btn-secondary btn-sm" id="btn-signout-accounts">Sign out</button>
-    </div>
-  </div>
-
-  <div class="list-wrap" style="max-width: 960px;">
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
-
-      <!-- New customer -->
-      <div class="panel">
-        <h3>New customer account</h3>
-        <div id="cust-msg"></div>
-        <div class="form-field"><label for="cust-email">Email</label>
-          <input type="email" id="cust-email" placeholder="client@company.com" autocomplete="off" /></div>
-        <div class="form-field"><label for="cust-name">Full name <span style="text-transform: none; color: var(--muted);">(optional)</span></label>
-          <input type="text" id="cust-name" /></div>
-        <div class="form-field"><label for="cust-company">Company <span style="text-transform: none; color: var(--muted);">(optional)</span></label>
-          <input type="text" id="cust-company" /></div>
-        <div class="form-field"><label for="cust-password">Password <span style="text-transform: none; color: var(--muted);">(optional — blank = auto-generate)</span></label>
-          <input type="text" id="cust-password" placeholder="auto-generate" autocomplete="off" /></div>
-        <button class="btn" id="btn-create-customer" style="width: 100%;">Create customer</button>
-        <div id="cust-result"></div>
-      </div>
-
-      <!-- New staff member -->
-      <div class="panel">
-        <h3>New staff member</h3>
-        <div id="staff-msg"></div>
-        <div class="form-field"><label for="staff-email">Email</label>
-          <input type="email" id="staff-email" placeholder="colleague@mig.uz" autocomplete="off" /></div>
-        <div class="form-field"><label for="staff-name">Full name <span style="text-transform: none; color: var(--muted);">(optional)</span></label>
-          <input type="text" id="staff-name" /></div>
-        <div class="form-field"><label for="staff-role">Role</label>
-          <select id="staff-role">
-            <option value="underwriter">Underwriter</option>
-            <option value="admin">Admin</option>
-          </select></div>
-        <div class="form-field"><label for="staff-password">Password <span style="text-transform: none; color: var(--muted);">(optional — blank = auto-generate)</span></label>
-          <input type="text" id="staff-password" placeholder="auto-generate" autocomplete="off" /></div>
-        <button class="btn" id="btn-create-staff" style="width: 100%;">Create staff member</button>
-        <div id="staff-result"></div>
-      </div>
-
-    </div>
-    <p style="font-size: 12px; color: var(--muted); margin-top: 14px;">
-      Accounts are created immediately and email-confirmed. Copy the credentials and send them
-      to the user over a secure channel — the password is shown here only once.
-    </p>
-  </div>
-</div>
-
 <div id="toast-container"></div>
 
 <!-- Supabase credentials — centralised in /config.js -->
@@ -670,7 +605,7 @@ let allSubmissions = [];
 // UTILITY
 // ============================================================
 function show(viewId) {
-  ['view-login', 'view-list', 'view-detail', 'view-accounts'].forEach(id => {
+  ['view-login', 'view-list', 'view-detail'].forEach(id => {
     document.getElementById(id).classList.toggle('hidden', id !== viewId);
   });
 }
@@ -764,82 +699,7 @@ async function signOut() {
 }
 document.getElementById('btn-signout').addEventListener('click', signOut);
 document.getElementById('btn-signout-detail').addEventListener('click', signOut);
-document.getElementById('btn-signout-accounts').addEventListener('click', signOut);
-
-// ============================================================
-// ACCOUNTS (admin only) — create customer / staff accounts
-// ============================================================
-document.getElementById('link-accounts').addEventListener('click', () => show('view-accounts'));
-document.getElementById('link-back-submissions').addEventListener('click', () => show('view-list'));
-
-function setAcctMsg(elId, text, type) {
-  const el = document.getElementById(elId);
-  el.innerHTML = text ? `<div class="login-${type}">${escapeHtml(text)}</div>` : '';
-}
-
-function renderCredentials(elId, res) {
-  const el = document.getElementById(elId);
-  el.innerHTML = `
-    <div class="login-success" style="margin-top: 12px;">
-      Account created. Send these credentials to the user — the password is shown only once.
-    </div>
-    <div class="panel" style="margin-top: 8px; background: var(--surface-alt);">
-      <div class="field-display"><div class="label">Email</div><div class="value mono">${escapeHtml(res.email)}</div></div>
-      <div class="field-display"><div class="label">Password</div><div class="value mono">${escapeHtml(res.password)}</div></div>
-      <div class="field-display"><div class="label">Sign-in URL</div><div class="value mono">${escapeHtml(res.account_type === 'staff' ? (location.origin + '/admin/') : (location.origin + '/portal/'))}</div></div>
-      <button class="btn btn-secondary btn-sm" style="margin-top: 8px;" data-copy="${escapeHtml(res.email + '  /  ' + res.password)}">Copy email + password</button>
-    </div>`;
-  const copyBtn = el.querySelector('[data-copy]');
-  if (copyBtn) copyBtn.addEventListener('click', () => {
-    navigator.clipboard.writeText(copyBtn.getAttribute('data-copy')).then(
-      () => toast('Credentials copied'), () => toast('Copy failed', 'error'));
-  });
-}
-
-async function createAccount(kind, payload, msgId, resultId, btn, origLabel) {
-  setAcctMsg(msgId, '', 'error');
-  document.getElementById(resultId).innerHTML = '';
-  if (!payload.email || !payload.email.includes('@')) { setAcctMsg(msgId, 'Enter a valid email.', 'error'); return; }
-  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Creating…';
-  try {
-    const { data, error } = await sb.functions.invoke('create-account', { body: payload });
-    if (error) {
-      // Edge function returns a JSON { error } body on non-2xx — surface it if present.
-      let detail = error.message;
-      try { const ctx = await error.context?.json?.(); if (ctx?.error) detail = ctx.error; } catch (_) {}
-      throw new Error(detail);
-    }
-    if (data && data.error) throw new Error(data.error);
-    if (!data || !data.user_id) throw new Error('Unexpected response from server.');
-    renderCredentials(resultId, data);
-  } catch (e) {
-    setAcctMsg(msgId, 'Could not create account: ' + e.message, 'error');
-  } finally {
-    btn.disabled = false; btn.textContent = origLabel;
-  }
-}
-
-document.getElementById('btn-create-customer').addEventListener('click', () => {
-  const btn = document.getElementById('btn-create-customer');
-  createAccount('customer', {
-    account_type: 'customer',
-    email: document.getElementById('cust-email').value.trim(),
-    full_name: document.getElementById('cust-name').value.trim() || null,
-    company: document.getElementById('cust-company').value.trim() || null,
-    password: document.getElementById('cust-password').value || undefined,
-  }, 'cust-msg', 'cust-result', btn, 'Create customer');
-});
-
-document.getElementById('btn-create-staff').addEventListener('click', () => {
-  const btn = document.getElementById('btn-create-staff');
-  createAccount('staff', {
-    account_type: 'staff',
-    email: document.getElementById('staff-email').value.trim(),
-    full_name: document.getElementById('staff-name').value.trim() || null,
-    role: document.getElementById('staff-role').value,
-    password: document.getElementById('staff-password').value || undefined,
-  }, 'staff-msg', 'staff-result', btn, 'Create staff member');
-});
+// Account provisioning now lives on its own page (/admin/accounts/), linked from the Hub.
 
 // ============================================================
 // AUTH STATE
@@ -863,10 +723,6 @@ async function enterApp(session) {
     currentUser = session.user;
     document.getElementById('user-email').textContent = currentUser.email;
     document.getElementById('user-email-detail').textContent = currentUser.email;
-    document.getElementById('user-email-accounts').textContent = currentUser.email;
-    // Account provisioning is admin-only — reveal the Accounts section for admins.
-    const { data: isAdmin } = await sb.rpc('is_mig_admin', { uid: currentUser.id });
-    document.getElementById('link-accounts').classList.toggle('hidden', !isAdmin);
     show('view-list');
     loadSubmissions();
   } finally {
