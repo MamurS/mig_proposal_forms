@@ -303,7 +303,7 @@
     <span style="color: var(--ink);" data-i18n="hero_line2">Every line of cover.</span>
   </h1>
   <p class="max-w-2xl text-base" style="color: var(--muted);" data-i18n="hero_body">
-    Complete the General Information once, then add only the specific sections for the cover you need. Download an interactive fillable PDF, sign, stamp, and submit.
+    Complete the General Information once, then add only the specific sections for the cover you need. Sign and stamp, then submit — a PDF copy is saved to your device and your proposal is sent to MIG.
   </p>
 </section>
 
@@ -2951,10 +2951,9 @@
     <div class="mt-12 p-6 rounded-lg flex flex-wrap gap-3 items-center justify-between" style="background: white; border: 1px solid #e7e1d1;">
       <div>
         <div class="serif text-lg" style="color: var(--mig);" data-i18n="serif_ready_when_you_are_485">Ready when you are.</div>
-        <div class="text-xs" style="color: var(--muted);" data-i18n="action_pdf_will_include">PDF will include only the sections you selected, with all entered data, signature, and stamp.</div>
+        <div class="text-xs" style="color: var(--muted);" data-i18n="action_pdf_will_include">On submit, a PDF copy is saved to your device and your proposal is sent to MIG. It includes only the sections you selected, with all entered data, signature, and stamp.</div>
       </div>
       <div class="flex gap-3 flex-wrap">
-        <button type="button" id="btn-download" class="btn-ghost" data-i18n="btn_download_interactive_pdf_488">Download Interactive PDF</button>
         <button type="button" id="btn-submit" class="btn-primary" data-i18n="btn_submit_proposal_489">Submit Proposal</button>
       </div>
     </div>
@@ -3535,7 +3534,7 @@ window.__MIG_INLINE_TRANSLATIONS = {
     "toc_note_state": "Укажите",
     "toc_note_or": "или",
     "toc_note_where_appropriate": "где уместно — не оставляйте поле пустым.",
-    "action_pdf_will_include": "В PDF попадут только выбранные разделы со всеми введёнными данными, подписью и печатью.",
+    "action_pdf_will_include": "При отправке копия PDF сохраняется на вашем устройстве, а заявка отправляется в MIG. В неё попадут только выбранные разделы со всеми введёнными данными, подписью и печатью.",
     "prop_mode_label": "Режим:",
     "prop_mode_hint": "· переключите выше для смены.",
     "car_total_section_i": "Итого по Разделу I",
@@ -4132,7 +4131,7 @@ window.__MIG_INLINE_TRANSLATIONS = {
     "toc_note_state": "Ko'rsating",
     "toc_note_or": "yoki",
     "toc_note_where_appropriate": "kerakli o'rinda — bo'sh qoldirmang.",
-    "action_pdf_will_include": "PDFga faqat siz tanlagan bo'limlar barcha kiritilgan ma'lumotlar, imzo va muhr bilan kiritiladi.",
+    "action_pdf_will_include": "Yuborilganda PDF nusxasi qurilmangizga saqlanadi va arizangiz MIGga yuboriladi. Unga faqat siz tanlagan bo'limlar barcha kiritilgan ma'lumotlar, imzo va muhr bilan kiritiladi.",
     "prop_mode_label": "Rejim:",
     "prop_mode_hint": "· o'zgartirish uchun yuqoridagi belgini bosing.",
     "car_total_section_i": "I bo'lim bo'yicha jami",
@@ -4238,15 +4237,19 @@ const LOGO_B64 = "/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAA
 // SUPABASE_URL / SUPABASE_PUBLISHABLE_KEY are defined in /config.js,
 // loaded via <script src="/config.js"> just above this script.
 
-// Initialize client (only if config has been filled in)
+// Initialize client. persistSession:true so the form shares the customer's
+// login from /portal/ (same origin) — submissions are tied to that account.
 let supabaseClient = null;
 if (SUPABASE_URL && !SUPABASE_URL.includes('YOUR-PROJECT') && SUPABASE_PUBLISHABLE_KEY && !SUPABASE_PUBLISHABLE_KEY.includes('REPLACE_ME')) {
   if (typeof supabase !== 'undefined' && supabase.createClient) {
     supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-      auth: { persistSession: false }  // Form doesn't need auth state
+      auth: { persistSession: true, autoRefreshToken: true }
     });
   }
 }
+// Customer session + edit state, resolved by the auth gate at the end of this script.
+let customerSession = null;
+let editingId = null;
 const MIG_BLUE = [0.122, 0.220, 0.392]; // #1F3864
 
 // ============================================================
@@ -4299,7 +4302,7 @@ const I18N = {
     hero_eyebrow: 'UNIFIED COMMERCIAL INSURANCE PROPOSAL',
     hero_line1: 'One form.',
     hero_line2: 'Every line of cover.',
-    hero_body: 'Complete the General Information once, then add only the specific sections for the cover you need. Download an interactive fillable PDF, sign, stamp, and submit.',
+    hero_body: 'Complete the General Information once, then add only the specific sections for the cover you need. Sign and stamp, then submit — a PDF copy is saved to your device and your proposal is sent to MIG.',
     step1_hint: 'Tick one or more products. Only ticked sections will appear in the form and PDF.',
     prod_auto: 'Commercial Automobile',
     prod_property: 'Property',
@@ -4338,7 +4341,7 @@ const I18N = {
     hero_eyebrow: 'УНИВЕРСАЛЬНАЯ АНКЕТА НА КОММЕРЧЕСКОЕ СТРАХОВАНИЕ',
     hero_line1: 'Одна форма.',
     hero_line2: 'Все виды покрытия.',
-    hero_body: 'Заполните Общую Информацию один раз, затем добавьте только нужные разделы. Скачайте интерактивный PDF, подпишите, поставьте печать и отправьте.',
+    hero_body: 'Заполните Общую Информацию один раз, затем добавьте только нужные разделы. Подпишите, поставьте печать и отправьте — копия PDF сохранится на вашем устройстве, а заявка будет отправлена в MIG.',
     step1_hint: 'Отметьте один или несколько видов страхования. В форме и PDF появятся только отмеченные разделы.',
     prod_auto: 'Коммерческое Авто',
     prod_property: 'Имущество',
@@ -4377,7 +4380,7 @@ const I18N = {
     hero_eyebrow: 'UMUMIY TIJORAT SUG\'URTASI ANKETASI',
     hero_line1: 'Bir shakl.',
     hero_line2: 'Barcha qoplamalar.',
-    hero_body: 'Umumiy Ma\'lumotni bir marta to\'ldiring, so\'ng faqat kerakli bo\'limlarni qo\'shing. Interaktiv PDF-ni yuklab oling, imzo va muhr qo\'ying, yuboring.',
+    hero_body: 'Umumiy Ma\'lumotni bir marta to\'ldiring, so\'ng faqat kerakli bo\'limlarni qo\'shing. Imzo va muhr qo\'ying va yuboring — PDF nusxasi qurilmangizga saqlanadi va arizangiz MIGga yuboriladi.',
     step1_hint: 'Bir yoki bir nechta mahsulotni belgilang. Faqat belgilangan bo\'limlar formada va PDFda paydo bo\'ladi.',
     prod_auto: 'Tijorat Avtomobil',
     prod_property: 'Mulk',
@@ -4842,6 +4845,55 @@ function collectFormData() {
   data._products = getSelectedProducts();
   data._timestamp = new Date().toISOString();
   return data;
+}
+
+// ============================================================
+// POPULATE FORM — inverse of collectFormData(), used when editing an
+// existing submission loaded from the DB (payload.fields).
+// ============================================================
+function populateFormData(fields) {
+  if (!fields) return;
+  const form = document.getElementById('proposal-form');
+
+  // 1. Restore product selection first — it drives section visibility and which
+  //    product fields are relevant. Products live in payload.products / _products.
+  const products = fields._products || [];
+  document.querySelectorAll('.prod-checkbox').forEach(cb => {
+    cb.checked = products.includes(cb.dataset.product);
+    cb.dispatchEvent(new Event('change'));
+  });
+
+  // 2. Recreate dynamic rows so their inputs exist before we set values.
+  //    Previous insurance: <prefix>_prev_<N>_insurer|policy (starter row idx 1 exists).
+  //    Loss history:       <prefix>_loss_<N>_year|amount|description|status (no starter).
+  const prevMax = {}, lossMax = {};
+  Object.keys(fields).forEach(k => {
+    let m = k.match(/^(.+?)_prev_(\d+)_/); if (m) prevMax[m[1]] = Math.max(prevMax[m[1]] || 0, +m[2]);
+    m = k.match(/^(.+?)_loss_(\d+)_/);     if (m) lossMax[m[1]] = Math.max(lossMax[m[1]] || 0, +m[2]);
+  });
+  Object.entries(prevMax).forEach(([prefix, max]) => { while ((prevCounters[prefix] || 0) < max) addPrevInsRow(prefix); });
+  Object.entries(lossMax).forEach(([prefix, max]) => { while ((lossCounters[prefix] || 0) < max) addLossRow(prefix); });
+
+  // 3. Set values by field name.
+  Object.entries(fields).forEach(([name, val]) => {
+    if (name.startsWith('_')) return; // _products / _timestamp meta
+    const els = form.querySelectorAll('[name="' + (window.CSS && CSS.escape ? CSS.escape(name) : name) + '"]');
+    els.forEach(el => {
+      if (el.type === 'checkbox') {
+        el.checked = !!val;
+      } else if (el.type === 'radio') {
+        el.checked = (el.value === val);
+      } else {
+        el.value = (val == null) ? '' : val;
+        if (el.classList.contains('js-thousands')) el.dispatchEvent(new Event('input'));
+      }
+    });
+  });
+
+  // 4. Re-apply toggles that depend on checkbox state set above.
+  if (typeof applyPropertyMode === 'function') applyPropertyMode();
+  if (typeof applyAuditVisibility === 'function') applyAuditVisibility();
+  if (typeof updateProgressDots === 'function') updateProgressDots();
 }
 
 // ============================================================
@@ -5489,27 +5541,8 @@ document.querySelectorAll('.prod-checkbox').forEach(cb => {
   });
 });
 
-document.getElementById('btn-download').addEventListener('click', async () => {
-  if (!validateProductSelection()) return;
-  try {
-    document.getElementById('btn-download').disabled = true;
-    const pdfBytes = await generatePDF();
-    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `MIG_Proposal_${fmtDateEU(new Date()).replace(/\./g,"-")}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 100);
-    toast(T('toast_pdf_downloaded', 'PDF downloaded.'), 'success');
-  } catch (err) {
-    console.error(err);
-    toast(T('toast_pdf_failed', 'PDF generation failed') + ': ' + err.message, 'error');
-  } finally {
-    document.getElementById('btn-download').disabled = false;
-  }
-});
+// Offline "Download Interactive PDF" removed — the only path to a PDF is the
+// online Submit below (which saves a local copy AND sends the proposal to MIG).
 
 document.getElementById('btn-submit').addEventListener('click', async () => {
   if (!validateProductSelection()) return;
@@ -5557,19 +5590,33 @@ document.getElementById('btn-submit').addEventListener('click', async () => {
       try {
         // Pull a handful of high-value fields up to dedicated columns for the list view.
         // The rest stays in the payload JSON for the detail view.
-        const insertRow = {
-          proposer_name: data.proposer_name || null,
-          products: data._products || [],
-          language: currentLang,
-          user_agent: navigator.userAgent.slice(0, 200),
-          payload: payload  // includes fields, pdfBase64, pdfFilename
-        };
-        const { error } = await supabaseClient.from('submissions').insert(insertRow);
+        let error;
+        if (editingId) {
+          // Editing an existing (still-new) proposal — update in place.
+          ({ error } = await supabaseClient.from('submissions').update({
+            proposer_name: data.proposer_name || null,
+            products: data._products || [],
+            language: currentLang,
+            payload: payload  // refreshed fields, pdfBase64, pdfFilename
+          }).eq('id', editingId));
+        } else {
+          const insertRow = {
+            proposer_name: data.proposer_name || null,
+            products: data._products || [],
+            language: currentLang,
+            user_agent: navigator.userAgent.slice(0, 200),
+            customer_id: customerSession.user.id,  // ties the submission to the signed-in customer
+            payload: payload  // includes fields, pdfBase64, pdfFilename
+          };
+          ({ error } = await supabaseClient.from('submissions').insert(insertRow));
+        }
         if (error) {
-          console.error('Supabase insert error:', error);
+          console.error('Supabase save error:', error);
           toast(T('toast_submit_failed', 'Submit failed') + ': ' + (error.message || 'database error') + ' — ' + T('toast_pdf_saved_locally', 'PDF saved locally.'), 'error');
         } else {
           toast(T('toast_submitted_ok', 'Proposal submitted and PDF downloaded.'), 'success');
+          // Back to the customer's dashboard so they see the new/updated proposal.
+          setTimeout(() => { window.location.href = '/portal/'; }, 1200);
         }
       } catch (e) {
         console.error('Submit exception:', e);
@@ -5581,9 +5628,45 @@ document.getElementById('btn-submit').addEventListener('click', async () => {
   } catch (err) {
     console.error(err); toast(T('toast_submit_failed', 'Submit failed') + ': ' + err.message, 'error');
   } finally {
-    btn.disabled = false; btn.textContent = T('btn_submit_proposal', 'Submit Proposal');
+    btn.disabled = false;
+    btn.textContent = editingId ? T('btn_update_proposal', 'Update Proposal') : T('btn_submit_proposal', 'Submit Proposal');
   }
 });
+
+// ============================================================
+// AUTH GATE — account-only access.
+// ============================================================
+// Require a signed-in MIG customer; otherwise send them to the portal to log in.
+// Supports ?id=<submissionId> to edit one of their own proposals while it is new.
+(async function authGate() {
+  if (!supabaseClient) return; // misconfigured — submit would be unavailable anyway
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session) { window.location.replace('/portal/'); return; }
+  const { data: isCust } = await supabaseClient.rpc('is_customer');
+  if (!isCust) { window.location.replace('/portal/'); return; }
+  customerSession = session;
+
+  // Edit mode? Load the customer's own submission (RLS restricts to theirs).
+  const id = new URLSearchParams(window.location.search).get('id');
+  if (!id) return;
+  const { data: row, error } = await supabaseClient.from('submissions')
+    .select('id, status, payload').eq('id', id).single();
+  if (error || !row) {
+    toast(T('toast_load_failed', 'Could not load that proposal for editing.'), 'error');
+    setTimeout(() => { window.location.href = '/portal/'; }, 1500);
+    return;
+  }
+  if (row.status !== 'new') {
+    toast(T('toast_locked', 'This proposal is under review and can no longer be edited.'), 'error');
+    setTimeout(() => { window.location.href = '/portal/'; }, 1800);
+    return;
+  }
+  editingId = row.id;
+  populateFormData(row.payload && row.payload.fields);
+  const submitBtn = document.getElementById('btn-submit');
+  if (submitBtn) submitBtn.textContent = T('btn_update_proposal', 'Update Proposal');
+  toast(T('toast_editing', 'Editing your proposal — make changes and submit to update.'), 'success');
+})();
 
 </script>
 </body>
