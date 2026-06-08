@@ -4223,6 +4223,8 @@ window.__MIG_INLINE_TRANSLATIONS = {
   window.TRANSLATIONS = merged;
 })();
 </script>
+<!-- Supabase credentials — centralised in /config.js -->
+<script src="/config.js"></script>
 <script>
 // ============================================================
 // ============================================================
@@ -4233,11 +4235,8 @@ const LOGO_B64 = "/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAA
 // ============================================================
 // SUPABASE CONFIGURATION
 // ============================================================
-// IMPORTANT: replace BOTH placeholders below with your actual Supabase project values.
-// The publishable key is safe to expose in client-side code (it's gated by RLS policies).
-// The secret key must NEVER appear here — it's used only inside Edge Functions.
-const SUPABASE_URL = "https://iyazmdzqyogyrvexpasf.supabase.co";  // <-- paste your Project URL
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_WzcB0OuI5sYof_abgUsNRQ_U_iRoE2b";  // <-- paste your publishable key
+// SUPABASE_URL / SUPABASE_PUBLISHABLE_KEY are defined in /config.js,
+// loaded via <script src="/config.js"> just above this script.
 
 // Initialize client (only if config has been filled in)
 let supabaseClient = null;
