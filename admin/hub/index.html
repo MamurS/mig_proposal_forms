@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MIG Admin — Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+  /* === Design tokens copied verbatim from admin/index.html === */
+  :root {
+    --bg: #fafaf7;
+    --surface: #ffffff;
+    --surface-alt: #f4f3ee;
+    --border: #e5e2d8;
+    --border-strong: #d8d2c2;
+    --ink: #0b1424;
+    --muted: #6b6f7a;
+    --mig: #1f3864;
+    --mig-light: #e8eef8;
+    --accent: #a87446;
+    --success: #2d7a3e;
+    --warning: #b8860b;
+    --error: #b53737;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: 'Inter Tight', system-ui, -apple-system, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* === TOPBAR (matches admin/index.html) === */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 24px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 10;
+  }
+  .topbar .brand {
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 600;
+  }
+  .topbar .brand-mark {
+    width: 28px; height: 28px;
+    background: var(--mig);
+    color: white;
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px;
+  }
+  .topbar .user-info {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 13px; color: var(--muted);
+  }
+  .btn {
+    background: var(--mig); color: white; border: none;
+    padding: 8px 14px; border-radius: 6px;
+    font-family: inherit; font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: background 120ms;
+  }
+  .btn:hover:not(:disabled) { background: #16294a; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-secondary {
+    background: var(--surface-alt); color: var(--ink);
+    border: 1px solid var(--border-strong);
+  }
+  .btn-secondary:hover:not(:disabled) { background: var(--border); }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+
+  /* === SIGN-IN GATE (matches the policy/rater pages) === */
+  .gate { max-width: 460px; margin: 80px auto; text-align: center; padding: 0 24px; }
+  .gate .card { text-align: left; }
+  .gate h2 { font-size: 18px; color: var(--mig); margin: 0 0 8px 0; }
+  .muted { color: var(--muted); }
+
+  /* === HUB LAYOUT === */
+  .hub-wrap { padding: 28px 24px 48px; max-width: 1100px; margin: 0 auto; }
+  .hub-intro { margin-bottom: 24px; }
+  .hub-intro h1 {
+    font-size: 22px; font-weight: 600; color: var(--mig);
+    margin: 0 0 4px 0;
+  }
+  .hub-intro p { margin: 0; color: var(--muted); font-size: 13px; }
+
+  .group { margin-bottom: 28px; }
+  .group-head {
+    font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--muted);
+    margin: 0 0 10px 0;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
+  }
+  @media (max-width: 600px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+  .tile {
+    display: block;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 18px 16px;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 120ms, box-shadow 120ms, transform 120ms;
+  }
+  .tile:hover {
+    border-color: var(--mig);
+    box-shadow: 0 4px 16px rgba(11, 20, 36, 0.06);
+    transform: translateY(-1px);
+  }
+  .tile .tile-top {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .tile .tile-title {
+    font-size: 15px; font-weight: 600; color: var(--mig);
+  }
+  .tile .tile-mark {
+    width: 30px; height: 30px;
+    background: var(--mig-light);
+    color: var(--mig);
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 14px;
+    flex-shrink: 0;
+  }
+  .tile .tile-desc { font-size: 13px; color: var(--muted); }
+  .tile .tile-note {
+    margin-top: 10px;
+    font-size: 11px; color: var(--accent);
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  .tile .tile-ext {
+    margin-top: 10px;
+    font-size: 11px; color: var(--muted);
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- TOPBAR -->
+<!-- ============================================================ -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-mark">M</div>
+    <span>MIG Admin</span>
+    <span style="color: var(--muted); font-weight: 400; margin-left: 8px;">Hub</span>
+  </div>
+  <div class="user-info">
+    <span id="user-email"></span>
+    <button class="btn btn-secondary btn-sm hidden" id="btn-signout">Sign out</button>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SIGN-IN GATE (shown when logged out) -->
+<!-- ============================================================ -->
+<div class="gate" id="auth-gate">
+  <div class="card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 28px;">
+    <h2>Sign in required</h2>
+    <p class="muted" style="margin: 10px 0 18px">Use your MIG admin account. If you are not signed in, log in on the admin page first — the session is shared.</p>
+    <a class="btn" href="/admin/" style="text-decoration: none;">Go to admin login</a>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- HUB (shown when logged in) -->
+<!-- ============================================================ -->
+<div class="hub-wrap hidden" id="hub">
+  <div class="hub-intro">
+    <h1>Admin Hub</h1>
+    <p>Every tool in one place. Pick where you're headed.</p>
+  </div>
+
+  <!-- Submissions -->
+  <div class="group">
+    <div class="group-head">Submissions</div>
+    <div class="grid">
+      <a class="tile" href="/admin/">
+        <div class="tile-top">
+          <span class="tile-title">Proposal Submissions</span>
+          <span class="tile-mark">📥</span>
+        </div>
+        <div class="tile-desc">Review inbox with AI triage — read incoming proposals, set status, and run underwriting analysis.</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Raters -->
+  <div class="group">
+    <div class="group-head">Raters · premium calculators</div>
+    <div class="grid">
+      <a class="tile" href="/admin/cyber/">
+        <div class="tile-top">
+          <span class="tile-title">Cyber Premium Rater</span>
+          <span class="tile-mark">C</span>
+        </div>
+        <div class="tile-desc">Calculate cyber premiums from revenue, activity split, geography, and adjustment factors.</div>
+      </a>
+      <a class="tile" href="/admin/crime/">
+        <div class="tile-top">
+          <span class="tile-title">Crime Premium Rater</span>
+          <span class="tile-mark">Cr</span>
+        </div>
+        <div class="tile-desc">Calculate crime premiums and save quotes for review and binding.</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Policy issuance -->
+  <div class="group">
+    <div class="group-head">Policy issuance · fill schedule → issue → download DOCX</div>
+    <div class="grid">
+      <a class="tile" href="/admin/cyber/policy/">
+        <div class="tile-top">
+          <span class="tile-title">Cyber Policy Issuance</span>
+          <span class="tile-mark">C</span>
+        </div>
+        <div class="tile-desc">Fill the schedule, issue the policy, and download the finished Word document.</div>
+        <div class="tile-note">✦ includes full bilingual wording</div>
+      </a>
+      <a class="tile" href="/admin/crime/policy/">
+        <div class="tile-top">
+          <span class="tile-title">Crime Policy Issuance</span>
+          <span class="tile-mark">Cr</span>
+        </div>
+        <div class="tile-desc">Fill the schedule, issue the policy, and download the finished Word document.</div>
+        <div class="tile-note">✦ includes full bilingual wording</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Public -->
+  <div class="group">
+    <div class="group-head">Public</div>
+    <div class="grid">
+      <a class="tile" href="/" target="_blank" rel="noopener">
+        <div class="tile-top">
+          <span class="tile-title">Public Proposal Form</span>
+          <span class="tile-mark">↗</span>
+        </div>
+        <div class="tile-desc">The client-facing proposal form that feeds the submissions inbox.</div>
+        <div class="tile-ext">↗ opens in a new tab</div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CONFIG — same Supabase project as the rest of the admin app
+// ============================================================
+const SUPABASE_URL = "https://iyazmdzqyogyrvexpasf.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_WzcB0OuI5sYof_abgUsNRQ_U_iRoE2b";
+
+// ============================================================
+// AUTH — same pattern as admin/cyber/index.html: create the
+// client, getSession(); no session → leave the sign-in gate up.
+// ============================================================
+let sb = null;
+(async function init() {
+  if (typeof supabase === 'undefined' || !supabase.createClient) {
+    // SDK failed to load — leave the gate visible (it already links to /admin/).
+    console.error('Supabase SDK failed to load.');
+    return;
+  }
+  if (SUPABASE_URL.includes('YOUR-PROJECT') || SUPABASE_PUBLISHABLE_KEY.includes('REPLACE_ME')) {
+    console.error('Supabase credentials not configured.');
+    return;
+  }
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+  const { data } = await sb.auth.getSession();
+  const session = data.session;
+  if (!session) return; // stay on the gate
+
+  // Signed in — reveal the hub.
+  document.getElementById('auth-gate').classList.add('hidden');
+  document.getElementById('hub').classList.remove('hidden');
+  document.getElementById('user-email').textContent = session.user.email || '';
+  const signout = document.getElementById('btn-signout');
+  signout.classList.remove('hidden');
+  signout.onclick = async () => { await sb.auth.signOut(); location.reload(); };
+})();
+</script>
+</body>
+</html>
