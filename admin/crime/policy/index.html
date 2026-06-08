@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MIG · Crime Policy Issuance</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="./wording_content.js"></script>
+<style>
+  :root {
+    --mig: #1f3864; --bg: #fafaf7; --ink: #0b1424; --muted: #6b7280;
+    --rule: #d8d2c2; --card: #fff; --err: #b53737; --tint: #f4f6fb; --headtint: #e8eef8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; background: var(--bg); color: var(--ink); font-size: 14px; }
+  header { background: var(--mig); color: white; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
+  header h1 { font-size: 17px; font-weight: 600; }
+  header a, header button.lnk { color: #cdd9ee; font-size: 13px; text-decoration: none; background: none; border: none; cursor: pointer; margin-left: 16px; }
+  header a:hover { color: white; }
+  .wrap { max-width: 1500px; margin: 20px auto; padding: 0 16px; }
+  .cols { display: grid; grid-template-columns: 460px 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 1100px) { .cols { grid-template-columns: 1fr; } }
+  .card { background: var(--card); border: 1px solid #e5e2d8; border-radius: 8px; padding: 18px; margin-bottom: 16px; }
+  .card h2 { font-size: 14px; color: var(--mig); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid var(--mig); }
+  label.fl { display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin: 10px 0 3px; }
+  input[type=text], select, textarea { width: 100%; padding: 6px 8px; border: 1px solid var(--rule); border-radius: 5px; font-family: inherit; font-size: 13px; background: white; color: var(--ink); }
+  textarea { min-height: 54px; resize: vertical; }
+  input.num { text-align: right; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--mig); }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .btn { padding: 8px 16px; border-radius: 6px; border: 1px solid var(--rule); background: white; cursor: pointer; font-family: inherit; font-size: 13px; color: var(--mig); }
+  .btn:hover { border-color: var(--mig); }
+  .btn.primary { background: var(--mig); color: white; border-color: var(--mig); }
+  .btn:disabled { opacity: 0.45; cursor: default; }
+  .btn.green { background: #2e7d32; color: white; border-color: #2e7d32; }
+  .err-banner { background: #fef1f1; border: 1px solid #f5c8c8; color: var(--err); padding: 9px 12px; border-radius: 6px; margin-bottom: 12px; font-size: 13px; display: none; }
+  .note { font-size: 12px; color: var(--muted); }
+  .gate { max-width: 460px; margin: 80px auto; text-align: center; }
+  .hidden { display: none !important; }
+  .prefill-badge { display: inline-block; font-size: 10px; background: #e6f4ea; color: #2e7d32; border-radius: 8px; padding: 1px 7px; margin-left: 6px; vertical-align: middle; }
+  .actionbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .status-pill { font-size: 11px; padding: 2px 10px; border-radius: 10px; background: var(--headtint); color: var(--mig); }
+  .status-pill.issued { background: #e6f4ea; color: #2e7d32; }
+
+  /* ============ DOCUMENT PREVIEW (styled as the Word doc) ============ */
+  #preview-scroll { background: #888; border-radius: 8px; padding: 18px; max-height: calc(100vh - 130px); overflow: auto; }
+  .sheet { background: white; width: 794px; min-height: 1123px; margin: 0 auto 18px; padding: 57px 60px; box-shadow: 0 2px 8px rgba(0,0,0,0.35); font-family: 'Times New Roman', Georgia, serif; font-size: 12.5px; color: #111; }
+  .sheet .doc-head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid #ccc; padding-bottom: 12px; margin-bottom: 18px; }
+  .sheet .doc-head img.logo { width: 132px; height: 52px; }
+  .sheet .doc-head .addrblock { text-align: right; font-family: Arial, sans-serif; font-size: 9.5px; line-height: 1.35; color: #555; }
+  .sheet .doc-head .addrblock b { color: #222; font-size: 10px; }
+  .sheet h1.t { text-align: center; color: var(--mig); font-size: 17px; margin: 14px 0 2px; }
+  .sheet .tsub { text-align: center; font-size: 10.5px; margin-bottom: 8px; }
+  .sheet h2.s { text-align: center; color: var(--mig); font-size: 15px; margin: 22px 0 10px; }
+  .sheet .bi2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .sheet .bi2 h3 { text-align: center; color: var(--mig); font-size: 12.5px; margin-bottom: 6px; }
+  .sheet .bi2 p { text-align: justify; margin-bottom: 6px; line-height: 1.35; }
+  .sheet table.sched { width: 100%; border-collapse: collapse; }
+  .sheet table.sched td { border: 1px solid #bbb; padding: 5px 8px; vertical-align: top; width: 50%; }
+  .sheet table.sched .lbl { font-weight: bold; color: var(--mig); font-size: 11.5px; }
+  .sheet table.sched .val { font-size: 11.5px; margin-top: 2px; white-space: pre-wrap; }
+  .sheet table.wrd { width: 100%; border-collapse: collapse; }
+  .sheet table.wrd td { width: 50%; padding: 4px 8px; vertical-align: top; text-align: justify; line-height: 1.32; font-size: 11.5px; }
+  .sheet table.wrd td.h1c { background: var(--headtint); color: var(--mig); font-weight: bold; text-align: center; font-size: 12.5px; padding: 7px; }
+  .sheet table.wrd td.h2c { color: var(--mig); font-weight: bold; padding-top: 10px; font-size: 11.5px; }
+  .sheet table.endt { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+  .sheet table.endt td { border: 1px solid #bbb; width: 50%; padding: 6px 9px; vertical-align: top; font-size: 11px; line-height: 1.3; text-align: justify; }
+  .sheet table.endt .eh { font-weight: bold; color: var(--mig); margin-bottom: 4px; }
+  .sheet table.sig { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  .sheet table.sig td { border: 1px solid #bbb; width: 50%; padding: 8px 10px; vertical-align: top; font-size: 11px; line-height: 1.35; }
+  .sheet .foot { text-align: center; color: #999; font-size: 9.5px; margin-top: 16px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>MIG · Crime Policy Issuance <span class="status-pill" id="status-pill">draft</span></h1>
+  <nav class="actionbar">
+    <a href="/admin/crime/">Crime rater</a>
+    <a href="/admin/">← Submissions</a>
+    <button id="btn-signout" class="lnk hidden">Sign out</button>
+  </nav>
+</header>
+
+<div class="wrap">
+  <div class="gate" id="auth-gate">
+    <div class="card">
+      <h2>Sign in required</h2>
+      <p class="note" style="margin:10px 0 16px">Use your MIG admin account. Log in on the admin page first — the session is shared.</p>
+      <a class="btn primary" href="/admin/" style="text-decoration:none">Go to admin login</a>
+    </div>
+  </div>
+
+  <div id="app" class="hidden">
+    <div class="err-banner" id="err-banner"></div>
+
+    <div class="cols">
+      <!-- ============ LEFT: data sources + manual fields ============ -->
+      <div>
+        <div class="card">
+          <h2>1 · Data sources</h2>
+          <label class="fl">Crime submission (auto-fill)</label>
+          <select id="sub-select"><option value="">— none / manual —</option></select>
+          <label class="fl">Saved rater quote (limit · retention · premium)</label>
+          <select id="quote-select"><option value="">— none / manual —</option></select>
+          <div style="margin-top:10px">
+            <button class="btn" id="btn-load">Load &amp; auto-fill</button>
+            <span class="note" id="load-note"></span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>2 · Policy details</h2>
+          <div class="row2">
+            <div><label class="fl">Policy number</label><input type="text" id="f-polnum" placeholder="MIG-CR-2026-____" /></div>
+            <div><label class="fl">Policy date (dd.mm.yyyy)</label><input type="text" id="f-poldate" /></div>
+          </div>
+          <div class="row2">
+            <div><label class="fl">Currency</label><select id="f-currency"><option>UZS</option><option>USD</option></select></div>
+            <div><label class="fl">Broker</label><input type="text" id="f-broker" placeholder="N/A" /></div>
+          </div>
+          <label class="fl">Policyholder (name) <span class="prefill-badge hidden" id="pf-name">auto</span></label>
+          <input type="text" id="f-insured" />
+          <label class="fl">Policyholder address <span class="prefill-badge hidden" id="pf-addr">auto</span></label>
+          <textarea id="f-address"></textarea>
+          <label class="fl">Beneficiary (name &amp; address) <span class="prefill-badge hidden" id="pf-ben">auto</span></label>
+          <textarea id="f-beneficiary"></textarea>
+          <label class="fl">Business description <span class="prefill-badge hidden" id="pf-biz">auto</span></label>
+          <textarea id="f-business"></textarea>
+        </div>
+
+        <div class="card">
+          <h2>3 · Cover &amp; money</h2>
+          <div class="row2">
+            <div><label class="fl">Limit of liability <span class="prefill-badge hidden" id="pf-limit">quote</span></label><input type="text" class="num" id="f-limit" /></div>
+            <div><label class="fl">Retention / franchise <span class="prefill-badge hidden" id="pf-ret">quote</span></label><input type="text" class="num" id="f-retention" /></div>
+          </div>
+          <div class="row2">
+            <div><label class="fl">Premium <span class="prefill-badge hidden" id="pf-prem">quote</span></label><input type="text" class="num" id="f-premium" /></div>
+            <div><label class="fl">Premium payment due (dd.mm.yyyy)</label><input type="text" id="f-premdue" /></div>
+          </div>
+          <div class="row2">
+            <div><label class="fl">Period from <span class="prefill-badge hidden" id="pf-from">auto</span></label><input type="text" id="f-from" placeholder="dd.mm.yyyy" /></div>
+            <div><label class="fl">Period to <span class="prefill-badge hidden" id="pf-to">auto</span></label><input type="text" id="f-to" placeholder="dd.mm.yyyy" /></div>
+          </div>
+          <div class="row2">
+            <div><label class="fl">Retroactive date</label><input type="text" id="f-retro" placeholder="dd.mm.yyyy" /></div>
+            <div><label class="fl">Territory <span class="prefill-badge hidden" id="pf-terr">auto</span></label><input type="text" id="f-territory" value="The Republic of Uzbekistan / Республика Узбекистан" /></div>
+          </div>
+          <label class="fl" style="margin-top:14px">Sublimits</label>
+          <div class="row2">
+            <div><label class="fl">Social engineering fraud</label><input type="text" class="num" id="f-sl-se" /></div>
+            <div><label class="fl">Legal fees</label><input type="text" class="num" id="f-sl-legal" /></div>
+          </div>
+          <div class="row2">
+            <div><label class="fl">Investigation costs</label><input type="text" class="num" id="f-sl-inv" /></div>
+            <div><label class="fl">Data reconstitution</label><input type="text" class="num" id="f-sl-data" /></div>
+          </div>
+          <div class="row2">
+            <div><label class="fl">Fire damage to money</label><input type="text" class="num" id="f-sl-fire" /></div>
+            <div style="align-self:end"><button class="btn" id="btn-suggest-sl" title="10% of limit for social engineering; 5% for the others">Suggest sublimits</button></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>4 · Generate</h2>
+          <div class="actionbar">
+            <button class="btn" id="btn-docx">Download DOCX (preview copy)</button>
+            <button class="btn primary" id="btn-confirm">Confirm &amp; issue</button>
+            <button class="btn green hidden" id="btn-pdf">Download PDF</button>
+          </div>
+          <p class="note" style="margin-top:8px" id="gen-note">Review the document preview on the right. The Word version can be downloaded at any time for checking. Confirming saves the policy record and unlocks the final PDF.</p>
+        </div>
+      </div>
+
+      <!-- ============ RIGHT: live document preview ============ -->
+      <div>
+        <div class="card" style="padding:10px 14px; display:flex; justify-content:space-between; align-items:center">
+          <h2 style="border:none; margin:0; padding:0">Document preview (Word layout)</h2>
+          <span class="note" id="pv-note">updates live</span>
+        </div>
+        <div id="preview-scroll">
+          <div id="doc-root"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ================== CONFIG — paste your Supabase credentials ==================
+const SUPABASE_URL = "https://iyazmdzqyogyrvexpasf.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_WzcB0OuI5sYof_abgUsNRQ_U_iRoE2b";
+// ==============================================================================
+</script>
+<script src="./policy_app.js"></script>
+</body>
+</html>
