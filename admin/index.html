@@ -429,10 +429,9 @@
       </div>
       <div style="display: flex; gap: 8px;">
         <button class="btn" id="pw-signin" style="flex: 1;">Sign in</button>
-        <button class="btn btn-secondary" id="pw-signup" style="flex: 1;">Sign up</button>
       </div>
       <div style="font-size: 12px; color: var(--muted); margin-top: 12px; text-align: center;">
-        New users need approval from an admin before they can see submissions.
+        Accounts are provisioned by an administrator. Contact one if you need access.
       </div>
     </div>
   </div>
@@ -662,13 +661,23 @@ document.getElementById('magic-send').addEventListener('click', async () => {
   if (!email) { setLoginMsg('Enter your email.'); return; }
   const btn = document.getElementById('magic-send');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Sending…';
+  // shouldCreateUser:false → Supabase will NOT create a brand-new account for an
+  // unknown email, so magic links only go to accounts an admin has provisioned.
   const { error } = await sb.auth.signInWithOtp({
     email,
-    options: { emailRedirectTo: window.location.origin + window.location.pathname }
+    options: {
+      emailRedirectTo: window.location.origin + window.location.pathname,
+      shouldCreateUser: false
+    }
   });
   btn.disabled = false; btn.textContent = 'Send magic link';
-  if (error) setLoginMsg(error.message);
-  else setLoginMsg('Check your inbox — magic link sent to ' + email, 'success');
+  if (error) {
+    setLoginMsg(/signups? not allowed|not allowed for otp/i.test(error.message)
+      ? 'That email is not a registered MIG account. Ask an administrator to add you.'
+      : error.message);
+  } else {
+    setLoginMsg('If that email is a registered MIG account, a magic link is on its way.', 'success');
+  }
 });
 
 document.getElementById('pw-signin').addEventListener('click', async () => {
@@ -683,26 +692,8 @@ document.getElementById('pw-signin').addEventListener('click', async () => {
   // success path: onAuthStateChange handler will switch the view
 });
 
-document.getElementById('pw-signup').addEventListener('click', async () => {
-  const email = document.getElementById('pw-email').value.trim();
-  const password = document.getElementById('pw-password').value;
-  if (!email || !password) { setLoginMsg('Enter email and password.'); return; }
-  if (password.length < 8) { setLoginMsg('Password must be at least 8 characters.'); return; }
-  const btn = document.getElementById('pw-signup');
-  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
-  const { data, error } = await sb.auth.signUp({
-    email,
-    password,
-    options: { emailRedirectTo: window.location.origin + window.location.pathname }
-  });
-  btn.disabled = false; btn.textContent = 'Sign up';
-  if (error) { setLoginMsg(error.message); return; }
-  if (data && data.user && !data.session) {
-    setLoginMsg('Confirmation email sent. Click the link, then come back here.', 'success');
-  } else {
-    setLoginMsg('Account created. You may need admin approval before you can view submissions.', 'success');
-  }
-});
+// Self-serve sign-up is intentionally disabled — accounts are provisioned by an
+// administrator (and gated by the mig_staff list), so there is no sign-up handler.
 
 async function signOut() {
   await sb.auth.signOut();
@@ -716,14 +707,36 @@ document.getElementById('btn-signout-detail').addEventListener('click', signOut)
 // ============================================================
 // AUTH STATE
 // ============================================================
+// A valid session is necessary but NOT sufficient — the account must also be on
+// the MIG staff list. is_mig_staff() is a SECURITY DEFINER RPC checking mig_staff
+// for auth.uid(). Non-staff are signed out and kept on the login screen.
+let enteringApp = false;
+async function enterApp(session) {
+  if (enteringApp) return;
+  enteringApp = true;
+  try {
+    const { data: isStaff, error: staffErr } = await sb.rpc('is_mig_staff');
+    if (staffErr || !isStaff) {
+      const email = session.user.email || 'this account';
+      await sb.auth.signOut();
+      show('view-login');
+      setLoginMsg(email + ' is not authorized for MIG admin. Ask an administrator to add you to staff.', 'error');
+      return;
+    }
+    currentUser = session.user;
+    document.getElementById('user-email').textContent = currentUser.email;
+    document.getElementById('user-email-detail').textContent = currentUser.email;
+    show('view-list');
+    loadSubmissions();
+  } finally {
+    enteringApp = false;
+  }
+}
+
 if (sb) {
   sb.auth.onAuthStateChange((event, session) => {
     if (session && session.user) {
-      currentUser = session.user;
-      document.getElementById('user-email').textContent = currentUser.email;
-      document.getElementById('user-email-detail').textContent = currentUser.email;
-      show('view-list');
-      loadSubmissions();
+      enterApp(session);
     } else if (event === 'SIGNED_OUT') {
       currentUser = null;
       show('view-login');
@@ -741,11 +754,7 @@ if (sb) {
   // Check if returning from magic link (the URL may have a #access_token=...)
   const { data: { session } } = await sb.auth.getSession();
   if (session && session.user) {
-    currentUser = session.user;
-    document.getElementById('user-email').textContent = currentUser.email;
-    document.getElementById('user-email-detail').textContent = currentUser.email;
-    show('view-list');
-    loadSubmissions();
+    enterApp(session);
   } else {
     show('view-login');
   }

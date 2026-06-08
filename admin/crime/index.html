@@ -349,6 +349,16 @@ function bindThousands(input) {
   const { data } = await sb.auth.getSession();
   session = data.session;
   if (!session) return; // gate stays
+  // A session alone is not enough — require MIG staff membership.
+  const { data: isStaff, error: staffErr } = await sb.rpc('is_mig_staff');
+  if (staffErr || !isStaff) {
+    const email = (session.user.email || 'This account').replace(/[<>&]/g, '');
+    await sb.auth.signOut();
+    $('auth-gate').innerHTML = '<div class="card"><h2>Account not authorized</h2>' +
+      '<p class="muted" style="margin:10px 0 16px">' + email + ' is signed in but is not on the MIG staff list, so it cannot access admin tools. Contact an administrator to be added, or sign in with an authorized account.</p>' +
+      '<a class="btn primary" href="/admin/" style="text-decoration:none">Back to login</a></div>';
+    return;
+  }
   $('auth-gate').classList.add('hidden');
   $('app').classList.remove('hidden');
   $('btn-signout').classList.remove('hidden');
