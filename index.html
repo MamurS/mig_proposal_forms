@@ -291,7 +291,21 @@ let sb = null;
   const session = data.session;
   if (!session) return; // stay on the gate
 
-  // Signed in — reveal the hub.
+  // Having a session is NOT enough — the account must be on the MIG staff list.
+  // is_mig_staff() is a SECURITY DEFINER RPC that checks mig_staff for auth.uid().
+  const { data: isStaff, error: staffErr } = await sb.rpc('is_mig_staff');
+  if (staffErr || !isStaff) {
+    const email = (session.user.email || 'This account').replace(/[<>&]/g, '');
+    await sb.auth.signOut();
+    document.getElementById('auth-gate').innerHTML =
+      '<div class="card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 28px;">' +
+      '<h2>Account not authorized</h2>' +
+      '<p class="muted" style="margin: 10px 0 18px">' + email + ' is signed in but is not on the MIG staff list, so it cannot access the admin tools. Ask an administrator to add you, or sign in with an authorized account.</p>' +
+      '<a class="btn" href="/admin/" style="text-decoration: none;">Back to login</a></div>';
+    return;
+  }
+
+  // Signed in and authorized — reveal the hub.
   document.getElementById('auth-gate').classList.add('hidden');
   document.getElementById('hub').classList.remove('hidden');
   document.getElementById('user-email').textContent = session.user.email || '';
