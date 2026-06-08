@@ -1,5 +1,5 @@
 // MIG Crime Policy Issuance — app logic. Deployed as admin/crime/policy/policy_app.js
-/* global supabase, docx, html2canvas, jspdf, CRIME_WORDING, SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY */
+/* global supabase, docx, CRIME_WORDING, SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY */
 
 let sb = null, session = null, loadedSubmissionId = null, loadedQuoteId = null;
 let issued = false, policyRecordId = null;
@@ -329,33 +329,6 @@ function policyFileBase() {
   return 'MIG_Crime_Policy_' + num;
 }
 
-// ---------------- PDF generation (raster, A4) ----------------
-async function generatePdf() {
-  const root = document.querySelector('#doc-root .sheet');
-  const { jsPDF } = jspdf;
-  const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-  const scale = 1.5;
-  const canvas = await html2canvas(root, { scale, useCORS: true, logging: false, backgroundColor: '#ffffff' });
-  const pageWmm = 210, pageHmm = 297;
-  // map canvas pixels to mm via width
-  const pxPerMm = canvas.width / pageWmm;
-  const pageHpx = Math.floor(pageHmm * pxPerMm);
-  const nPages = Math.ceil(canvas.height / pageHpx);
-  for (let i = 0; i < nPages; i++) {
-    const slice = document.createElement('canvas');
-    slice.width = canvas.width;
-    slice.height = Math.min(pageHpx, canvas.height - i * pageHpx);
-    const ctx = slice.getContext('2d');
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, slice.width, slice.height);
-    ctx.drawImage(canvas, 0, i * pageHpx, canvas.width, slice.height, 0, 0, canvas.width, slice.height);
-    const img = slice.toDataURL('image/jpeg', 0.85);
-    if (i > 0) pdf.addPage();
-    pdf.addImage(img, 'JPEG', 0, 0, pageWmm, slice.height / pxPerMm);
-  }
-  return pdf.output('blob');
-}
-
 // ---------------- prefill ----------------
 async function loadSources() {
   const { data: subs } = await sb.from('submissions')
@@ -441,10 +414,10 @@ function suggestSublimits() {
 function markDraft() {
   if (issued) {
     issued = false;
-    $('btn-pdf').classList.add('hidden');
+    $('btn-final').classList.add('hidden');
     $('status-pill').textContent = 'draft (modified)';
     $('status-pill').classList.remove('issued');
-    $('gen-note').textContent = 'Fields changed after issuance — confirm again to re-issue and unlock the PDF.';
+    $('gen-note').textContent = 'Fields changed after issuance — confirm again to re-issue and unlock the issued copy.';
   }
 }
 
@@ -482,8 +455,8 @@ async function confirmIssue() {
   issued = true;
   $('status-pill').textContent = 'issued';
   $('status-pill').classList.add('issued');
-  $('btn-pdf').classList.remove('hidden');
-  $('gen-note').textContent = 'Policy record saved. The final PDF is now available for download.';
+  $('btn-final').classList.remove('hidden');
+  $('gen-note').textContent = 'Policy record saved. The issued Word document is now available for download.';
 }
 
 // ---------------- init ----------------
@@ -526,14 +499,14 @@ async function confirmIssue() {
     $('btn-docx').disabled = false;
   };
   $('btn-confirm').onclick = confirmIssue;
-  $('btn-pdf').onclick = async () => {
-    $('btn-pdf').disabled = true; $('gen-note').textContent = 'Rendering PDF (this can take ~20 seconds)…';
+  $('btn-final').onclick = async () => {
+    $('btn-final').disabled = true; $('gen-note').textContent = 'Generating issued Word document…';
     try {
-      const blob = await generatePdf();
-      download(blob, policyFileBase() + '.pdf');
-      $('gen-note').textContent = 'PDF downloaded.';
-    } catch (e) { $('gen-note').textContent = 'PDF error: ' + e.message; }
-    $('btn-pdf').disabled = false;
+      const blob = await generateDocx();
+      download(blob, policyFileBase() + '.docx');
+      $('gen-note').textContent = 'Issued Word document downloaded.';
+    } catch (e) { $('gen-note').textContent = 'DOCX error: ' + e.message; }
+    $('btn-final').disabled = false;
   };
 
   loadSources();
