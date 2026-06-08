@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MIG — Customer Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+  /* === Design tokens copied from admin/index.html === */
+  :root {
+    --bg: #fafaf7; --surface: #ffffff; --surface-alt: #f4f3ee;
+    --border: #e5e2d8; --border-strong: #d8d2c2;
+    --ink: #0b1424; --muted: #6b6f7a; --mig: #1f3864; --mig-light: #e8eef8;
+    --accent: #a87446; --success: #2d7a3e; --warning: #b8860b; --error: #b53737;
+    --new: #1f3864; --in-review: #b8860b; --quoted: #2d7a3e;
+    --bound: #1a5d2e; --declined: #b53737; --withdrawn: #6b6f7a;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: 'Inter Tight', system-ui, -apple-system, sans-serif;
+    color: var(--ink); background: var(--bg); font-size: 14px; line-height: 1.5;
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 24px; background: var(--surface); border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 10;
+  }
+  .topbar .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+  .topbar .brand-mark {
+    width: 28px; height: 28px; background: var(--mig); color: white;
+    border-radius: 4px; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px;
+  }
+  .topbar .user-info { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--muted); }
+
+  .btn {
+    background: var(--mig); color: white; border: none; padding: 8px 14px; border-radius: 6px;
+    font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 120ms;
+    text-decoration: none; display: inline-block;
+  }
+  .btn:hover:not(:disabled) { background: #16294a; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-secondary { background: var(--surface-alt); color: var(--ink); border: 1px solid var(--border-strong); }
+  .btn-secondary:hover:not(:disabled) { background: var(--border); }
+  .btn-danger { background: #fdeaea; color: var(--error); border: 1px solid #f5c8c8; }
+  .btn-danger:hover:not(:disabled) { background: #fbdada; }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+
+  input[type=text], input[type=email], input[type=password] {
+    font-family: inherit; font-size: 14px; padding: 8px 10px;
+    border: 1px solid var(--border-strong); border-radius: 6px;
+    background: var(--surface); color: var(--ink); width: 100%;
+  }
+  input:focus { outline: none; border-color: var(--mig); box-shadow: 0 0 0 3px rgba(31, 56, 100, 0.1); }
+  label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; font-weight: 500; }
+
+  /* === LOGIN === */
+  .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .login-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 32px; width: 100%; max-width: 400px; box-shadow: 0 4px 16px rgba(11, 20, 36, 0.04);
+  }
+  .login-card h1 { font-size: 20px; font-weight: 600; margin: 0 0 4px 0; color: var(--mig); }
+  .login-card .subtitle { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+  .form-field { margin-bottom: 12px; }
+  .login-error { color: var(--error); background: #fef1f1; border: 1px solid #f5c8c8; padding: 8px 12px; border-radius: 6px; font-size: 13px; margin-bottom: 12px; }
+  .login-success { color: var(--success); background: #f0f7f1; border: 1px solid #c8e0cc; padding: 8px 12px; border-radius: 6px; font-size: 13px; margin-bottom: 12px; }
+
+  /* === DASHBOARD === */
+  .wrap { padding: 24px; max-width: 1100px; margin: 0 auto; }
+  .dash-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 12px; }
+  .dash-head h1 { font-size: 22px; font-weight: 600; color: var(--mig); margin: 0; }
+  .dash-head p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  table.subs { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.subs th {
+    text-align: left; background: var(--surface-alt); padding: 10px 14px;
+    font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--muted); border-bottom: 1px solid var(--border);
+  }
+  table.subs td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  table.subs tr:last-child td { border-bottom: none; }
+  .product-pill { display: inline-block; background: var(--mig-light); color: var(--mig); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; margin-right: 4px; margin-bottom: 2px; }
+  .status-badge { display: inline-block; padding: 3px 9px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .status-badge.new { background: #e8eef8; color: var(--new); }
+  .status-badge.in_review { background: #fbf3dc; color: var(--in-review); }
+  .status-badge.quoted { background: #e6f3e8; color: var(--quoted); }
+  .status-badge.bound { background: #d4ebd8; color: var(--bound); }
+  .status-badge.declined { background: #fdeaea; color: var(--declined); }
+  .status-badge.withdrawn { background: #ececec; color: var(--withdrawn); }
+  .row-actions { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+  .empty-state { padding: 56px 24px; text-align: center; color: var(--muted); }
+  .empty-state .icon { font-size: 30px; margin-bottom: 8px; color: var(--border-strong); }
+
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 18px; border-radius: 6px; color: white; font-size: 13px; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+  .toast.success { background: var(--success); }
+  .toast.error { background: var(--error); }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- LOGIN -->
+<!-- ============================================================ -->
+<div id="view-login" class="login-wrap">
+  <div class="login-card">
+    <h1>MIG Customer Portal</h1>
+    <div class="subtitle">Sign in to start and manage your insurance proposals.</div>
+    <div id="login-msg"></div>
+    <div class="form-field">
+      <label for="login-email">Email</label>
+      <input type="email" id="login-email" placeholder="you@company.com" autocomplete="email" />
+    </div>
+    <div class="form-field">
+      <label for="login-password">Password</label>
+      <input type="password" id="login-password" placeholder="Your password" autocomplete="current-password" />
+    </div>
+    <button class="btn" id="btn-login" style="width: 100%;">Sign in</button>
+    <div style="font-size: 12px; color: var(--muted); margin-top: 12px; text-align: center;">
+      Accounts are created by MIG. Contact your MIG representative if you need access or a password reset.
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- DASHBOARD -->
+<!-- ============================================================ -->
+<div id="view-dash" class="hidden">
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">M</div>
+      <span>MIG Customer Portal</span>
+    </div>
+    <div class="user-info">
+      <span id="user-email"></span>
+      <button class="btn btn-secondary btn-sm" id="btn-signout">Sign out</button>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="dash-head">
+      <div>
+        <h1>My proposals</h1>
+        <p>Start a new proposal, or edit and manage the ones you have submitted.</p>
+      </div>
+      <a class="btn" href="/proposal/">+ New proposal</a>
+    </div>
+
+    <div class="table-wrap">
+      <table class="subs">
+        <thead>
+          <tr>
+            <th style="width: 150px;">Submitted</th>
+            <th>Proposer</th>
+            <th style="width: 220px;">Products</th>
+            <th style="width: 120px;">Status</th>
+            <th style="width: 230px; text-align: right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="subs-tbody">
+          <tr><td colspan="5" style="text-align: center; padding: 24px; color: var(--muted);">
+            <span class="spinner"></span> Loading…
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<!-- Supabase credentials — centralised in /config.js -->
+<script src="/config.js"></script>
+<script>
+// ============================================================
+// Customer portal
+// ============================================================
+let sb = null, currentUser = null;
+const $ = id => document.getElementById(id);
+
+function show(viewId) {
+  ['view-login', 'view-dash'].forEach(id => $(id).classList.toggle('hidden', id !== viewId));
+}
+function toast(msg, type = 'success') {
+  const div = document.createElement('div');
+  div.className = 'toast ' + type;
+  div.textContent = msg;
+  $('toast-container').appendChild(div);
+  setTimeout(() => div.remove(), 3500);
+}
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function fmtDate(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+function productLabel(code) {
+  return { auto:'Auto', property:'Property', cgl:'CGL', car:'CAR', dno:'D&O', pi:'PI', crime:'Crime', cyber:'Cyber' }[code] || code;
+}
+function statusLabel(s) {
+  return { new:'New', in_review:'In review', quoted:'Quoted', bound:'Bound', declined:'Declined', withdrawn:'Withdrawn' }[s] || s;
+}
+function setLoginMsg(text, type = 'error') {
+  $('login-msg').innerHTML = text ? `<div class="login-${type}">${escapeHtml(text)}</div>` : '';
+}
+
+// ============================================================
+// Auth
+// ============================================================
+$('btn-login').addEventListener('click', signIn);
+$('login-password').addEventListener('keydown', e => { if (e.key === 'Enter') signIn(); });
+
+async function signIn() {
+  const email = $('login-email').value.trim();
+  const password = $('login-password').value;
+  if (!email || !password) { setLoginMsg('Enter your email and password.'); return; }
+  const btn = $('btn-login');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Signing in…';
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  btn.disabled = false; btn.textContent = 'Sign in';
+  if (error) setLoginMsg(error.message);
+  // success → onAuthStateChange / enter() handles the rest
+}
+
+async function signOut() {
+  await sb.auth.signOut();
+  currentUser = null;
+  show('view-login');
+  setLoginMsg('');
+}
+$('btn-signout').addEventListener('click', signOut);
+
+// A session is necessary but not sufficient — the account must be a provisioned
+// customer (in the customers table). Staff/unknown accounts are turned away.
+let entering = false;
+async function enter(session) {
+  if (entering) return;
+  entering = true;
+  try {
+    const { data: isCust, error } = await sb.rpc('is_customer');
+    if (error || !isCust) {
+      const email = session.user.email || 'this account';
+      await sb.auth.signOut();
+      show('view-login');
+      setLoginMsg(email + ' is not a customer account. This portal is for MIG customers — staff should use /admin/.', 'error');
+      return;
+    }
+    currentUser = session.user;
+    $('user-email').textContent = currentUser.email;
+    show('view-dash');
+    loadSubmissions();
+  } finally {
+    entering = false;
+  }
+}
+
+// ============================================================
+// Dashboard data
+// ============================================================
+async function loadSubmissions() {
+  const tbody = $('subs-tbody');
+  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted);"><span class="spinner"></span> Loading…</td></tr>';
+  const { data, error } = await sb
+    .from('submissions')
+    .select('id, created_at, proposer_name, products, status')
+    .order('created_at', { ascending: false });
+  if (error) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--error);">Could not load your proposals: ${escapeHtml(error.message)}</td></tr>`;
+    return;
+  }
+  if (!data || !data.length) {
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state">
+      <div class="icon">📄</div>
+      <div>You have no proposals yet.</div>
+      <div style="margin-top:12px;"><a class="btn" href="/proposal/">+ Start your first proposal</a></div>
+    </div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = data.map(r => {
+    const products = (r.products || []).map(p => `<span class="product-pill">${escapeHtml(productLabel(p))}</span>`).join('')
+      || '<span style="color:var(--muted);font-size:11px;">—</span>';
+    const isNew = r.status === 'new';
+    const actions = isNew
+      ? `<a class="btn btn-secondary btn-sm" href="/proposal/?id=${encodeURIComponent(r.id)}">Edit</a>
+         <button class="btn btn-secondary btn-sm" data-pdf="${escapeHtml(r.id)}">PDF</button>
+         <button class="btn btn-danger btn-sm" data-del="${escapeHtml(r.id)}">Delete</button>`
+      : `<button class="btn btn-secondary btn-sm" data-pdf="${escapeHtml(r.id)}">PDF</button>
+         <span style="font-size:11px;color:var(--muted);align-self:center;">locked</span>`;
+    return `<tr>
+      <td><span class="mono" style="font-size:12px;">${escapeHtml(fmtDate(r.created_at))}</span></td>
+      <td><strong>${escapeHtml(r.proposer_name || '(unnamed)')}</strong></td>
+      <td>${products}</td>
+      <td><span class="status-badge ${escapeHtml(r.status)}">${escapeHtml(statusLabel(r.status))}</span></td>
+      <td><div class="row-actions">${actions}</div></td>
+    </tr>`;
+  }).join('');
+
+  tbody.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => deleteSubmission(b.getAttribute('data-del'))));
+  tbody.querySelectorAll('[data-pdf]').forEach(b => b.addEventListener('click', () => downloadPdf(b.getAttribute('data-pdf'), b)));
+}
+
+async function deleteSubmission(id) {
+  if (!confirm('Delete this proposal? This cannot be undone.')) return;
+  const { error } = await sb.from('submissions').delete().eq('id', id);
+  if (error) { toast('Could not delete: ' + error.message, 'error'); return; }
+  toast('Proposal deleted');
+  loadSubmissions();
+}
+
+async function downloadPdf(id, btn) {
+  const orig = btn.textContent;
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  try {
+    const { data, error } = await sb.from('submissions').select('payload').eq('id', id).single();
+    if (error || !data) throw new Error(error?.message || 'not found');
+    const b64 = data.payload && data.payload.pdfBase64;
+    if (!b64) { toast('No PDF stored for this proposal.', 'error'); return; }
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = (data.payload && data.payload.pdfFilename) || `MIG_Proposal_${id.slice(0,8)}.pdf`;
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 200);
+  } catch (e) {
+    toast('Could not download PDF: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = orig;
+  }
+}
+
+// ============================================================
+// Init
+// ============================================================
+(async function init() {
+  if (typeof supabase === 'undefined' || !supabase.createClient) {
+    setLoginMsg('Could not load the sign-in system. Check your connection and reload.');
+    return;
+  }
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+  sb.auth.onAuthStateChange((event, session) => {
+    if (session && session.user) enter(session);
+    else if (event === 'SIGNED_OUT') { currentUser = null; show('view-login'); }
+  });
+  const { data: { session } } = await sb.auth.getSession();
+  if (session && session.user) enter(session);
+  else show('view-login');
+})();
+</script>
+</body>
+</html>
