@@ -6,7 +6,7 @@
 <title>MIG Admin — Proposal Submissions</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
   :root {
@@ -387,45 +387,30 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* === PROPOSAL REVIEW VIEW (form-styled, large, highlighted) === */
+  /* === PROPOSAL REVIEW VIEW — mirrors the online Proposal Form === */
   #detail-content.proposal-view { padding: 0; background: transparent; border: none; }
-  .pv-band {
-    background: linear-gradient(180deg, #fff8ec 0%, #fdf3e0 100%);
-    border: 1px solid #ecd9b0; border-radius: 10px;
-    padding: 16px 18px; margin-bottom: 18px;
+  .pv-section { margin-bottom: 30px; }
+  .pv-title {
+    font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 25px;
+    line-height: 1.15; letter-spacing: -0.01em; color: var(--mig);
+    margin: 0 0 16px 0; padding-bottom: 10px; border-bottom: 1px solid var(--border);
   }
-  .pv-band .pv-band-title {
-    font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
-    color: var(--accent); margin-bottom: 12px;
+  .pv-title .pv-count { font-family: 'Inter Tight', sans-serif; font-size: 12px; font-weight: 400; color: var(--muted); margin-left: 10px; letter-spacing: 0; }
+  .pv-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px 22px; }
+  .pv-field { padding: 7px 0 9px; border-bottom: 1px solid #ece9df; min-width: 0; }
+  .pv-label { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 500; margin-bottom: 3px; }
+  .pv-value { font-size: 15px; color: var(--ink); word-break: break-word; line-height: 1.45; }
+  .pv-value.empty { color: #c8c4b8; font-style: italic; }
+  /* key fields — same boxed-amber highlight used on the form */
+  .pv-field.is-key {
+    background: #fff8ec; border: 1px solid #ecd9b0; border-radius: 8px;
+    padding: 8px 12px; align-self: start;
   }
-  .pv-band-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
-  .kt-card { background: var(--surface); border: 1px solid #ecd9b0; border-radius: 8px; padding: 10px 12px; }
-  .kt-card .kt-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin-bottom: 3px; }
-  .kt-card .kt-value { font-size: 19px; font-weight: 700; color: var(--mig); font-variant-numeric: tabular-nums; line-height: 1.2; word-break: break-word; }
-  .kt-card .kt-where { font-size: 10.5px; color: var(--muted); margin-top: 3px; }
-
-  .pv-section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px 22px; margin-bottom: 16px; }
-  .pv-section > .pv-h {
-    font-family: Georgia, 'Times New Roman', serif;
-    font-size: 19px; font-weight: 600; color: var(--mig);
-    margin: 0 0 14px 0; padding-bottom: 10px; border-bottom: 2px solid var(--mig-light);
-  }
-  .pv-section > .pv-h .pv-count { font-family: 'Inter Tight', sans-serif; font-size: 12px; font-weight: 400; color: var(--muted); margin-left: 8px; }
-  .pv-row {
-    display: grid; grid-template-columns: 280px 1fr; gap: 10px 20px;
-    padding: 9px 10px; border-radius: 6px; align-items: baseline;
-  }
-  .pv-row + .pv-row { border-top: 1px solid #f2f0e8; }
-  .pv-row .pv-label { font-size: 14px; color: var(--muted); }
-  .pv-row .pv-value { font-size: 16px; color: var(--ink); word-break: break-word; }
-  .pv-row .pv-value.empty { color: #c8c4b8; font-style: italic; font-size: 14px; }
-  /* highlighted key rows */
-  .pv-row.is-key { background: var(--mig-light); border-top-color: transparent !important; }
-  .pv-row.is-key .pv-label { color: var(--mig); font-weight: 600; }
-  .pv-row.is-key .pv-value { font-size: 18px; font-weight: 700; color: var(--mig); font-variant-numeric: tabular-nums; }
-  .pv-row.is-key.cat-deductible { background: #fbf3dc; }
-  .pv-row.is-key.cat-deductible .pv-label, .pv-row.is-key.cat-deductible .pv-value { color: var(--warning); }
-  @media (max-width: 720px) { .pv-row { grid-template-columns: 1fr; gap: 2px; } }
+  .pv-field.is-key .pv-label { color: var(--accent); }
+  .pv-field.is-key .pv-value { font-weight: 600; color: var(--mig); font-size: 16px; font-variant-numeric: tabular-nums; }
+  .pv-field.is-key.cat-deductible { background: #fbf3dc; border-color: #e8d9a0; }
+  .pv-field.is-key.cat-deductible .pv-label { color: var(--warning); }
+  .pv-field.is-key.cat-deductible .pv-value { color: var(--warning); }
 </style>
 </head>
 <body>
@@ -983,45 +968,32 @@ function sectionFor(k) {
 function renderFields(fields, products) {
   const order = ['General Information','Auto','Property','CGL','CAR','D&O','PI','Crime','Cyber'];
   const sections = {};
-  const keyTerms = [];
   for (const [k, v] of Object.entries(fields)) {
     if (k.startsWith('_')) continue;
     if (v == null || v === '' || v === false) continue;
     const sec = sectionFor(k);
     (sections[sec] = sections[sec] || []).push([k, v]);
-    const cat = keyTermCat(k, v);
-    if (cat) keyTerms.push({ k, v, cat, sec });
   }
 
   let html = '';
 
-  // Key terms band — the figures an underwriter wants at a glance.
-  if (keyTerms.length) {
-    html += '<div class="pv-band"><div class="pv-band-title">Key terms</div><div class="pv-band-grid">';
-    html += keyTerms.map(t => `
-      <div class="kt-card">
-        <div class="kt-label">${escapeHtml(humanizeFieldName(t.k))}</div>
-        <div class="kt-value">${escapeHtml(formatValue(t.v))}</div>
-        <div class="kt-where">${escapeHtml(t.sec)}</div>
-      </div>`).join('');
-    html += '</div></div>';
-  }
-
-  // Sections, styled like the form, with key rows highlighted.
+  // Sections laid out like the online Proposal Form; key fields highlighted inline.
   for (const name of order) {
     const items = sections[name];
     if (!items || !items.length) continue;
-    html += `<div class="pv-section"><div class="pv-h">${escapeHtml(name)}<span class="pv-count">${items.length} field${items.length > 1 ? 's' : ''}</span></div>`;
+    html += `<section class="pv-section">
+      <h2 class="pv-title">${escapeHtml(name)}<span class="pv-count">${items.length} field${items.length > 1 ? 's' : ''}</span></h2>
+      <div class="pv-fields">`;
     html += items.map(([k, v]) => {
       const cat = keyTermCat(k, v);
       const cls = cat ? ` is-key cat-${cat.cat}` : '';
       const val = formatValue(v);
-      return `<div class="pv-row${cls}">
+      return `<div class="pv-field${cls}">
         <div class="pv-label" title="${escapeHtml(k)}">${escapeHtml(humanizeFieldName(k))}</div>
         <div class="pv-value ${val ? '' : 'empty'}">${val ? escapeHtml(val) : '(empty)'}</div>
       </div>`;
     }).join('');
-    html += '</div>';
+    html += '</div></section>';
   }
 
   if (!html) html = '<em style="color: var(--muted);">No data captured.</em>';

@@ -92,22 +92,45 @@
   .serif { font-family: 'Fraunces', Georgia, serif; }
   .mono { font-family: 'JetBrains Mono', monospace; }
   .rule { border-bottom: 1px solid var(--rule); }
-  .field-label { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 500; margin-bottom: 2px; }
+  .field-label { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 500; margin-bottom: 3px; }
   input[type=text], input[type=email], input[type=tel], input[type=number], input[type=date], textarea, select {
     width: 100%; background: transparent; border: none; border-bottom: 1px solid #cfc8b5;
-    padding: 6px 0; font-size: 14px; color: var(--ink); transition: border-color .15s;
+    padding: 7px 0; font-size: 15px; color: var(--ink); transition: border-color .15s;
     font-family: inherit;
   }
   input:focus, textarea:focus, select:focus { outline: none; border-bottom-color: var(--mig); }
   textarea { border: 1px solid #cfc8b5; padding: 10px; border-radius: 4px; min-height: 70px; resize: vertical; }
-  .yn { display: inline-flex; gap: 14px; align-items: center; font-size: 14px; flex-wrap: wrap; }
+  .yn { display: inline-flex; gap: 14px; align-items: center; font-size: 15px; flex-wrap: wrap; }
   .yn label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
   .yn input[type=radio] { accent-color: var(--mig); }
-  .chk { display: inline-flex; gap: 8px; align-items: center; cursor: pointer; font-size: 14px; }
+  .chk { display: inline-flex; gap: 8px; align-items: center; cursor: pointer; font-size: 15px; }
   .chk input { accent-color: var(--mig); width: 16px; height: 16px; }
   .section-num { font-family: 'Fraunces', serif; font-size: 13px; color: var(--accent); letter-spacing: 0.18em; }
   .section-title { font-family: 'Fraunces', serif; font-weight: 500; font-size: 32px; line-height: 1.15; letter-spacing: -0.01em; color: var(--mig); }
-  .sub-title { font-family: 'Fraunces', serif; font-weight: 500; font-size: 20px; color: var(--mig); }
+  .sub-title { font-family: 'Fraunces', serif; font-weight: 500; font-size: 21px; color: var(--mig); }
+
+  /* Highlight the figures that matter most — same treatment as the admin review.
+     Boxed amber for limits/sums/periods/turnover; warmer amber for deductibles. */
+  #proposal-form :is(input, select)[name$="_limit"],
+  #proposal-form :is(input, select)[name*="_limit_"],
+  #proposal-form :is(input, select)[name$="_agg"],
+  #proposal-form :is(input, select)[name*="_csl"],
+  #proposal-form :is(input, select)[name*="_tpl"],
+  #proposal-form :is(input, select)[name$="_si"],
+  #proposal-form :is(input, select)[name*="_si_"],
+  #proposal-form :is(input, select)[name$="period_from"],
+  #proposal-form :is(input, select)[name$="period_to"],
+  #proposal-form input[name="annual_turnover"] {
+    background: #fff8ec; border: 1px solid #ecd9b0; border-bottom: 1px solid #ecd9b0;
+    border-radius: 7px; padding: 8px 11px; font-weight: 600; color: var(--mig);
+  }
+  #proposal-form :is(input, select)[name$="_deductible"],
+  #proposal-form :is(input, select)[name$="_ded"],
+  #proposal-form :is(input, select)[name$="_retention"],
+  #proposal-form :is(input, select)[name$="_excess"] {
+    background: #fdf6e3; border: 1px solid #e8d9a0; border-bottom: 1px solid #e8d9a0;
+    border-radius: 7px; padding: 8px 11px; font-weight: 600; color: #8a6d1a;
+  }
   .qno { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); margin-right: 6px; }
   .btn-primary {
     background: var(--mig); color: white; padding: 10px 22px; border-radius: 4px;
