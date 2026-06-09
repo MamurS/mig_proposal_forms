@@ -708,7 +708,12 @@ document.getElementById('btn-signout-detail').addEventListener('click', signOut)
 // the MIG staff list. is_mig_staff() is a SECURITY DEFINER RPC checking mig_staff
 // for auth.uid(). Non-staff are signed out and kept on the login screen.
 let enteringApp = false;
-async function enterApp(session) {
+// pendingLogin is true whenever the page is in a logged-out state — so the NEXT
+// successful sign-in is treated as "fresh" and lands the user on the Hub (/).
+// An existing session that just opens /admin/ (e.g. from the Hub's Submissions
+// card) is not fresh and opens the Submissions list directly.
+let pendingLogin = false;
+async function enterApp(session, fresh) {
   if (enteringApp) return;
   enteringApp = true;
   try {
@@ -720,6 +725,8 @@ async function enterApp(session) {
       setLoginMsg(email + ' is not authorized for MIG admin. Ask an administrator to add you to staff.', 'error');
       return;
     }
+    // Fresh sign-in → land on the Hub. Existing session → Submissions list.
+    if (fresh) { window.location.href = '/'; return; }
     currentUser = session.user;
     document.getElementById('user-email').textContent = currentUser.email;
     document.getElementById('user-email-detail').textContent = currentUser.email;
@@ -733,9 +740,12 @@ async function enterApp(session) {
 if (sb) {
   sb.auth.onAuthStateChange((event, session) => {
     if (session && session.user) {
-      enterApp(session);
+      const fresh = (event === 'SIGNED_IN') && pendingLogin;
+      pendingLogin = false;
+      enterApp(session, fresh);
     } else if (event === 'SIGNED_OUT') {
       currentUser = null;
+      pendingLogin = true;  // next sign-in should land on the Hub
       show('view-login');
     }
   });
@@ -751,8 +761,9 @@ if (sb) {
   // Check if returning from magic link (the URL may have a #access_token=...)
   const { data: { session } } = await sb.auth.getSession();
   if (session && session.user) {
-    enterApp(session);
+    enterApp(session, false);
   } else {
+    pendingLogin = true;  // logged out at load → the upcoming sign-in is fresh
     show('view-login');
   }
 })();
