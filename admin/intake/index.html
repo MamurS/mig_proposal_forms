@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MIG Admin — Manual intake</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+  :root { --bg:#fafaf7; --surface:#fff; --surface-alt:#f4f3ee; --border:#e5e2d8; --border-strong:#d8d2c2; --ink:#0b1424; --muted:#6b6f7a; --mig:#1f3864; --mig-light:#e8eef8; --accent:#a87446; --error:#b53737; --success:#2d7a3e; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; padding:0; font-family:'Inter Tight',system-ui,sans-serif; color:var(--ink); background:var(--bg); font-size:14px; line-height:1.5; }
+  .mono { font-family:'JetBrains Mono',monospace; }
+  .topbar { display:flex; align-items:center; justify-content:space-between; padding:12px 24px; background:var(--surface); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:10; }
+  .topbar .brand { display:flex; align-items:center; gap:10px; font-weight:600; }
+  .topbar .brand-mark { width:28px; height:28px; background:var(--mig); color:#fff; border-radius:4px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; }
+  .topbar .user-info { display:flex; align-items:center; gap:12px; font-size:13px; color:var(--muted); }
+  .btn { background:var(--mig); color:#fff; border:none; padding:8px 14px; border-radius:6px; font-family:inherit; font-size:13px; font-weight:500; cursor:pointer; text-decoration:none; display:inline-block; }
+  .btn:hover:not(:disabled){ background:#16294a; } .btn:disabled{ opacity:.5; cursor:not-allowed; }
+  .btn-secondary { background:var(--surface-alt); color:var(--ink); border:1px solid var(--border-strong); }
+  .btn-ghost { background:transparent; color:var(--mig); padding:6px 10px; }
+  .btn-sm { padding:4px 10px; font-size:12px; }
+  .gate { max-width:460px; margin:80px auto; padding:0 24px; }
+  .muted { color:var(--muted); }
+  .wrap { padding:24px; max-width:1000px; margin:0 auto; }
+  .wrap h1 { font-family:'Fraunces',serif; font-weight:500; font-size:26px; color:var(--mig); margin:0 0 4px; }
+  .wrap .intro { margin:0 0 18px; color:var(--muted); font-size:13px; }
+  .panel { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:18px; margin-bottom:18px; }
+  .panel-h { font-family:'Fraunces',serif; font-size:18px; color:var(--mig); margin:0 0 12px; }
+  .field-label { display:block; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:0 0 5px; }
+  .row { margin-bottom:16px; }
+  input[type=text], input[type=file], select, textarea { width:100%; font-family:inherit; font-size:14px; color:var(--ink); background:var(--surface); border:1px solid var(--border-strong); border-radius:6px; padding:9px 11px; }
+  textarea.json { font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.5; min-height:340px; white-space:pre; }
+  .hint { font-size:12px; color:var(--muted); margin:5px 0 0; }
+  .prods { display:flex; flex-wrap:wrap; gap:8px 16px; }
+  .prods label { display:flex; align-items:center; gap:6px; font-size:13px; background:var(--surface-alt); border:1px solid var(--border); border-radius:6px; padding:6px 10px; cursor:pointer; }
+  .notes-box { background:#fbf3dc; border:1px solid #e7d9a8; color:#6b551b; border-radius:6px; padding:10px 12px; font-size:13px; white-space:pre-wrap; }
+  .spinner { display:inline-block; width:14px; height:14px; border:2px solid currentColor; border-top-color:transparent; border-radius:50%; animation:spin .6s linear infinite; vertical-align:middle; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .toast { position:fixed; bottom:24px; right:24px; padding:12px 18px; border-radius:6px; color:#fff; font-size:13px; z-index:100; box-shadow:0 4px 12px rgba(0,0,0,.12); max-width:380px; }
+  .toast.success { background:var(--success); } .toast.error { background:var(--error); }
+  .hidden { display:none !important; }
+  .filelist { font-size:12px; color:var(--muted); margin-top:6px; }
+  .actions { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand"><div class="brand-mark">M</div><span>MIG Admin</span><span style="color:var(--muted); font-weight:400; margin-left:8px;">Manual intake</span></div>
+  <div class="user-info">
+    <a href="/" class="btn btn-ghost btn-sm">Hub</a>
+    <a href="/admin/" class="btn btn-ghost btn-sm">Submissions</a>
+    <span id="user-email"></span>
+    <button class="btn btn-secondary btn-sm hidden" id="btn-signout">Sign out</button>
+  </div>
+</div>
+
+<div class="gate" id="auth-gate">
+  <div class="panel" style="border-radius:12px; padding:28px;">
+    <h1 id="gate-title" style="font-size:18px; margin:0 0 8px;">Sign in required</h1>
+    <p class="muted" id="gate-body" style="margin:0 0 18px;">Use your MIG staff account. Sign in on the admin page first — the session is shared.</p>
+    <a class="btn" href="/admin/">Go to admin login</a>
+  </div>
+</div>
+
+<div class="wrap hidden" id="app">
+  <h1>Manual proposal intake</h1>
+  <p class="intro">Upload a manually-filled proposal form and/or financial statements received by email. The documents are read by the Claude API and transcribed into the proposal schema, so the data can be recorded as if it had been filled in online. You review and correct the extracted data before saving.</p>
+
+  <!-- STEP 1 — upload -->
+  <div class="panel" id="step-upload">
+    <div class="panel-h">1 · Upload documents</div>
+    <div class="row">
+      <label class="field-label" for="f-proposal">Proposal form (PDF or images — required)</label>
+      <input type="file" id="f-proposal" accept="application/pdf,image/png,image/jpeg,image/webp,image/gif" multiple />
+      <div class="filelist" id="proposal-files"></div>
+    </div>
+    <div class="row">
+      <label class="field-label" for="f-fs">Financial statements (PDF or images — optional)</label>
+      <input type="file" id="f-fs" accept="application/pdf,image/png,image/jpeg,image/webp,image/gif" multiple />
+      <div class="filelist" id="fs-files"></div>
+    </div>
+    <p class="hint">Accepted: PDF, PNG, JPEG, WebP, GIF. Word/DOCX should be exported to PDF first. Max ~12 MB per file, ~28 MB total.</p>
+    <div class="actions" style="margin-top:8px;">
+      <button class="btn" id="btn-scrape">Scrape with Claude</button>
+      <span class="muted" id="scrape-status"></span>
+    </div>
+  </div>
+
+  <!-- STEP 2 — review -->
+  <div class="panel hidden" id="step-review">
+    <div class="panel-h">2 · Review &amp; correct the extracted data</div>
+    <div class="row hidden" id="notes-row">
+      <label class="field-label">Extraction notes</label>
+      <div class="notes-box" id="notes-text"></div>
+    </div>
+    <div class="row">
+      <label class="field-label" for="r-proposer">Proposer / company name</label>
+      <input type="text" id="r-proposer" />
+    </div>
+    <div class="row">
+      <label class="field-label">Products requested</label>
+      <div class="prods" id="r-products"></div>
+    </div>
+    <div class="row">
+      <label class="field-label" for="r-customer">Assign to customer account (optional)</label>
+      <select id="r-customer"><option value="">— Unassigned (staff record only) —</option></select>
+      <p class="hint">If you select a customer, the proposal appears in their portal and customer record. Leave unassigned to keep it staff-only.</p>
+    </div>
+    <div class="row">
+      <label class="field-label" for="r-language">Language tag</label>
+      <select id="r-language"><option value="en">English</option><option value="ru">Russian</option><option value="uz">Uzbek</option></select>
+    </div>
+    <div class="row">
+      <label class="field-label" for="r-fields">Extracted fields (editable JSON)</label>
+      <textarea id="r-fields" class="json" spellcheck="false"></textarea>
+      <p class="hint">Each key must be an exact proposal field name. Correct any mis-read values here before saving. This becomes the submission's data.</p>
+    </div>
+    <div class="actions">
+      <button class="btn" id="btn-create">Create submission</button>
+      <button class="btn btn-secondary" id="btn-reset">Start over</button>
+      <span class="muted" id="create-status"></span>
+    </div>
+  </div>
+
+  <!-- STEP 3 — done -->
+  <div class="panel hidden" id="step-done">
+    <div class="panel-h">Submission created</div>
+    <p id="done-text" class="muted"></p>
+    <div class="actions">
+      <a class="btn" id="done-quote">Generate quotation</a>
+      <a class="btn btn-secondary" id="done-customer">Open customer record</a>
+      <a class="btn btn-secondary" href="/admin/">Submissions</a>
+      <button class="btn btn-ghost" id="btn-another">New intake</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="/config.js"></script>
+<script>
+let sb = null, session = null;
+let extracted = null;            // last scrape result { proposer_name, products, fields, notes, model }
+let proposalFiles = [], fsFiles = [];   // [{filename, media_type, data(base64), role}]
+const PRODUCTS = [['auto','Auto'],['property','Property'],['cgl','CGL'],['car','CAR'],['dno','D&O'],['pi','PI'],['crime','Crime'],['cyber','Cyber']];
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function toast(m,t){ const d=document.createElement('div'); d.className='toast '+(t||'success'); d.textContent=m; $('toast-container').appendChild(d); setTimeout(()=>d.remove(),4500); }
+function showGate(t,b){ $('app').classList.add('hidden'); $('auth-gate').classList.remove('hidden'); $('gate-title').textContent=t; $('gate-body').textContent=b; }
+
+// Read a File into { filename, media_type, data(base64), role }
+function readFile(file, role){
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => { const s = String(r.result); const i = s.indexOf(','); resolve({ filename:file.name, media_type:file.type||'application/octet-stream', data: i>=0 ? s.slice(i+1) : s, role }); };
+    r.onerror = () => reject(new Error('Could not read '+file.name));
+    r.readAsDataURL(file);
+  });
+}
+
+(async function init(){
+  if (typeof supabase==='undefined' || !supabase.createClient) return;
+  if (SUPABASE_URL.includes('YOUR-PROJECT')) return;
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+  const { data } = await sb.auth.getSession();
+  session = data.session;
+  if (!session) return;
+  const { data: isStaff } = await sb.rpc('is_mig_staff');
+  if (!isStaff) { const e=session.user.email||'This account'; await sb.auth.signOut(); showGate('Account not authorized', e+' is not on the MIG staff list.'); return; }
+  $('auth-gate').classList.add('hidden'); $('app').classList.remove('hidden');
+  $('user-email').textContent = session.user.email||'';
+  $('btn-signout').classList.remove('hidden');
+  $('btn-signout').onclick = async ()=>{ await sb.auth.signOut(); location.reload(); };
+
+  // Build product checkboxes
+  $('r-products').innerHTML = PRODUCTS.map(([c,l]) => '<label><input type="checkbox" value="'+c+'" class="r-prod"> '+esc(l)+'</label>').join('');
+  // Load customers for the optional assign dropdown
+  loadCustomers();
+
+  $('f-proposal').addEventListener('change', e => listFiles(e.target.files, 'proposal-files'));
+  $('f-fs').addEventListener('change', e => listFiles(e.target.files, 'fs-files'));
+  $('btn-scrape').addEventListener('click', doScrape);
+  $('btn-create').addEventListener('click', doCreate);
+  $('btn-reset').addEventListener('click', resetAll);
+  $('btn-another').addEventListener('click', resetAll);
+})();
+
+function listFiles(fileList, target){
+  const names = Array.from(fileList||[]).map(f => f.name+' ('+Math.round(f.size/1024)+' KB)');
+  $(target).textContent = names.length ? names.join(' · ') : '';
+}
+
+async function loadCustomers(){
+  const { data, error } = await sb.from('customers').select('user_id, email, full_name, company').order('created_at',{ascending:false});
+  if (error || !data) return;
+  const sel = $('r-customer');
+  data.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c.user_id;
+    o.textContent = (c.full_name || c.email || '(customer)') + (c.company ? ' — '+c.company : '') + (c.email ? '  <'+c.email+'>' : '');
+    sel.appendChild(o);
+  });
+}
+
+async function doScrape(){
+  const pf = $('f-proposal').files, ff = $('f-fs').files;
+  if (!pf.length && !ff.length) { toast('Add at least one document first.', 'error'); return; }
+  const btn = $('btn-scrape'); btn.disabled = true;
+  $('scrape-status').innerHTML = '<span class="spinner"></span> Reading documents…';
+  try {
+    proposalFiles = await Promise.all(Array.from(pf).map(f => readFile(f, 'proposal')));
+    fsFiles = await Promise.all(Array.from(ff).map(f => readFile(f, 'fs')));
+    const documents = proposalFiles.concat(fsFiles);
+    $('scrape-status').innerHTML = '<span class="spinner"></span> Extracting with Claude — this can take 20–60s…';
+    const { data, error } = await sb.functions.invoke('scrape-proposal', { body: { documents } });
+    if (error) {
+      let msg = error.message || 'Extraction failed';
+      try { const ctx = await error.context.json(); if (ctx && ctx.error) msg = ctx.error; } catch(_) {}
+      throw new Error(msg);
+    }
+    extracted = (data && data.extracted) || null;
+    if (!extracted) throw new Error('No data returned.');
+    fillReview(extracted);
+    $('scrape-status').textContent = '';
+    $('step-review').classList.remove('hidden');
+    $('step-review').scrollIntoView({ behavior:'smooth', block:'start' });
+    toast('Extraction complete — review the fields below.', 'success');
+  } catch(e){
+    $('scrape-status').textContent = '';
+    toast('Scrape failed: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function fillReview(ex){
+  $('r-proposer').value = ex.proposer_name || (ex.fields && ex.fields.proposer_name) || '';
+  const prods = ex.products || [];
+  document.querySelectorAll('.r-prod').forEach(cb => { cb.checked = prods.includes(cb.value); });
+  if (ex.notes) { $('notes-text').textContent = ex.notes; $('notes-row').classList.remove('hidden'); }
+  else { $('notes-row').classList.add('hidden'); }
+  const fields = (ex.fields && typeof ex.fields === 'object') ? ex.fields : {};
+  $('r-fields').value = JSON.stringify(fields, null, 2);
+}
+
+async function doCreate(){
+  // Parse the edited fields JSON
+  let fields;
+  try { fields = JSON.parse($('r-fields').value || '{}'); }
+  catch(e){ toast('Fields JSON is invalid: ' + e.message, 'error'); return; }
+  if (typeof fields !== 'object' || Array.isArray(fields) || fields === null) { toast('Fields must be a JSON object.', 'error'); return; }
+
+  const proposer = ($('r-proposer').value || '').trim();
+  const products = Array.from(document.querySelectorAll('.r-prod:checked')).map(cb => cb.value);
+  const customerId = $('r-customer').value || null;
+  const language = $('r-language').value || 'en';
+
+  // Mirror what the online form stores.
+  if (proposer) fields.proposer_name = proposer;
+  fields._products = products;
+  fields._timestamp = new Date().toISOString();
+  // Legacy cyber combined flags (collectFormData derives these).
+  const cyFP = !!fields.cy_cov_first_party, cyTP = !!fields.cy_cov_third_party_liability;
+  if (cyFP || cyTP) { fields.cy_cov_shield = true; fields.cy_cov_first_third = true; }
+
+  const payload = {
+    submittedAt: new Date().toISOString(),
+    products: products,
+    proposer: proposer || '(unnamed)',
+    fields: fields,
+    source: 'admin_intake',
+    intake: {
+      scrapedBy: session.user.email || session.user.id,
+      model: extracted && extracted.model || null,
+      scrapedAt: extracted && extracted.generated_at || null,
+      notes: extracted && extracted.notes || '',
+      proposalFiles: proposalFiles.map(f => ({ filename:f.filename, media_type:f.media_type, base64:f.data })),
+      fsFiles: fsFiles.map(f => ({ filename:f.filename, media_type:f.media_type, base64:f.data }))
+    }
+  };
+
+  const btn = $('btn-create'); btn.disabled = true;
+  $('create-status').innerHTML = '<span class="spinner"></span> Saving…';
+  try {
+    const insertRow = {
+      proposer_name: proposer || null,
+      products: products,
+      language: language,
+      customer_id: customerId,
+      payload: payload
+    };
+    const { data, error } = await sb.from('submissions').insert(insertRow).select('id').single();
+    if (error) throw new Error(error.message);
+    const newId = data.id;
+    $('create-status').textContent = '';
+    $('step-upload').classList.add('hidden');
+    $('step-review').classList.add('hidden');
+    $('done-text').textContent = 'Recorded as a new submission' + (customerId ? ' assigned to the selected customer' : ' (staff-only, unassigned)') + '. It now appears in Submissions just like an online proposal.';
+    $('done-quote').href = '/admin/quote/?id=' + encodeURIComponent(newId);
+    if (customerId) { $('done-customer').href = '/admin/customers/?id=' + encodeURIComponent(customerId); $('done-customer').classList.remove('hidden'); }
+    else { $('done-customer').classList.add('hidden'); }
+    $('step-done').classList.remove('hidden');
+    $('step-done').scrollIntoView({ behavior:'smooth', block:'start' });
+    toast('Submission created.', 'success');
+  } catch(e){
+    $('create-status').textContent = '';
+    toast('Could not save: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function resetAll(){
+  extracted = null; proposalFiles = []; fsFiles = [];
+  $('f-proposal').value = ''; $('f-fs').value = '';
+  $('proposal-files').textContent = ''; $('fs-files').textContent = '';
+  $('r-proposer').value = ''; $('r-fields').value = ''; $('notes-text').textContent = ''; $('notes-row').classList.add('hidden');
+  document.querySelectorAll('.r-prod').forEach(cb => cb.checked = false);
+  $('r-customer').value = ''; $('r-language').value = 'en';
+  $('step-review').classList.add('hidden'); $('step-done').classList.add('hidden');
+  $('step-upload').classList.remove('hidden');
+  $('scrape-status').textContent = ''; $('create-status').textContent = '';
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+</script>
+</body>
+</html>
