@@ -3014,6 +3014,49 @@
         </div>
       </div>
     
+      <!-- Professional services & E&O readiness -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_cy_eo">Professional services &amp; E&amp;O readiness</h3>
+        <div class="grid md:grid-cols-2 gap-x-8 gap-y-5 mb-4">
+          <div>
+            <div class="field-label" data-i18n="fl_cy_eo_methodologies">Testing / assurance methodologies followed</div>
+            <input type="text" name="cy_eo_methodologies" placeholder="OWASP, PTES, NIST 800-115, OSSTMM, other" data-i18n-placeholder="ph_cy_eo_methodologies" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_cy_eo_firm_certs">Company certifications held</div>
+            <input type="text" name="cy_eo_firm_certs" placeholder="ISO 27001, ISO 9001, CREST, SOC 2, other" data-i18n-placeholder="ph_cy_eo_firm_certs" />
+          </div>
+          <div class="md:col-span-2">
+            <div class="field-label" data-i18n="fl_cy_eo_individual_certs">Relevant individual staff certifications</div>
+            <input type="text" name="cy_eo_individual_certs" placeholder="OSCP, OSCE, CISSP, CEH, etc." data-i18n-placeholder="ph_cy_eo_individual_certs" />
+          </div>
+        </div>
+        <div class="space-y-3">
+          <div class="qrow">
+            <div class="qtext"><span>a.</span><span data-i18n="q_cy_eo_qa_signoff">Are deliverables/reports peer-reviewed and signed off by a senior reviewer before release to the client?</span></div>
+            <div class="yn"><label><input type="radio" name="cy_eo_qa_signoff" value="Yes" /> <span data-i18n="yn_yes">Yes</span></label><label><input type="radio" name="cy_eo_qa_signoff" value="No" /> <span data-i18n="yn_no">No</span></label></div>
+          </div>
+          <div class="qrow">
+            <div class="qtext"><span>b.</span><span data-i18n="q_cy_eo_written_contracts">Do you use written client engagement contracts with a defined scope / rules of engagement and authorization to test?</span></div>
+            <div class="yn"><label><input type="radio" name="cy_eo_written_contracts" value="Yes" /> <span data-i18n="yn_yes">Yes</span></label><label><input type="radio" name="cy_eo_written_contracts" value="No" /> <span data-i18n="yn_no">No</span></label></div>
+          </div>
+          <div class="qrow">
+            <div class="qtext"><span>c.</span><span data-i18n="q_cy_eo_liability_cap">Do those contracts include a limitation-of-liability cap?</span></div>
+            <div class="yn"><label><input type="radio" name="cy_eo_liability_cap" value="Yes" /> <span data-i18n="yn_yes">Yes</span></label><label><input type="radio" name="cy_eo_liability_cap" value="No" /> <span data-i18n="yn_no">No</span></label></div>
+          </div>
+          <div class="qrow">
+            <div class="qtext"><span>d.</span><span data-i18n="q_cy_eo_prior_pi_cover">Do you currently hold Professional Indemnity / Tech E&amp;O cover?</span></div>
+            <div class="yn"><label><input type="radio" name="cy_eo_prior_pi_cover" value="Yes" /> <span data-i18n="yn_yes">Yes</span></label><label><input type="radio" name="cy_eo_prior_pi_cover" value="No" /> <span data-i18n="yn_no">No</span></label></div>
+            <input type="text" name="cy_eo_prior_pi_cover_detail" placeholder="If yes: insurer, limit, expiry" data-i18n-placeholder="ph_cy_eo_prior_pi_cover" class="mt-2" />
+          </div>
+          <div class="qrow">
+            <div class="qtext"><span>e.</span><span data-i18n="q_cy_eo_prior_claims">Any prior claims, complaints, disputes or circumstances relating to your professional services?</span></div>
+            <div class="yn"><label><input type="radio" name="cy_eo_prior_claims" value="Yes" /> <span data-i18n="yn_yes">Yes</span></label><label><input type="radio" name="cy_eo_prior_claims" value="No" /> <span data-i18n="yn_no">No</span></label></div>
+            <input type="text" name="cy_eo_prior_claims_detail" placeholder="If yes, details" data-i18n-placeholder="ph_cy_eo_prior_claims" class="mt-2" />
+          </div>
+        </div>
+      </div>
+
       <!-- D.6 Period & Coverage Zone -->
       <div class="mb-10">
         <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_cyber_period_coverage">D.6 &nbsp;Period &amp; Coverage Zone</h3>
@@ -3238,6 +3281,20 @@ window.__MIG_INLINE_TRANSLATIONS = {
     "note_pi_req_above": "Лимит ответственности и удержание указаны в разделе «Запрашиваемые лимиты» выше.",
     "chk_cyber_first_party": "Кибер — первая сторона (собственные убытки)",
     "chk_cyber_third_party_liability": "Ответственность за конфиденциальность и сетевую безопасность (третья сторона)",
+    "h3_cy_eo": "Профессиональные услуги и готовность к E&O",
+    "fl_cy_eo_methodologies": "Применяемые методологии тестирования / оценки",
+    "ph_cy_eo_methodologies": "OWASP, PTES, NIST 800-115, OSSTMM, другое",
+    "fl_cy_eo_firm_certs": "Сертификаты компании",
+    "ph_cy_eo_firm_certs": "ISO 27001, ISO 9001, CREST, SOC 2, другое",
+    "fl_cy_eo_individual_certs": "Профильные сертификаты сотрудников",
+    "ph_cy_eo_individual_certs": "OSCP, OSCE, CISSP, CEH и т.д.",
+    "q_cy_eo_qa_signoff": "Проверяются ли отчёты/результаты старшим специалистом и утверждаются перед передачей клиенту?",
+    "q_cy_eo_written_contracts": "Используете ли вы письменные договоры с клиентами с определённым объёмом / правилами проведения работ и разрешением на тестирование?",
+    "q_cy_eo_liability_cap": "Содержат ли эти договоры ограничение ответственности?",
+    "q_cy_eo_prior_pi_cover": "Имеется ли у вас действующее страхование профессиональной ответственности / Tech E&O?",
+    "ph_cy_eo_prior_pi_cover": "Если да: страховщик, лимит, срок",
+    "q_cy_eo_prior_claims": "Были ли ранее претензии, жалобы, споры или обстоятельства, связанные с вашими профессиональными услугами?",
+    "ph_cy_eo_prior_claims": "Если да, укажите детали",
     "fl_name_of_proposer_company_1": "1. Наименование Страхователя (компании)",
     "fl_date_of_incorporation_2": "2. Дата регистрации",
     "fl_web_site_3": "3. Веб-сайт",
@@ -3845,6 +3902,20 @@ window.__MIG_INLINE_TRANSLATIONS = {
     "note_pi_req_above": "Javobgarlik limiti va ushlab qolish yuqoridagi «So'ralayotgan limitlar» bo'limida ko'rsatilgan.",
     "chk_cyber_first_party": "Kiber — birinchi tomon (o'z zarari)",
     "chk_cyber_third_party_liability": "Maxfiylik va tarmoq xavfsizligi javobgarligi (uchinchi tomon)",
+    "h3_cy_eo": "Professional xizmatlar va E&O tayyorligi",
+    "fl_cy_eo_methodologies": "Qo'llaniladigan test / baholash metodologiyalari",
+    "ph_cy_eo_methodologies": "OWASP, PTES, NIST 800-115, OSSTMM, boshqa",
+    "fl_cy_eo_firm_certs": "Kompaniya sertifikatlari",
+    "ph_cy_eo_firm_certs": "ISO 27001, ISO 9001, CREST, SOC 2, boshqa",
+    "fl_cy_eo_individual_certs": "Xodimlarning tegishli sertifikatlari",
+    "ph_cy_eo_individual_certs": "OSCP, OSCE, CISSP, CEH va h.k.",
+    "q_cy_eo_qa_signoff": "Hisobotlar/natijalar mijozga taqdim etishdan oldin katta mutaxassis tomonidan ko'rib chiqiladi va tasdiqlanadimi?",
+    "q_cy_eo_written_contracts": "Mijozlar bilan aniq ko'lam / test o'tkazish qoidalari va ruxsatnoma bilan yozma shartnomalardan foydalanasizmi?",
+    "q_cy_eo_liability_cap": "Ushbu shartnomalarda javobgarlikni cheklash bandi bormi?",
+    "q_cy_eo_prior_pi_cover": "Hozirda Professional javobgarlik / Tech E&O sug'urtangiz bormi?",
+    "ph_cy_eo_prior_pi_cover": "Ha bo'lsa: sug'urtalovchi, limit, muddat",
+    "q_cy_eo_prior_claims": "Professional xizmatlaringiz bilan bog'liq avvalgi da'volar, shikoyatlar, nizolar yoki holatlar bo'lganmi?",
+    "ph_cy_eo_prior_claims": "Ha bo'lsa, tafsilotlar",
     "fl_name_of_proposer_company_1": "1. Sug'urtalanuvchining nomi (kompaniya)",
     "fl_date_of_incorporation_2": "2. Ro'yxatdan o'tgan sana",
     "fl_web_site_3": "3. Veb-sayt",
