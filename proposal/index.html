@@ -597,6 +597,34 @@
           </div>
         </div>
       </div>
+      <!-- A.7 Financial Statements -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_A_7_financial_statements">A.7 &nbsp;Financial Statements</h3>
+        <p class="text-sm mb-4" style="color: var(--muted);" data-i18n="p_fs_request">Please upload the company's financial statements for the last three full reporting years and the most recent interim financial statements for the latest completed reporting period.</p>
+        <p class="text-xs mb-4" style="color: var(--muted);" data-i18n="p_fs_accept">Accepted: PDF, Excel, Word, PNG, JPG — up to 10&nbsp;MB each.</p>
+        <div class="grid md:grid-cols-2 gap-x-8 gap-y-5">
+          <div>
+            <div class="field-label"><span data-i18n="fl_fs_year">Full year</span> · <span class="fs-label" data-fs-label="fs_year_1">—</span></div>
+            <input type="file" data-fs="fs_year_1" accept=".pdf,.xlsx,.xls,.docx,.png,.jpg,.jpeg" />
+            <div class="text-xs mt-1" data-fs-msg="fs_year_1" style="color: var(--muted);"></div>
+          </div>
+          <div>
+            <div class="field-label"><span data-i18n="fl_fs_year">Full year</span> · <span class="fs-label" data-fs-label="fs_year_2">—</span></div>
+            <input type="file" data-fs="fs_year_2" accept=".pdf,.xlsx,.xls,.docx,.png,.jpg,.jpeg" />
+            <div class="text-xs mt-1" data-fs-msg="fs_year_2" style="color: var(--muted);"></div>
+          </div>
+          <div>
+            <div class="field-label"><span data-i18n="fl_fs_year">Full year</span> · <span class="fs-label" data-fs-label="fs_year_3">—</span></div>
+            <input type="file" data-fs="fs_year_3" accept=".pdf,.xlsx,.xls,.docx,.png,.jpg,.jpeg" />
+            <div class="text-xs mt-1" data-fs-msg="fs_year_3" style="color: var(--muted);"></div>
+          </div>
+          <div>
+            <div class="field-label"><span data-i18n="fl_fs_interim">Latest interim</span> · <span class="fs-label" data-fs-label="fs_interim">—</span></div>
+            <input type="file" data-fs="fs_interim" accept=".pdf,.xlsx,.xls,.docx,.png,.jpg,.jpeg" />
+            <div class="text-xs mt-1" data-fs-msg="fs_interim" style="color: var(--muted);"></div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- ============================================== -->
@@ -3295,6 +3323,17 @@ window.__MIG_INLINE_TRANSLATIONS = {
     "ph_cy_eo_prior_pi_cover": "Если да: страховщик, лимит, срок",
     "q_cy_eo_prior_claims": "Были ли ранее претензии, жалобы, споры или обстоятельства, связанные с вашими профессиональными услугами?",
     "ph_cy_eo_prior_claims": "Если да, укажите детали",
+    "h3_A_7_financial_statements": "A.7  Финансовая отчётность",
+    "p_fs_request": "Пожалуйста, загрузите финансовую отчётность компании за последние три полных отчётных года и последнюю промежуточную финансовую отчётность за последний завершённый отчётный период.",
+    "p_fs_accept": "Принимаются: PDF, Excel, Word, PNG, JPG — до 10 МБ каждый.",
+    "fl_fs_year": "Полный год",
+    "fl_fs_interim": "Последний промежуточный период",
+    "err_fs_type": "Неподдерживаемый тип файла. Используйте PDF, Excel, Word, PNG или JPG.",
+    "err_fs_size": "Файл слишком большой — максимум 10 МБ.",
+    "err_fs_failed": "Ошибка загрузки",
+    "err_fs_login": "Пожалуйста, войдите, чтобы загрузить финансовую отчётность.",
+    "fs_uploading": "Загрузка…",
+    "fs_uploaded": "Загружено ✓",
     "fl_name_of_proposer_company_1": "1. Наименование Страхователя (компании)",
     "fl_date_of_incorporation_2": "2. Дата регистрации",
     "fl_web_site_3": "3. Веб-сайт",
@@ -3916,6 +3955,17 @@ window.__MIG_INLINE_TRANSLATIONS = {
     "ph_cy_eo_prior_pi_cover": "Ha bo'lsa: sug'urtalovchi, limit, muddat",
     "q_cy_eo_prior_claims": "Professional xizmatlaringiz bilan bog'liq avvalgi da'volar, shikoyatlar, nizolar yoki holatlar bo'lganmi?",
     "ph_cy_eo_prior_claims": "Ha bo'lsa, tafsilotlar",
+    "h3_A_7_financial_statements": "A.7  Moliyaviy hisobot",
+    "p_fs_request": "Iltimos, kompaniyaning so'nggi uchta to'liq hisobot yili uchun moliyaviy hisobotlarini va so'nggi tugallangan hisobot davri uchun oxirgi oraliq moliyaviy hisobotni yuklang.",
+    "p_fs_accept": "Qabul qilinadi: PDF, Excel, Word, PNG, JPG — har biri 10 MB gacha.",
+    "fl_fs_year": "To'liq yil",
+    "fl_fs_interim": "So'nggi oraliq davr",
+    "err_fs_type": "Qo'llab-quvvatlanmaydigan fayl turi. PDF, Excel, Word, PNG yoki JPG dan foydalaning.",
+    "err_fs_size": "Fayl juda katta — maksimal 10 MB.",
+    "err_fs_failed": "Yuklash amalga oshmadi",
+    "err_fs_login": "Moliyaviy hisobotni yuklash uchun tizimga kiring.",
+    "fs_uploading": "Yuklanmoqda…",
+    "fs_uploaded": "Yuklandi ✓",
     "fl_name_of_proposer_company_1": "1. Sug'urtalanuvchining nomi (kompaniya)",
     "fl_date_of_incorporation_2": "2. Ro'yxatdan o'tgan sana",
     "fl_web_site_3": "3. Veb-sayt",
@@ -5120,6 +5170,57 @@ document.getElementById('stamp-clear').addEventListener('click', () => {
 });
 
 // ============================================================
+// FINANCIAL STATEMENTS UPLOAD (Feature 3) — Supabase Storage
+// ============================================================
+const fsUploads = {};   // field -> storage path
+const fsLabels = {};    // field -> computed period label
+const FS_FIELDS = ['fs_year_1', 'fs_year_2', 'fs_year_3', 'fs_interim'];
+const FS_MAX = 10 * 1024 * 1024;
+const FS_EXT = ['pdf', 'xlsx', 'xls', 'docx', 'png', 'jpg', 'jpeg'];
+
+function computeFsLabels() {
+  const now = new Date();
+  const cy = now.getFullYear();
+  fsLabels.fs_year_1 = String(cy - 1);
+  fsLabels.fs_year_2 = String(cy - 2);
+  fsLabels.fs_year_3 = String(cy - 3);
+  const q = Math.floor(now.getMonth() / 3) + 1;            // current quarter 1..4
+  const iq = (q === 1) ? 4 : q - 1;                         // latest completed quarter
+  const iy = (q === 1) ? cy - 1 : cy;
+  fsLabels.fs_interim = 'Q' + iq + ' ' + iy;
+  FS_FIELDS.forEach(f => document.querySelectorAll('[data-fs-label="' + f + '"]').forEach(el => el.textContent = fsLabels[f]));
+}
+function fsMsg(field, text, kind) {
+  const el = document.querySelector('[data-fs-msg="' + field + '"]');
+  if (!el) return;
+  el.textContent = text;
+  el.style.color = kind === 'error' ? 'var(--err, #b53737)' : (kind === 'ok' ? '#2e7d32' : 'var(--muted)');
+}
+async function uploadFS(field, file) {
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  if (!FS_EXT.includes(ext)) { fsMsg(field, T('err_fs_type', 'Unsupported file type. Use PDF, Excel, Word, PNG or JPG.'), 'error'); return; }
+  if (file.size > FS_MAX) { fsMsg(field, T('err_fs_size', 'File too large — maximum 10 MB.'), 'error'); return; }
+  if (!supabaseClient) { fsMsg(field, T('err_fs_failed', 'Upload failed') + ': not configured', 'error'); return; }
+  if (!customerSession) { const { data } = await supabaseClient.auth.getSession(); customerSession = data.session; }
+  if (!customerSession) { fsMsg(field, T('err_fs_login', 'Please sign in to upload financial statements.'), 'error'); return; }
+  fsMsg(field, T('fs_uploading', 'Uploading…'), 'info');
+  const uid = customerSession.user.id;
+  const safe = file.name.replace(/[^\w.\-]+/g, '_');
+  const path = uid + '/' + field + '_' + Date.now() + '_' + safe;
+  const { error } = await supabaseClient.storage.from('financial-statements').upload(path, file, { upsert: true, contentType: file.type || undefined });
+  if (error) { fsMsg(field, T('err_fs_failed', 'Upload failed') + ': ' + error.message, 'error'); return; }
+  fsUploads[field] = path;
+  fsMsg(field, T('fs_uploaded', 'Uploaded ✓') + ' — ' + file.name, 'ok');
+}
+(function wireFsInputs() {
+  computeFsLabels();
+  FS_FIELDS.forEach(f => {
+    const inp = document.querySelector('[data-fs="' + f + '"]');
+    if (inp) inp.addEventListener('change', () => { if (inp.files && inp.files[0]) uploadFS(f, inp.files[0]); });
+  });
+})();
+
+// ============================================================
 // COLLECT FORM DATA
 // ============================================================
 function collectFormData() {
@@ -5159,6 +5260,11 @@ function collectFormData() {
   const _cyFP = !!data.cy_cov_first_party, _cyTP = !!data.cy_cov_third_party_liability;
   data.cy_cov_shield = _cyFP || _cyTP;
   data.cy_cov_first_third = _cyFP || _cyTP;
+  // Financial-statements: store the uploaded storage paths + computed period labels.
+  FS_FIELDS.forEach(f => {
+    if (fsUploads[f]) data[f + '_path'] = fsUploads[f];
+    if (fsLabels[f]) data[f + '_label'] = fsLabels[f];
+  });
   return data;
 }
 
