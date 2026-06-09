@@ -563,6 +563,7 @@
           <option value="withdrawn">Withdrawn</option>
         </select>
         <button class="btn btn-secondary" id="btn-download-pdf">Download PDF</button>
+        <button class="btn btn-secondary" id="btn-generate-quote">Generate quotation</button>
         <button class="btn" id="btn-analyze-ai">Analyze with AI</button>
       </div>
     </div>
@@ -1075,6 +1076,12 @@ document.getElementById('btn-save-notes').addEventListener('click', async () => 
   btn.disabled = false; btn.textContent = 'Save notes';
   if (error) toast('Could not save notes: ' + error.message, 'error');
   else { currentSubmission.internal_notes = notes; toast('Notes saved'); }
+});
+
+// Generate quotation — open the admin quotation builder for this submission
+document.getElementById('btn-generate-quote').addEventListener('click', () => {
+  if (!currentSubmission) return;
+  window.open('/admin/quote/?id=' + encodeURIComponent(currentSubmission.id), '_blank');
 });
 
 // Download PDF — recreate from stored base64 in payload

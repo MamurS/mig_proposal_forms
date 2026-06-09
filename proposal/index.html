@@ -597,6 +597,34 @@
           </div>
         </div>
       </div>
+      <!-- A.7 Financial Statements -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_A_7_financial_statements">A.7 &nbsp;Financial Statements</h3>
+        <p class="text-sm mb-4" style="color: var(--muted);" data-i18n="p_fs_request">Please upload the company's financial statements for the last three full reporting years and the most recent interim financial statements for the latest completed reporting period.</p>
+        <p class="text-xs mb-4" style="color: var(--muted);" data-i18n="p_fs_accept">Accepted: PDF, Excel, Word, PNG, JPG — up to 10&nbsp;MB each.</p>
+        <div class="grid md:grid-cols-2 gap-x-8 gap-y-5">
+          <div>
+            <div class="field-label"><span data-i18n="fl_fs_year">Full year</span> · <span class="fs-label" data-fs-label="fs_year_1">—</span></div>
+            <input type="file" data-fs="fs_year_1" accept=".pdf,.xlsx,.xls,.docx,.png,.jpg,.jpeg" />
+            <div class="text-xs mt-1" data-fs-msg="fs_year_1" style="color: var(--muted);"></div>
+          </div>
+          <div>
+            <div class="field-label"><span data-i18n="fl_fs_year">Full year</span> · <span class="fs-label" data-fs-label="fs_year_2">—</span></div>
+            <input type="file" data-fs="fs_year_2" accept=".pdf,.xlsx,.xls,.docx,.png,.jpg,.jpeg" />
+            <div class="text-xs mt-1" data-fs-msg="fs_year_2" style="color: var(--muted);"></div>
+          </div>
+          <div>
+            <div class="field-label"><span data-i18n="fl_fs_year">Full year</span> · <span class="fs-label" data-fs-label="fs_year_3">—</span></div>
+            <input type="file" data-fs="fs_year_3" accept=".pdf,.xlsx,.xls,.docx,.png,.jpg,.jpeg" />
+            <div class="text-xs mt-1" data-fs-msg="fs_year_3" style="color: var(--muted);"></div>
+          </div>
+          <div>
+            <div class="field-label"><span data-i18n="fl_fs_interim">Latest interim</span> · <span class="fs-label" data-fs-label="fs_interim">—</span></div>
+            <input type="file" data-fs="fs_interim" accept=".pdf,.xlsx,.xls,.docx,.png,.jpg,.jpeg" />
+            <div class="text-xs mt-1" data-fs-msg="fs_interim" style="color: var(--muted);"></div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- ============================================== -->
@@ -810,6 +838,33 @@
         </div>
       </div>
     
+      <!-- Requested Cover -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_requested_cover">Requested Cover</h3>
+        <div class="grid md:grid-cols-2 gap-x-8 gap-y-5">
+          <div>
+            <div class="field-label" data-i18n="fl_req_limit">Requested limit of indemnity / sum insured</div>
+            <input type="text" inputmode="numeric" class="js-thousands" name="auto_req_limit" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_req_aggregate">Requested annual aggregate</div>
+            <input type="text" inputmode="numeric" class="js-thousands" name="auto_req_aggregate" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_req_deductible">Requested deductible / franchise</div>
+            <input type="text" inputmode="numeric" class="js-thousands" name="auto_req_deductible" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_req_currency">Currency</div>
+            <input type="text" name="auto_req_currency" value="USD" />
+          </div>
+          <div class="md:col-span-2">
+            <div class="field-label" data-i18n="fl_req_sublimits">Requested sublimits</div>
+            <input type="text" name="auto_req_sublimits" placeholder="e.g. specific sub-limit caps and amounts" data-i18n-placeholder="ph_req_sublimits" />
+          </div>
+        </div>
+      </div>
+
       <!-- B.6 Period & Coverage Zone -->
       <div class="mb-10">
         <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_auto_period_coverage">B.6 &nbsp;Period &amp; Coverage Zone</h3>
@@ -1193,6 +1248,33 @@
         </div>
       </div>
     
+      <!-- Requested Cover -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_requested_cover">Requested Cover</h3>
+        <div class="grid md:grid-cols-2 gap-x-8 gap-y-5">
+          <div>
+            <div class="field-label" data-i18n="fl_req_limit">Requested limit of indemnity / sum insured</div>
+            <input type="text" inputmode="numeric" class="js-thousands" name="prop_req_limit" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_req_aggregate">Requested annual aggregate</div>
+            <input type="text" inputmode="numeric" class="js-thousands" name="prop_req_aggregate" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_req_deductible">Requested deductible / franchise</div>
+            <input type="text" inputmode="numeric" class="js-thousands" name="prop_req_deductible" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_req_currency">Currency</div>
+            <input type="text" name="prop_req_currency" value="USD" />
+          </div>
+          <div class="md:col-span-2">
+            <div class="field-label" data-i18n="fl_req_sublimits">Requested sublimits</div>
+            <input type="text" name="prop_req_sublimits" placeholder="e.g. specific sub-limit caps and amounts" data-i18n-placeholder="ph_req_sublimits" />
+          </div>
+        </div>
+      </div>
+
       <!-- C.11 Period & Coverage Zone -->
       <div class="mb-10">
         <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_prop_period_coverage">C.11 &nbsp;Period &amp; Coverage Zone</h3>
@@ -1435,6 +1517,33 @@
         </div>
       </div>
     
+      <!-- Requested Cover -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_requested_cover">Requested Cover</h3>
+        <div class="grid md:grid-cols-2 gap-x-8 gap-y-5">
+          <div>
+            <div class="field-label" data-i18n="fl_req_limit">Requested limit of indemnity / sum insured</div>
+            <input type="text" inputmode="numeric" class="js-thousands" name="cgl_req_limit" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_req_aggregate">Requested annual aggregate</div>
+            <input type="text" inputmode="numeric" class="js-thousands" name="cgl_req_aggregate" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_req_deductible">Requested deductible / franchise</div>
+            <input type="text" inputmode="numeric" class="js-thousands" name="cgl_req_deductible" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_req_currency">Currency</div>
+            <input type="text" name="cgl_req_currency" value="USD" />
+          </div>
+          <div class="md:col-span-2">
+            <div class="field-label" data-i18n="fl_req_sublimits">Requested sublimits</div>
+            <input type="text" name="cgl_req_sublimits" placeholder="e.g. specific sub-limit caps and amounts" data-i18n-placeholder="ph_req_sublimits" />
+          </div>
+        </div>
+      </div>
+
       <!-- D.5 Period & Coverage Zone -->
       <div class="mb-10">
         <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_cgl_period_coverage">D.5 &nbsp;Period &amp; Coverage Zone</h3>
@@ -1730,6 +1839,33 @@
         </div>
       </div>
     
+      <!-- Requested Cover -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_requested_cover">Requested Cover</h3>
+        <div class="grid md:grid-cols-2 gap-x-8 gap-y-5">
+          <div>
+            <div class="field-label" data-i18n="fl_req_limit">Requested limit of indemnity / sum insured</div>
+            <input type="text" inputmode="numeric" class="js-thousands" name="car_req_limit" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_req_aggregate">Requested annual aggregate</div>
+            <input type="text" inputmode="numeric" class="js-thousands" name="car_req_aggregate" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_req_deductible">Requested deductible / franchise</div>
+            <input type="text" inputmode="numeric" class="js-thousands" name="car_req_deductible" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_req_currency">Currency</div>
+            <input type="text" name="car_req_currency" value="USD" />
+          </div>
+          <div class="md:col-span-2">
+            <div class="field-label" data-i18n="fl_req_sublimits">Requested sublimits</div>
+            <input type="text" name="car_req_sublimits" placeholder="e.g. specific sub-limit caps and amounts" data-i18n-placeholder="ph_req_sublimits" />
+          </div>
+        </div>
+      </div>
+
       <!-- E.5 Period & Coverage Zone -->
       <div class="mb-10">
         <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_car_period_coverage">E.5 &nbsp;Period &amp; Coverage Zone</h3>
@@ -1995,6 +2131,33 @@
         </div>
       </div>
     
+      <!-- Requested Cover -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_requested_cover">Requested Cover</h3>
+        <div class="grid md:grid-cols-2 gap-x-8 gap-y-5">
+          <div>
+            <div class="field-label" data-i18n="fl_req_limit">Requested limit of indemnity / sum insured</div>
+            <input type="text" inputmode="numeric" class="js-thousands" name="dno_req_limit" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_req_aggregate">Requested annual aggregate</div>
+            <input type="text" inputmode="numeric" class="js-thousands" name="dno_req_aggregate" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_req_deductible">Requested deductible / franchise</div>
+            <input type="text" inputmode="numeric" class="js-thousands" name="dno_req_deductible" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_req_currency">Currency</div>
+            <input type="text" name="dno_req_currency" value="USD" />
+          </div>
+          <div class="md:col-span-2">
+            <div class="field-label" data-i18n="fl_req_sublimits">Requested sublimits</div>
+            <input type="text" name="dno_req_sublimits" placeholder="e.g. specific sub-limit caps and amounts" data-i18n-placeholder="ph_req_sublimits" />
+          </div>
+        </div>
+      </div>
+
       <!-- F.5 Period & Coverage Zone -->
       <div class="mb-10">
         <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_dno_period_coverage">F.5 &nbsp;Period &amp; Coverage Zone</h3>
@@ -2270,6 +2433,26 @@
         </div>
       </div>
     
+      <!-- Requested Cover -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_requested_cover">Requested Cover</h3>
+        <p class="text-sm mb-4" style="color: var(--muted);" data-i18n="note_pi_req_above">Limit of liability and retention are captured under "Limits Requested" above.</p>
+        <div class="grid md:grid-cols-2 gap-x-8 gap-y-5">
+          <div>
+            <div class="field-label" data-i18n="fl_req_aggregate">Requested annual aggregate</div>
+            <input type="text" inputmode="numeric" class="js-thousands" name="pi_req_aggregate" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_req_currency">Currency</div>
+            <input type="text" name="pi_req_currency" value="USD" />
+          </div>
+          <div class="md:col-span-2">
+            <div class="field-label" data-i18n="fl_req_sublimits">Requested sublimits</div>
+            <input type="text" name="pi_req_sublimits" placeholder="e.g. specific sub-limit caps and amounts" data-i18n-placeholder="ph_req_sublimits" />
+          </div>
+        </div>
+      </div>
+
       <!-- G.5 Period & Coverage Zone -->
       <div class="mb-10">
         <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_pi_period_coverage">G.5 &nbsp;Period &amp; Coverage Zone</h3>
@@ -2517,6 +2700,33 @@
         </div>
       </div>
     
+      <!-- Requested Cover -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_requested_cover">Requested Cover</h3>
+        <div class="grid md:grid-cols-2 gap-x-8 gap-y-5">
+          <div>
+            <div class="field-label" data-i18n="fl_req_limit">Requested limit of indemnity / sum insured</div>
+            <input type="text" inputmode="numeric" class="js-thousands" name="crime_req_limit" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_req_aggregate">Requested annual aggregate</div>
+            <input type="text" inputmode="numeric" class="js-thousands" name="crime_req_aggregate" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_req_deductible">Requested deductible / franchise</div>
+            <input type="text" inputmode="numeric" class="js-thousands" name="crime_req_deductible" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_req_currency">Currency</div>
+            <input type="text" name="crime_req_currency" value="USD" />
+          </div>
+          <div class="md:col-span-2">
+            <div class="field-label" data-i18n="fl_req_sublimits">Requested sublimits</div>
+            <input type="text" name="crime_req_sublimits" placeholder="e.g. specific sub-limit caps and amounts" data-i18n-placeholder="ph_req_sublimits" />
+          </div>
+        </div>
+      </div>
+
       <!-- C.6 Period & Coverage Zone -->
       <div class="mb-10">
         <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_crime_period_coverage">C.6 &nbsp;Period &amp; Coverage Zone</h3>
@@ -2647,7 +2857,8 @@
       <div class="mb-10">
         <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_D_1_desired_coverage">D.1 &nbsp;Desired Coverage</h3>
         <div class="flex flex-wrap gap-x-6 gap-y-3">
-          <label class="chk"><input type="checkbox" name="cy_cov_shield" /><span data-i18n="chk_cyber_shield_1st_amp_3rd_party_422">Cyber Shield (1st &amp; 3rd party)</span></label>
+          <label class="chk"><input type="checkbox" name="cy_cov_first_party" /><span data-i18n="chk_cyber_first_party">Cyber — first party (own loss)</span></label>
+          <label class="chk"><input type="checkbox" name="cy_cov_third_party_liability" /><span data-i18n="chk_cyber_third_party_liability">Privacy &amp; network-security liability (third party)</span></label>
           <label class="chk"><input type="checkbox" name="cy_cov_extortion" /><span data-i18n="chk_cyber_extortion_423">Cyber Extortion</span></label>
           <label class="chk"><input type="checkbox" name="cy_cov_media" /><span data-i18n="chk_media_content_liability_424">Media Content Liability</span></label>
           <label class="chk"><input type="checkbox" name="cy_cov_interruption" /><span data-i18n="chk_network_interruption_425">Network Interruption</span></label>
@@ -2660,6 +2871,18 @@
           <div>
             <div class="field-label" data-i18n="fl_deductible_requested_usd_137">Deductible Requested (USD)</div>
             <input type="text" inputmode="numeric" class="js-thousands" name="cy_deductible" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_req_aggregate">Requested annual aggregate</div>
+            <input type="text" inputmode="numeric" class="js-thousands" name="cy_req_aggregate" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_req_currency">Currency</div>
+            <input type="text" name="cy_req_currency" value="USD" />
+          </div>
+          <div class="md:col-span-2">
+            <div class="field-label" data-i18n="fl_req_sublimits">Requested sublimits</div>
+            <input type="text" name="cy_req_sublimits" placeholder="e.g. specific sub-limit caps and amounts" data-i18n-placeholder="ph_req_sublimits" />
           </div>
         </div>
       </div>
@@ -2819,6 +3042,49 @@
         </div>
       </div>
     
+      <!-- Professional services & E&O readiness -->
+      <div class="mb-10">
+        <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_cy_eo">Professional services &amp; E&amp;O readiness</h3>
+        <div class="grid md:grid-cols-2 gap-x-8 gap-y-5 mb-4">
+          <div>
+            <div class="field-label" data-i18n="fl_cy_eo_methodologies">Testing / assurance methodologies followed</div>
+            <input type="text" name="cy_eo_methodologies" placeholder="OWASP, PTES, NIST 800-115, OSSTMM, other" data-i18n-placeholder="ph_cy_eo_methodologies" />
+          </div>
+          <div>
+            <div class="field-label" data-i18n="fl_cy_eo_firm_certs">Company certifications held</div>
+            <input type="text" name="cy_eo_firm_certs" placeholder="ISO 27001, ISO 9001, CREST, SOC 2, other" data-i18n-placeholder="ph_cy_eo_firm_certs" />
+          </div>
+          <div class="md:col-span-2">
+            <div class="field-label" data-i18n="fl_cy_eo_individual_certs">Relevant individual staff certifications</div>
+            <input type="text" name="cy_eo_individual_certs" placeholder="OSCP, OSCE, CISSP, CEH, etc." data-i18n-placeholder="ph_cy_eo_individual_certs" />
+          </div>
+        </div>
+        <div class="space-y-3">
+          <div class="qrow">
+            <div class="qtext"><span>a.</span><span data-i18n="q_cy_eo_qa_signoff">Are deliverables/reports peer-reviewed and signed off by a senior reviewer before release to the client?</span></div>
+            <div class="yn"><label><input type="radio" name="cy_eo_qa_signoff" value="Yes" /> <span data-i18n="yn_yes">Yes</span></label><label><input type="radio" name="cy_eo_qa_signoff" value="No" /> <span data-i18n="yn_no">No</span></label></div>
+          </div>
+          <div class="qrow">
+            <div class="qtext"><span>b.</span><span data-i18n="q_cy_eo_written_contracts">Do you use written client engagement contracts with a defined scope / rules of engagement and authorization to test?</span></div>
+            <div class="yn"><label><input type="radio" name="cy_eo_written_contracts" value="Yes" /> <span data-i18n="yn_yes">Yes</span></label><label><input type="radio" name="cy_eo_written_contracts" value="No" /> <span data-i18n="yn_no">No</span></label></div>
+          </div>
+          <div class="qrow">
+            <div class="qtext"><span>c.</span><span data-i18n="q_cy_eo_liability_cap">Do those contracts include a limitation-of-liability cap?</span></div>
+            <div class="yn"><label><input type="radio" name="cy_eo_liability_cap" value="Yes" /> <span data-i18n="yn_yes">Yes</span></label><label><input type="radio" name="cy_eo_liability_cap" value="No" /> <span data-i18n="yn_no">No</span></label></div>
+          </div>
+          <div class="qrow">
+            <div class="qtext"><span>d.</span><span data-i18n="q_cy_eo_prior_pi_cover">Do you currently hold Professional Indemnity / Tech E&amp;O cover?</span></div>
+            <div class="yn"><label><input type="radio" name="cy_eo_prior_pi_cover" value="Yes" /> <span data-i18n="yn_yes">Yes</span></label><label><input type="radio" name="cy_eo_prior_pi_cover" value="No" /> <span data-i18n="yn_no">No</span></label></div>
+            <input type="text" name="cy_eo_prior_pi_cover_detail" placeholder="If yes: insurer, limit, expiry" data-i18n-placeholder="ph_cy_eo_prior_pi_cover" class="mt-2" />
+          </div>
+          <div class="qrow">
+            <div class="qtext"><span>e.</span><span data-i18n="q_cy_eo_prior_claims">Any prior claims, complaints, disputes or circumstances relating to your professional services?</span></div>
+            <div class="yn"><label><input type="radio" name="cy_eo_prior_claims" value="Yes" /> <span data-i18n="yn_yes">Yes</span></label><label><input type="radio" name="cy_eo_prior_claims" value="No" /> <span data-i18n="yn_no">No</span></label></div>
+            <input type="text" name="cy_eo_prior_claims_detail" placeholder="If yes, details" data-i18n-placeholder="ph_cy_eo_prior_claims" class="mt-2" />
+          </div>
+        </div>
+      </div>
+
       <!-- D.6 Period & Coverage Zone -->
       <div class="mb-10">
         <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_cyber_period_coverage">D.6 &nbsp;Period &amp; Coverage Zone</h3>
@@ -3033,6 +3299,41 @@
 // Inline fallback dictionary. Always populated; merged with any external translations.js.
 window.__MIG_INLINE_TRANSLATIONS = {
   ru: {
+    "h3_requested_cover": "Запрашиваемое покрытие",
+    "fl_req_limit": "Запрашиваемый лимит ответственности / страховая сумма",
+    "fl_req_aggregate": "Запрашиваемый годовой агрегатный лимит",
+    "fl_req_deductible": "Запрашиваемая франшиза",
+    "fl_req_sublimits": "Запрашиваемые сублимиты",
+    "fl_req_currency": "Валюта",
+    "ph_req_sublimits": "напр., конкретные сублимиты и суммы",
+    "note_pi_req_above": "Лимит ответственности и удержание указаны в разделе «Запрашиваемые лимиты» выше.",
+    "chk_cyber_first_party": "Кибер — первая сторона (собственные убытки)",
+    "chk_cyber_third_party_liability": "Ответственность за конфиденциальность и сетевую безопасность (третья сторона)",
+    "h3_cy_eo": "Профессиональные услуги и готовность к E&O",
+    "fl_cy_eo_methodologies": "Применяемые методологии тестирования / оценки",
+    "ph_cy_eo_methodologies": "OWASP, PTES, NIST 800-115, OSSTMM, другое",
+    "fl_cy_eo_firm_certs": "Сертификаты компании",
+    "ph_cy_eo_firm_certs": "ISO 27001, ISO 9001, CREST, SOC 2, другое",
+    "fl_cy_eo_individual_certs": "Профильные сертификаты сотрудников",
+    "ph_cy_eo_individual_certs": "OSCP, OSCE, CISSP, CEH и т.д.",
+    "q_cy_eo_qa_signoff": "Проверяются ли отчёты/результаты старшим специалистом и утверждаются перед передачей клиенту?",
+    "q_cy_eo_written_contracts": "Используете ли вы письменные договоры с клиентами с определённым объёмом / правилами проведения работ и разрешением на тестирование?",
+    "q_cy_eo_liability_cap": "Содержат ли эти договоры ограничение ответственности?",
+    "q_cy_eo_prior_pi_cover": "Имеется ли у вас действующее страхование профессиональной ответственности / Tech E&O?",
+    "ph_cy_eo_prior_pi_cover": "Если да: страховщик, лимит, срок",
+    "q_cy_eo_prior_claims": "Были ли ранее претензии, жалобы, споры или обстоятельства, связанные с вашими профессиональными услугами?",
+    "ph_cy_eo_prior_claims": "Если да, укажите детали",
+    "h3_A_7_financial_statements": "A.7  Финансовая отчётность",
+    "p_fs_request": "Пожалуйста, загрузите финансовую отчётность компании за последние три полных отчётных года и последнюю промежуточную финансовую отчётность за последний завершённый отчётный период.",
+    "p_fs_accept": "Принимаются: PDF, Excel, Word, PNG, JPG — до 10 МБ каждый.",
+    "fl_fs_year": "Полный год",
+    "fl_fs_interim": "Последний промежуточный период",
+    "err_fs_type": "Неподдерживаемый тип файла. Используйте PDF, Excel, Word, PNG или JPG.",
+    "err_fs_size": "Файл слишком большой — максимум 10 МБ.",
+    "err_fs_failed": "Ошибка загрузки",
+    "err_fs_login": "Пожалуйста, войдите, чтобы загрузить финансовую отчётность.",
+    "fs_uploading": "Загрузка…",
+    "fs_uploaded": "Загружено ✓",
     "fl_name_of_proposer_company_1": "1. Наименование Страхователя (компании)",
     "fl_date_of_incorporation_2": "2. Дата регистрации",
     "fl_web_site_3": "3. Веб-сайт",
@@ -3630,6 +3931,41 @@ window.__MIG_INLINE_TRANSLATIONS = {
     "toast_select_cover": "Пожалуйста, выберите хотя бы один вид страхования.",
   },
   uz: {
+    "h3_requested_cover": "So'ralayotgan qoplama",
+    "fl_req_limit": "So'ralayotgan javobgarlik limiti / sug'urta summasi",
+    "fl_req_aggregate": "So'ralayotgan yillik agregat limit",
+    "fl_req_deductible": "So'ralayotgan franshiza",
+    "fl_req_sublimits": "So'ralayotgan sublimitlar",
+    "fl_req_currency": "Valyuta",
+    "ph_req_sublimits": "masalan, aniq sublimitlar va summalar",
+    "note_pi_req_above": "Javobgarlik limiti va ushlab qolish yuqoridagi «So'ralayotgan limitlar» bo'limida ko'rsatilgan.",
+    "chk_cyber_first_party": "Kiber — birinchi tomon (o'z zarari)",
+    "chk_cyber_third_party_liability": "Maxfiylik va tarmoq xavfsizligi javobgarligi (uchinchi tomon)",
+    "h3_cy_eo": "Professional xizmatlar va E&O tayyorligi",
+    "fl_cy_eo_methodologies": "Qo'llaniladigan test / baholash metodologiyalari",
+    "ph_cy_eo_methodologies": "OWASP, PTES, NIST 800-115, OSSTMM, boshqa",
+    "fl_cy_eo_firm_certs": "Kompaniya sertifikatlari",
+    "ph_cy_eo_firm_certs": "ISO 27001, ISO 9001, CREST, SOC 2, boshqa",
+    "fl_cy_eo_individual_certs": "Xodimlarning tegishli sertifikatlari",
+    "ph_cy_eo_individual_certs": "OSCP, OSCE, CISSP, CEH va h.k.",
+    "q_cy_eo_qa_signoff": "Hisobotlar/natijalar mijozga taqdim etishdan oldin katta mutaxassis tomonidan ko'rib chiqiladi va tasdiqlanadimi?",
+    "q_cy_eo_written_contracts": "Mijozlar bilan aniq ko'lam / test o'tkazish qoidalari va ruxsatnoma bilan yozma shartnomalardan foydalanasizmi?",
+    "q_cy_eo_liability_cap": "Ushbu shartnomalarda javobgarlikni cheklash bandi bormi?",
+    "q_cy_eo_prior_pi_cover": "Hozirda Professional javobgarlik / Tech E&O sug'urtangiz bormi?",
+    "ph_cy_eo_prior_pi_cover": "Ha bo'lsa: sug'urtalovchi, limit, muddat",
+    "q_cy_eo_prior_claims": "Professional xizmatlaringiz bilan bog'liq avvalgi da'volar, shikoyatlar, nizolar yoki holatlar bo'lganmi?",
+    "ph_cy_eo_prior_claims": "Ha bo'lsa, tafsilotlar",
+    "h3_A_7_financial_statements": "A.7  Moliyaviy hisobot",
+    "p_fs_request": "Iltimos, kompaniyaning so'nggi uchta to'liq hisobot yili uchun moliyaviy hisobotlarini va so'nggi tugallangan hisobot davri uchun oxirgi oraliq moliyaviy hisobotni yuklang.",
+    "p_fs_accept": "Qabul qilinadi: PDF, Excel, Word, PNG, JPG — har biri 10 MB gacha.",
+    "fl_fs_year": "To'liq yil",
+    "fl_fs_interim": "So'nggi oraliq davr",
+    "err_fs_type": "Qo'llab-quvvatlanmaydigan fayl turi. PDF, Excel, Word, PNG yoki JPG dan foydalaning.",
+    "err_fs_size": "Fayl juda katta — maksimal 10 MB.",
+    "err_fs_failed": "Yuklash amalga oshmadi",
+    "err_fs_login": "Moliyaviy hisobotni yuklash uchun tizimga kiring.",
+    "fs_uploading": "Yuklanmoqda…",
+    "fs_uploaded": "Yuklandi ✓",
     "fl_name_of_proposer_company_1": "1. Sug'urtalanuvchining nomi (kompaniya)",
     "fl_date_of_incorporation_2": "2. Ro'yxatdan o'tgan sana",
     "fl_web_site_3": "3. Veb-sayt",
@@ -4834,6 +5170,57 @@ document.getElementById('stamp-clear').addEventListener('click', () => {
 });
 
 // ============================================================
+// FINANCIAL STATEMENTS UPLOAD (Feature 3) — Supabase Storage
+// ============================================================
+const fsUploads = {};   // field -> storage path
+const fsLabels = {};    // field -> computed period label
+const FS_FIELDS = ['fs_year_1', 'fs_year_2', 'fs_year_3', 'fs_interim'];
+const FS_MAX = 10 * 1024 * 1024;
+const FS_EXT = ['pdf', 'xlsx', 'xls', 'docx', 'png', 'jpg', 'jpeg'];
+
+function computeFsLabels() {
+  const now = new Date();
+  const cy = now.getFullYear();
+  fsLabels.fs_year_1 = String(cy - 1);
+  fsLabels.fs_year_2 = String(cy - 2);
+  fsLabels.fs_year_3 = String(cy - 3);
+  const q = Math.floor(now.getMonth() / 3) + 1;            // current quarter 1..4
+  const iq = (q === 1) ? 4 : q - 1;                         // latest completed quarter
+  const iy = (q === 1) ? cy - 1 : cy;
+  fsLabels.fs_interim = 'Q' + iq + ' ' + iy;
+  FS_FIELDS.forEach(f => document.querySelectorAll('[data-fs-label="' + f + '"]').forEach(el => el.textContent = fsLabels[f]));
+}
+function fsMsg(field, text, kind) {
+  const el = document.querySelector('[data-fs-msg="' + field + '"]');
+  if (!el) return;
+  el.textContent = text;
+  el.style.color = kind === 'error' ? 'var(--err, #b53737)' : (kind === 'ok' ? '#2e7d32' : 'var(--muted)');
+}
+async function uploadFS(field, file) {
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  if (!FS_EXT.includes(ext)) { fsMsg(field, T('err_fs_type', 'Unsupported file type. Use PDF, Excel, Word, PNG or JPG.'), 'error'); return; }
+  if (file.size > FS_MAX) { fsMsg(field, T('err_fs_size', 'File too large — maximum 10 MB.'), 'error'); return; }
+  if (!supabaseClient) { fsMsg(field, T('err_fs_failed', 'Upload failed') + ': not configured', 'error'); return; }
+  if (!customerSession) { const { data } = await supabaseClient.auth.getSession(); customerSession = data.session; }
+  if (!customerSession) { fsMsg(field, T('err_fs_login', 'Please sign in to upload financial statements.'), 'error'); return; }
+  fsMsg(field, T('fs_uploading', 'Uploading…'), 'info');
+  const uid = customerSession.user.id;
+  const safe = file.name.replace(/[^\w.\-]+/g, '_');
+  const path = uid + '/' + field + '_' + Date.now() + '_' + safe;
+  const { error } = await supabaseClient.storage.from('financial-statements').upload(path, file, { upsert: true, contentType: file.type || undefined });
+  if (error) { fsMsg(field, T('err_fs_failed', 'Upload failed') + ': ' + error.message, 'error'); return; }
+  fsUploads[field] = path;
+  fsMsg(field, T('fs_uploaded', 'Uploaded ✓') + ' — ' + file.name, 'ok');
+}
+(function wireFsInputs() {
+  computeFsLabels();
+  FS_FIELDS.forEach(f => {
+    const inp = document.querySelector('[data-fs="' + f + '"]');
+    if (inp) inp.addEventListener('change', () => { if (inp.files && inp.files[0]) uploadFS(f, inp.files[0]); });
+  });
+})();
+
+// ============================================================
 // COLLECT FORM DATA
 // ============================================================
 function collectFormData() {
@@ -4867,6 +5254,17 @@ function collectFormData() {
   });
   data._products = getSelectedProducts();
   data._timestamp = new Date().toISOString();
+  // Cyber coverage is now two independent clauses (first-party / third-party
+  // liability). Keep the legacy combined flags consistent for older readers:
+  // cy_cov_shield + cy_cov_first_third are true if either clause is selected.
+  const _cyFP = !!data.cy_cov_first_party, _cyTP = !!data.cy_cov_third_party_liability;
+  data.cy_cov_shield = _cyFP || _cyTP;
+  data.cy_cov_first_third = _cyFP || _cyTP;
+  // Financial-statements: store the uploaded storage paths + computed period labels.
+  FS_FIELDS.forEach(f => {
+    if (fsUploads[f]) data[f + '_path'] = fsUploads[f];
+    if (fsLabels[f]) data[f + '_label'] = fsLabels[f];
+  });
   return data;
 }
 
@@ -4913,7 +5311,17 @@ function populateFormData(fields) {
     });
   });
 
-  // 4. Re-apply toggles that depend on checkbox state set above.
+  // 4. Back-fill the split cyber clauses when editing a legacy submission that
+  //    only has the old combined flag (cy_cov_shield / cy_cov_first_third).
+  if (fields.cy_cov_first_party === undefined && fields.cy_cov_third_party_liability === undefined
+      && (fields.cy_cov_shield === true || fields.cy_cov_first_third === true)) {
+    const fp = form.querySelector('[name="cy_cov_first_party"]');
+    const tp = form.querySelector('[name="cy_cov_third_party_liability"]');
+    if (fp) fp.checked = true;
+    if (tp) tp.checked = true;
+  }
+
+  // 5. Re-apply toggles that depend on checkbox state set above.
   if (typeof applyPropertyMode === 'function') applyPropertyMode();
   if (typeof applyAuditVisibility === 'function') applyAuditVisibility();
   if (typeof updateProgressDots === 'function') updateProgressDots();
