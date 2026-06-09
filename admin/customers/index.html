@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MIG Admin — Customers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+  :root { --bg:#fafaf7; --surface:#fff; --surface-alt:#f4f3ee; --border:#e5e2d8; --border-strong:#d8d2c2; --ink:#0b1424; --muted:#6b6f7a; --mig:#1f3864; --mig-light:#e8eef8; --accent:#a87446; --error:#b53737; --success:#2d7a3e;
+    --new:#1f3864; --in-review:#b8860b; --quoted:#2d7a3e; --bound:#1a5d2e; --declined:#b53737; --withdrawn:#6b6f7a; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; padding:0; font-family:'Inter Tight',system-ui,sans-serif; color:var(--ink); background:var(--bg); font-size:14px; line-height:1.5; }
+  .mono { font-family:'JetBrains Mono',monospace; }
+  .topbar { display:flex; align-items:center; justify-content:space-between; padding:12px 24px; background:var(--surface); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:10; }
+  .topbar .brand { display:flex; align-items:center; gap:10px; font-weight:600; }
+  .topbar .brand-mark { width:28px; height:28px; background:var(--mig); color:#fff; border-radius:4px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; }
+  .topbar .user-info { display:flex; align-items:center; gap:12px; font-size:13px; color:var(--muted); }
+  .btn { background:var(--mig); color:#fff; border:none; padding:8px 14px; border-radius:6px; font-family:inherit; font-size:13px; font-weight:500; cursor:pointer; text-decoration:none; display:inline-block; }
+  .btn:hover:not(:disabled){ background:#16294a; } .btn:disabled{ opacity:.5; cursor:not-allowed; }
+  .btn-secondary { background:var(--surface-alt); color:var(--ink); border:1px solid var(--border-strong); }
+  .btn-ghost { background:transparent; color:var(--mig); padding:6px 10px; }
+  .btn-sm { padding:4px 10px; font-size:12px; }
+  .gate { max-width:460px; margin:80px auto; padding:0 24px; }
+  .muted { color:var(--muted); }
+  .wrap { padding:24px; max-width:1080px; margin:0 auto; }
+  .wrap h1 { font-family:'Fraunces',serif; font-weight:500; font-size:26px; color:var(--mig); margin:0 0 4px; }
+  .wrap .intro { margin:0 0 18px; color:var(--muted); font-size:13px; }
+  .panel { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:6px 0; margin-bottom:18px; overflow:hidden; }
+  .panel-h { font-family:'Fraunces',serif; font-size:18px; color:var(--mig); margin:14px 18px 8px; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th { text-align:left; background:var(--surface-alt); padding:9px 14px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); border-bottom:1px solid var(--border); }
+  td { padding:11px 14px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  tr:last-child td { border-bottom:none; }
+  tbody.clickable tr { cursor:pointer; } tbody.clickable tr:hover { background:var(--surface-alt); }
+  .product-pill { display:inline-block; background:var(--mig-light); color:var(--mig); padding:2px 8px; border-radius:4px; font-size:11px; font-weight:500; margin:0 4px 2px 0; }
+  .status-badge { display:inline-block; padding:3px 9px; border-radius:12px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; background:#ececec; color:var(--muted); }
+  .status-badge.new { background:#e8eef8; color:var(--new); } .status-badge.in_review { background:#fbf3dc; color:var(--in-review); }
+  .status-badge.quoted { background:#e6f3e8; color:var(--quoted); } .status-badge.bound,.status-badge.issued { background:#d4ebd8; color:var(--bound); }
+  .status-badge.declined { background:#fdeaea; color:var(--declined); }
+  .breadcrumb { font-size:13px; margin-bottom:14px; } .breadcrumb a { color:var(--mig); text-decoration:none; cursor:pointer; }
+  .profile { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px 20px; padding:14px 18px; }
+  .profile .k { font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); }
+  .profile .v { font-size:15px; }
+  .empty { padding:16px 18px; color:var(--muted); font-size:13px; }
+  .right { text-align:right; }
+  .spinner { display:inline-block; width:14px; height:14px; border:2px solid currentColor; border-top-color:transparent; border-radius:50%; animation:spin .6s linear infinite; vertical-align:middle; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .toast { position:fixed; bottom:24px; right:24px; padding:12px 18px; border-radius:6px; color:#fff; font-size:13px; z-index:100; box-shadow:0 4px 12px rgba(0,0,0,.12); }
+  .toast.success { background:var(--success); } .toast.error { background:var(--error); }
+  .hidden { display:none !important; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand"><div class="brand-mark">M</div><span>MIG Admin</span><span style="color:var(--muted); font-weight:400; margin-left:8px;">Customers</span></div>
+  <div class="user-info">
+    <a href="/" class="btn btn-ghost btn-sm" style="text-decoration:none;">Hub</a>
+    <a href="/admin/" class="btn btn-ghost btn-sm" style="text-decoration:none;">Submissions</a>
+    <span id="user-email"></span>
+    <button class="btn btn-secondary btn-sm hidden" id="btn-signout">Sign out</button>
+  </div>
+</div>
+
+<div class="gate" id="auth-gate">
+  <div class="panel" style="border-radius:12px; padding:28px;">
+    <h1 id="gate-title" style="font-size:18px; margin:0 0 8px;">Sign in required</h1>
+    <p class="muted" id="gate-body" style="margin:0 0 18px;">Use your MIG admin account. Sign in on the admin page first — the session is shared.</p>
+    <a class="btn" href="/admin/" style="text-decoration:none;">Go to admin login</a>
+  </div>
+</div>
+
+<div class="wrap hidden" id="app">
+  <!-- LIST -->
+  <div id="view-list">
+    <h1>Customers</h1>
+    <p class="intro">All provisioned customer accounts. Open one to see their proposals, quotations and policies.</p>
+    <div class="panel"><table><thead><tr><th>Email</th><th>Name</th><th>Company</th><th>Added</th></tr></thead>
+      <tbody class="clickable" id="cust-tbody"><tr><td colspan="4" class="empty"><span class="spinner"></span> Loading…</td></tr></tbody></table></div>
+  </div>
+
+  <!-- DETAIL -->
+  <div id="view-detail" class="hidden">
+    <div class="breadcrumb"><a id="back-link">← All customers</a></div>
+    <h1 id="cust-name">—</h1>
+    <p class="intro mono" id="cust-sub">—</p>
+    <div class="panel"><div class="profile" id="cust-profile"></div></div>
+
+    <div class="panel">
+      <div class="panel-h">Proposals</div>
+      <table><thead><tr><th>Submitted</th><th>Proposer</th><th>Products</th><th>Status</th><th class="right">Actions</th></tr></thead>
+        <tbody id="subs-tbody"></tbody></table>
+    </div>
+    <div class="panel">
+      <div class="panel-h">Quotations</div>
+      <table><thead><tr><th>Reference</th><th>Date</th><th>Total premium</th><th class="right">Document</th></tr></thead>
+        <tbody id="quotes-tbody"></tbody></table>
+    </div>
+    <div class="panel">
+      <div class="panel-h">Policies / wordings</div>
+      <table><thead><tr><th>Policy №</th><th>Line</th><th>Issued</th><th>Status</th><th class="right">Document</th></tr></thead>
+        <tbody id="pols-tbody"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="/config.js"></script>
+<script>
+let sb = null;
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtDate = iso => iso ? new Date(iso).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+const productLabel = c => ({auto:'Auto',property:'Property',cgl:'CGL',car:'CAR',dno:'D&O',pi:'PI',crime:'Crime',cyber:'Cyber'}[c]||c);
+function toast(m,t){ const d=document.createElement('div'); d.className='toast '+(t||'success'); d.textContent=m; $('toast-container').appendChild(d); setTimeout(()=>d.remove(),3500); }
+function money(v,cur){ const n=Number(v); if(!n) return '—'; return (cur||'USD').replace(/[^A-Z]/g,'').slice(0,3)+' '+n.toLocaleString('en-US'); }
+function showGate(t,b){ $('app').classList.add('hidden'); $('auth-gate').classList.remove('hidden'); $('gate-title').textContent=t; $('gate-body').textContent=b; }
+
+function dlBase64(b64, filename, mime) {
+  const bin = atob(b64); const bytes = new Uint8Array(bin.length);
+  for (let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+  const url = URL.createObjectURL(new Blob([bytes], { type: mime || 'application/octet-stream' }));
+  const a = document.createElement('a'); a.href=url; a.download=filename||'document';
+  document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(url); a.remove();},200);
+}
+
+(async function init(){
+  if (typeof supabase==='undefined' || !supabase.createClient) return;
+  if (SUPABASE_URL.includes('YOUR-PROJECT')) return;
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+  const { data } = await sb.auth.getSession();
+  const session = data.session;
+  if (!session) return;
+  const { data: isStaff } = await sb.rpc('is_mig_staff');
+  if (!isStaff) { const e=session.user.email||'This account'; await sb.auth.signOut(); showGate('Account not authorized', e+' is not on the MIG staff list.'); return; }
+  $('auth-gate').classList.add('hidden'); $('app').classList.remove('hidden');
+  $('user-email').textContent = session.user.email||'';
+  $('btn-signout').classList.remove('hidden');
+  $('btn-signout').onclick = async ()=>{ await sb.auth.signOut(); location.reload(); };
+  $('back-link').onclick = ()=>{ history.pushState({},'','/admin/customers/'); route(); };
+  window.addEventListener('popstate', route);
+  route();
+})();
+
+function route(){
+  const id = new URLSearchParams(location.search).get('id');
+  if (id) { $('view-list').classList.add('hidden'); $('view-detail').classList.remove('hidden'); loadCustomer(id); }
+  else { $('view-detail').classList.add('hidden'); $('view-list').classList.remove('hidden'); loadCustomers(); }
+}
+
+async function loadCustomers(){
+  const tb = $('cust-tbody');
+  tb.innerHTML = '<tr><td colspan="4" class="empty"><span class="spinner"></span> Loading…</td></tr>';
+  const { data, error } = await sb.from('customers').select('user_id, email, full_name, company, created_at').order('created_at',{ascending:false});
+  if (error) { tb.innerHTML = '<tr><td colspan="4" class="empty">Could not load: '+esc(error.message)+'</td></tr>'; return; }
+  if (!data.length) { tb.innerHTML = '<tr><td colspan="4" class="empty">No customers yet.</td></tr>'; return; }
+  tb.innerHTML = data.map(c => '<tr data-id="'+esc(c.user_id)+'"><td><strong>'+esc(c.email||'—')+'</strong></td><td>'+esc(c.full_name||'—')+'</td><td>'+esc(c.company||'—')+'</td><td><span class="mono" style="font-size:12px;">'+esc(fmtDate(c.created_at))+'</span></td></tr>').join('');
+  tb.querySelectorAll('tr').forEach(tr => tr.addEventListener('click', ()=>{ const id=tr.dataset.id; history.pushState({},'','/admin/customers/?id='+encodeURIComponent(id)); route(); }));
+}
+
+async function loadCustomer(uid){
+  $('cust-name').textContent='Loading…'; $('cust-sub').textContent='';
+  $('cust-profile').innerHTML=''; $('subs-tbody').innerHTML=''; $('quotes-tbody').innerHTML=''; $('pols-tbody').innerHTML='';
+  const { data: c } = await sb.from('customers').select('*').eq('user_id',uid).single();
+  if (!c) { $('cust-name').textContent='Customer not found'; return; }
+  $('cust-name').textContent = c.full_name || c.email || '(customer)';
+  $('cust-sub').textContent = c.email || uid;
+  $('cust-profile').innerHTML =
+    kv('Email', c.email) + kv('Company', c.company) + kv('Full name', c.full_name) + kv('Added', fmtDate(c.created_at));
+
+  // Proposals
+  const { data: subs } = await sb.from('submissions').select('id, created_at, proposer_name, products, status').eq('customer_id',uid).order('created_at',{ascending:false});
+  const subIds = (subs||[]).map(s=>s.id);
+  $('subs-tbody').innerHTML = (subs && subs.length) ? subs.map(s =>
+    '<tr><td><span class="mono" style="font-size:12px;">'+esc(fmtDate(s.created_at))+'</span></td><td><strong>'+esc(s.proposer_name||'—')+'</strong></td>'+
+    '<td>'+((s.products||[]).map(p=>'<span class="product-pill">'+esc(productLabel(p))+'</span>').join('')||'—')+'</td>'+
+    '<td><span class="status-badge '+esc(s.status)+'">'+esc(s.status||'—')+'</span></td>'+
+    '<td class="right"><a class="btn btn-secondary btn-sm" href="/admin/quote/?id='+encodeURIComponent(s.id)+'">Quote</a></td></tr>'
+  ).join('') : '<tr><td colspan="5" class="empty">No proposals.</td></tr>';
+
+  // Quotations
+  const { data: qs } = await sb.from('quotations').select('id, created_at, reference, total_premium, currency, doc_filename').eq('customer_id',uid).order('created_at',{ascending:false});
+  $('quotes-tbody').innerHTML = (qs && qs.length) ? qs.map(q =>
+    '<tr><td><strong>'+esc(q.reference||'—')+'</strong></td><td><span class="mono" style="font-size:12px;">'+esc(fmtDate(q.created_at))+'</span></td>'+
+    '<td>'+esc(money(q.total_premium,q.currency))+'</td>'+
+    '<td class="right"><button class="btn btn-secondary btn-sm" data-dl="quotations" data-row="'+esc(q.id)+'">Download .docx</button></td></tr>'
+  ).join('') : '<tr><td colspan="4" class="empty">No quotations issued.</td></tr>';
+
+  // Policies / wordings (both lines, by the customer's submissions)
+  let pols = [];
+  if (subIds.length) {
+    for (const [tbl, line] of [['cyber_policies','Cyber'],['crime_policies','Crime']]) {
+      const { data } = await sb.from(tbl).select('id, policy_number, issued_at, status, doc_filename, submission_id').in('submission_id', subIds);
+      (data||[]).forEach(p => pols.push({ ...p, _tbl: tbl, line }));
+    }
+  }
+  pols.sort((a,b)=> new Date(b.issued_at||0) - new Date(a.issued_at||0));
+  $('pols-tbody').innerHTML = pols.length ? pols.map(p =>
+    '<tr><td><strong>'+esc(p.policy_number||'—')+'</strong></td><td>'+esc(p.line)+'</td>'+
+    '<td><span class="mono" style="font-size:12px;">'+esc(fmtDate(p.issued_at))+'</span></td>'+
+    '<td><span class="status-badge '+esc(p.status)+'">'+esc(p.status||'—')+'</span></td>'+
+    '<td class="right">'+(p.doc_filename ? '<button class="btn btn-secondary btn-sm" data-dl="'+esc(p._tbl)+'" data-row="'+esc(p.id)+'">Download .docx</button>' : '<span class="muted" style="font-size:12px;">no document</span>')+'</td></tr>'
+  ).join('') : '<tr><td colspan="5" class="empty">No policies issued.</td></tr>';
+
+  document.querySelectorAll('[data-dl]').forEach(b => b.addEventListener('click', ()=>downloadDoc(b)));
+}
+function kv(k,v){ return '<div><div class="k">'+esc(k)+'</div><div class="v">'+esc(v||'—')+'</div></div>'; }
+
+async function downloadDoc(btn){
+  const tbl = btn.getAttribute('data-dl'), id = btn.getAttribute('data-row');
+  const orig = btn.textContent; btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  try {
+    const { data, error } = await sb.from(tbl).select('doc_base64, doc_filename').eq('id', id).single();
+    if (error || !data || !data.doc_base64) { toast('No document stored.', 'error'); return; }
+    dlBase64(data.doc_base64, data.doc_filename || 'document.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+  } catch(e) { toast('Download failed: '+e.message, 'error'); }
+  finally { btn.disabled=false; btn.textContent=orig; }
+}
+</script>
+</body>
+</html>

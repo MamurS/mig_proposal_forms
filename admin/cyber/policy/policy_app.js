@@ -444,6 +444,15 @@ function markDraft() {
   }
 }
 
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = () => resolve(String(fr.result).split(',')[1] || '');
+    fr.onerror = reject;
+    fr.readAsDataURL(blob);
+  });
+}
+
 async function confirmIssue() {
   const r = F().raw;
   const missing = [];
@@ -455,7 +464,14 @@ async function confirmIssue() {
   if (missing.length) { $('gen-note').textContent = 'Required before issuing: ' + missing.join(', ') + '.'; return; }
 
   $('btn-confirm').disabled = true;
-  $('gen-note').textContent = 'Saving policy record…';
+  $('gen-note').textContent = 'Generating document & saving policy record…';
+  // Persist the issued Word document so the customer can download it from their portal.
+  let _docB64 = null, _docFn = null;
+  try {
+    const _blob = await generateDocx();
+    _docB64 = await blobToBase64(_blob);
+    _docFn = 'MIG_Cyber_Policy_' + (r.policy_number || 'DRAFT').replace(/[^\w\-]+/g, '_') + '.docx';
+  } catch (e) { console.error('Policy document generation failed:', e); }
   const payload = {
     created_by: session.user.id,
     submission_id: loadedSubmissionId,
@@ -465,6 +481,8 @@ async function confirmIssue() {
     fields: r,
     status: 'issued',
     issued_at: new Date().toISOString(),
+    doc_base64: _docB64,
+    doc_filename: _docFn,
   };
   let resp;
   if (policyRecordId) {

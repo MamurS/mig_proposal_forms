@@ -4,6 +4,15 @@
 // Builds entirely in-browser via the docx UMD library (same approach as the
 // policy-issuance modules). Reads the underwriter terms from collectLines().
 // ============================================================
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result).split(',')[1] || '');
+    r.onerror = reject;
+    r.readAsDataURL(blob);
+  });
+}
+
 async function generateQuotation() {
   const btn = document.getElementById('btn-generate');
   const note = document.getElementById('gen-note');
@@ -205,7 +214,24 @@ async function generateQuotation() {
     a.href = url; a.download = fname;
     document.body.appendChild(a); a.click();
     setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 200);
-    note.textContent = 'Generated ' + fname;
+
+    // Persist the quotation so it appears in the customer's portal and the
+    // admin customer record (the .docx is stored base64 in the row).
+    let saved = false;
+    try {
+      const b64 = await blobToBase64(blob);
+      const me = (await sb.auth.getUser()).data.user;
+      const { error: insErr } = await sb.from('quotations').insert({
+        created_by: me ? me.id : null,
+        submission_id: (submission && submission.id) || null,
+        customer_id: (submission && submission.customer_id) || null,
+        reference: g('q-ref'), currency: curCode, total_premium: total,
+        lines: lines, doc_base64: b64, doc_filename: fname, status: 'sent',
+      });
+      saved = !insErr;
+      if (insErr) console.error('Quotation save error:', insErr);
+    } catch (e) { console.error('Quotation save exception:', e); }
+    note.textContent = 'Generated ' + fname + (saved ? ' — saved to the customer record.' : ' (downloaded; not saved to DB).');
   } catch (e) {
     note.textContent = 'Error: ' + (e && e.message || e);
     console.error(e);
