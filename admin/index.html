@@ -386,6 +386,46 @@
     vertical-align: middle;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* === PROPOSAL REVIEW VIEW (form-styled, large, highlighted) === */
+  #detail-content.proposal-view { padding: 0; background: transparent; border: none; }
+  .pv-band {
+    background: linear-gradient(180deg, #fff8ec 0%, #fdf3e0 100%);
+    border: 1px solid #ecd9b0; border-radius: 10px;
+    padding: 16px 18px; margin-bottom: 18px;
+  }
+  .pv-band .pv-band-title {
+    font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--accent); margin-bottom: 12px;
+  }
+  .pv-band-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+  .kt-card { background: var(--surface); border: 1px solid #ecd9b0; border-radius: 8px; padding: 10px 12px; }
+  .kt-card .kt-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin-bottom: 3px; }
+  .kt-card .kt-value { font-size: 19px; font-weight: 700; color: var(--mig); font-variant-numeric: tabular-nums; line-height: 1.2; word-break: break-word; }
+  .kt-card .kt-where { font-size: 10.5px; color: var(--muted); margin-top: 3px; }
+
+  .pv-section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px 22px; margin-bottom: 16px; }
+  .pv-section > .pv-h {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 19px; font-weight: 600; color: var(--mig);
+    margin: 0 0 14px 0; padding-bottom: 10px; border-bottom: 2px solid var(--mig-light);
+  }
+  .pv-section > .pv-h .pv-count { font-family: 'Inter Tight', sans-serif; font-size: 12px; font-weight: 400; color: var(--muted); margin-left: 8px; }
+  .pv-row {
+    display: grid; grid-template-columns: 280px 1fr; gap: 10px 20px;
+    padding: 9px 10px; border-radius: 6px; align-items: baseline;
+  }
+  .pv-row + .pv-row { border-top: 1px solid #f2f0e8; }
+  .pv-row .pv-label { font-size: 14px; color: var(--muted); }
+  .pv-row .pv-value { font-size: 16px; color: var(--ink); word-break: break-word; }
+  .pv-row .pv-value.empty { color: #c8c4b8; font-style: italic; font-size: 14px; }
+  /* highlighted key rows */
+  .pv-row.is-key { background: var(--mig-light); border-top-color: transparent !important; }
+  .pv-row.is-key .pv-label { color: var(--mig); font-weight: 600; }
+  .pv-row.is-key .pv-value { font-size: 18px; font-weight: 700; color: var(--mig); font-variant-numeric: tabular-nums; }
+  .pv-row.is-key.cat-deductible { background: #fbf3dc; }
+  .pv-row.is-key.cat-deductible .pv-label, .pv-row.is-key.cat-deductible .pv-value { color: var(--warning); }
+  @media (max-width: 720px) { .pv-row { grid-template-columns: 1fr; gap: 2px; } }
 </style>
 </head>
 <body>
@@ -543,9 +583,8 @@
     </div>
 
     <div class="detail-grid">
-      <!-- LEFT: structured submission data -->
-      <div id="detail-content" class="panel">
-        <h3>Submission data</h3>
+      <!-- LEFT: structured submission data (form-styled review) -->
+      <div id="detail-content" class="panel proposal-view">
         <div id="detail-fields">
           <em style="color: var(--muted);">Loading…</em>
         </div>
@@ -708,7 +747,12 @@ document.getElementById('btn-signout-detail').addEventListener('click', signOut)
 // the MIG staff list. is_mig_staff() is a SECURITY DEFINER RPC checking mig_staff
 // for auth.uid(). Non-staff are signed out and kept on the login screen.
 let enteringApp = false;
-async function enterApp(session) {
+// pendingLogin is true whenever the page is in a logged-out state — so the NEXT
+// successful sign-in is treated as "fresh" and lands the user on the Hub (/).
+// An existing session that just opens /admin/ (e.g. from the Hub's Submissions
+// card) is not fresh and opens the Submissions list directly.
+let pendingLogin = false;
+async function enterApp(session, fresh) {
   if (enteringApp) return;
   enteringApp = true;
   try {
@@ -720,6 +764,8 @@ async function enterApp(session) {
       setLoginMsg(email + ' is not authorized for MIG admin. Ask an administrator to add you to staff.', 'error');
       return;
     }
+    // Fresh sign-in → land on the Hub. Existing session → Submissions list.
+    if (fresh) { window.location.href = '/'; return; }
     currentUser = session.user;
     document.getElementById('user-email').textContent = currentUser.email;
     document.getElementById('user-email-detail').textContent = currentUser.email;
@@ -733,9 +779,12 @@ async function enterApp(session) {
 if (sb) {
   sb.auth.onAuthStateChange((event, session) => {
     if (session && session.user) {
-      enterApp(session);
+      const fresh = (event === 'SIGNED_IN') && pendingLogin;
+      pendingLogin = false;
+      enterApp(session, fresh);
     } else if (event === 'SIGNED_OUT') {
       currentUser = null;
+      pendingLogin = true;  // next sign-in should land on the Hub
       show('view-login');
     }
   });
@@ -751,8 +800,9 @@ if (sb) {
   // Check if returning from magic link (the URL may have a #access_token=...)
   const { data: { session } } = await sb.auth.getSession();
   if (session && session.user) {
-    enterApp(session);
+    enterApp(session, false);
   } else {
+    pendingLogin = true;  // logged out at load → the upcoming sign-in is fresh
     show('view-login');
   }
 })();
@@ -892,78 +942,110 @@ function renderDetail(s) {
   }
 }
 
-function renderFields(fields, products) {
-  // Group fields by section prefix
-  const sections = {
-    'General Information': [],
-    'Auto': [],
-    'Property': [],
-    'CGL': [],
-    'CAR': [],
-    'D&O': [],
-    'PI': [],
-    'Crime': [],
-    'Cyber': [],
-    'Other': []
-  };
+// Field-name patterns that flag an important term (summary band + inline highlight).
+const KEY_PATTERNS = [
+  { cat: 'limit',      label: 'Limit',       re: /(^|_)(limit|loi|indemnity|csl|agg|aggregate)(_|$)|(^|_)tpl(_|$)|_agg$|_csl(_|$)|_occ$/ },
+  { cat: 'deductible', label: 'Deductible',  re: /(^|_)(deductible|ded|retention|retent|excess)(_|$)/ },
+  { cat: 'sum',        label: 'Sum insured', re: /(^|_)si(_|$)|sum_insured/ },
+  { cat: 'period',     label: 'Period',      re: /(period_from|period_to|inception|(^|_)start(_|$)|completion|(^|_)duration(_|$)|policy_period)/ },
+  { cat: 'turnover',   label: 'Turnover',    re: /(turnover|revenue)/ },
+  { cat: 'premium',    label: 'Premium',     re: /(^|_)premium(_|$)/ },
+];
+function keyCat(name) {
+  for (const p of KEY_PATTERNS) if (p.re.test(name)) return p;
+  return null;
+}
 
-  // Heuristic grouping by field name prefix
+const SECTION_FOR = [
+  [/^(auto_|vs_|vehicle)/, 'Auto'],
+  [/^(prop_|property)/, 'Property'],
+  [/^cgl_/, 'CGL'],
+  [/^car_/, 'CAR'],
+  [/^(dno_|do_)/, 'D&O'],
+  [/^pi_/, 'PI'],
+  [/^(cr_|crime_)/, 'Crime'],
+  [/^(cy_|cyber_)/, 'Cyber'],
+];
+function sectionFor(k) {
+  for (const [re, name] of SECTION_FOR) if (re.test(k)) return name;
+  return 'General Information';
+}
+
+function renderFields(fields, products) {
+  const order = ['General Information','Auto','Property','CGL','CAR','D&O','PI','Crime','Cyber'];
+  const sections = {};
+  const keyTerms = [];
   for (const [k, v] of Object.entries(fields)) {
+    if (k.startsWith('_')) continue;
     if (v == null || v === '' || v === false) continue;
-    let section = 'Other';
-    if (k.startsWith('proposer_') || k.startsWith('annual_') || k.startsWith('contact_') || k.startsWith('nature_') || k.startsWith('geo_') || k.startsWith('reg_') || k.includes('beneficiary') || k.includes('prev_') || k.includes('loss_') || k.includes('audit_') || k.startsWith('emp_') || k.startsWith('industry')) {
-      section = 'General Information';
-    } else if (k.startsWith('vs_') || k.startsWith('auto_') || k.startsWith('vehicle')) {
-      section = 'Auto';
-    } else if (k.startsWith('prop_') || k.startsWith('property')) {
-      section = 'Property';
-    } else if (k.startsWith('cgl_')) {
-      section = 'CGL';
-    } else if (k.startsWith('car_')) {
-      section = 'CAR';
-    } else if (k.startsWith('dno_') || k.startsWith('do_')) {
-      section = 'D&O';
-    } else if (k.startsWith('pi_')) {
-      section = 'PI';
-    } else if (k.startsWith('crime_')) {
-      section = 'Crime';
-    } else if (k.startsWith('cyber_')) {
-      section = 'Cyber';
-    } else if (k.startsWith('signed_') || k.startsWith('declaration') || k === 'signed_name' || k === 'signed_title' || k === 'signed_place' || k === 'signed_date') {
-      section = 'General Information';
-    }
-    sections[section].push([k, v]);
+    const sec = sectionFor(k);
+    (sections[sec] = sections[sec] || []).push([k, v]);
+    const cat = keyCat(k);
+    if (cat && v !== true) keyTerms.push({ k, v, cat, sec });
   }
 
-  // Render only sections that have data
   let html = '';
-  for (const [name, items] of Object.entries(sections)) {
-    if (items.length === 0) continue;
-    html += `<h4>${escapeHtml(name)} <span style="color: var(--muted); font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 11px;">(${items.length} fields)</span></h4>`;
+
+  // Key terms band — the figures an underwriter wants at a glance.
+  if (keyTerms.length) {
+    html += '<div class="pv-band"><div class="pv-band-title">Key terms</div><div class="pv-band-grid">';
+    html += keyTerms.map(t => `
+      <div class="kt-card">
+        <div class="kt-label">${escapeHtml(humanizeFieldName(t.k))}</div>
+        <div class="kt-value">${escapeHtml(formatValue(t.v))}</div>
+        <div class="kt-where">${escapeHtml(t.sec)}</div>
+      </div>`).join('');
+    html += '</div></div>';
+  }
+
+  // Sections, styled like the form, with key rows highlighted.
+  for (const name of order) {
+    const items = sections[name];
+    if (!items || !items.length) continue;
+    html += `<div class="pv-section"><div class="pv-h">${escapeHtml(name)}<span class="pv-count">${items.length} field${items.length > 1 ? 's' : ''}</span></div>`;
     html += items.map(([k, v]) => {
-      const label = humanizeFieldName(k);
-      const val = formatFieldValue(v);
-      return `<div class="field-display">
-        <div class="label" title="${escapeHtml(k)}">${escapeHtml(label)}</div>
-        <div class="value ${val ? '' : 'empty'}">${val ? escapeHtml(val) : '(empty)'}</div>
+      const cat = (v !== true) ? keyCat(k) : null;
+      const cls = cat ? ` is-key cat-${cat.cat}` : '';
+      const val = formatValue(v);
+      return `<div class="pv-row${cls}">
+        <div class="pv-label" title="${escapeHtml(k)}">${escapeHtml(humanizeFieldName(k))}</div>
+        <div class="pv-value ${val ? '' : 'empty'}">${val ? escapeHtml(val) : '(empty)'}</div>
       </div>`;
     }).join('');
+    html += '</div>';
   }
 
   if (!html) html = '<em style="color: var(--muted);">No data captured.</em>';
   return html;
 }
 
+// Readable labels: drop the product prefix (the section header already shows it),
+// then map known abbreviations token-by-token.
+const FIELD_PREFIX = /^(auto|car|cgl|cr|cy|dno|do|pi|prop|property|vs)_/;
+const TOK = {
+  si:'Sum Insured', ded:'Deductible', tpl:'TPL', bi:'BI', pd:'PD', agg:'Aggregate', csl:'CSL',
+  loi:'Limit of Indemnity', cov:'Cover', geo:'Geography', prev:'Prev.', ben:'Beneficiary',
+  sr:'Site Risk', eq:'Earthquake', od:'Own Damage', pa:'Personal Accident', te:'Theft', per:'Per',
+  occ:'Occurrence', gw:'Gross Weight', natcat:'Nat Cat', emp:'Employees', ft:'Funds Transfer',
+  po:'Purchase Order', seg:'Segment', addl:'Additional', susp:'Suspended', drv:'Drivers',
+  reg:'Registered', pct:'%', n:'No.', tpl_bi:'TPL (BI)', tpl_pd:'TPL (PD)',
+};
 function humanizeFieldName(k) {
-  // proposer_name → Proposer Name
-  return k.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  const s = k.replace(FIELD_PREFIX, '');
+  return s.split('_').map(t => TOK[t] || (t.charAt(0).toUpperCase() + t.slice(1))).join(' ').trim() || k;
 }
 
-function formatFieldValue(v) {
+function formatValue(v) {
   if (v === true) return 'Yes';
   if (v === false) return 'No';
   if (v == null) return '';
-  return String(v);
+  const s = String(v);
+  // Group large pure numbers (>= 5 digits) for readability; leave dates/years alone.
+  if (/^\d{5,}(\.\d+)?$/.test(s)) {
+    const [i, d] = s.split('.');
+    return i.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (d !== undefined ? '.' + d : '');
+  }
+  return s;
 }
 
 function renderAIAnalysis(analysis, analyzedAt) {
