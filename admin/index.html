@@ -955,6 +955,15 @@ function keyCat(name) {
   for (const p of KEY_PATTERNS) if (p.re.test(name)) return p;
   return null;
 }
+// Whether to flag a field as a key term: skip Yes/No booleans, the regional
+// revenue breakdown (rev_*), and zero/empty figures so the band stays meaningful.
+function keyTermCat(k, v) {
+  if (v === true) return null;
+  if (k.startsWith('rev_')) return null;
+  const s = String(v).replace(/[,%\s]/g, '');
+  if (s === '' || Number(s) === 0) return null;
+  return keyCat(k);
+}
 
 const SECTION_FOR = [
   [/^(auto_|vs_|vehicle)/, 'Auto'],
@@ -980,8 +989,8 @@ function renderFields(fields, products) {
     if (v == null || v === '' || v === false) continue;
     const sec = sectionFor(k);
     (sections[sec] = sections[sec] || []).push([k, v]);
-    const cat = keyCat(k);
-    if (cat && v !== true) keyTerms.push({ k, v, cat, sec });
+    const cat = keyTermCat(k, v);
+    if (cat) keyTerms.push({ k, v, cat, sec });
   }
 
   let html = '';
@@ -1004,7 +1013,7 @@ function renderFields(fields, products) {
     if (!items || !items.length) continue;
     html += `<div class="pv-section"><div class="pv-h">${escapeHtml(name)}<span class="pv-count">${items.length} field${items.length > 1 ? 's' : ''}</span></div>`;
     html += items.map(([k, v]) => {
-      const cat = (v !== true) ? keyCat(k) : null;
+      const cat = keyTermCat(k, v);
       const cls = cat ? ` is-key cat-${cat.cat}` : '';
       const val = formatValue(v);
       return `<div class="pv-row${cls}">
@@ -1021,7 +1030,7 @@ function renderFields(fields, products) {
 
 // Readable labels: drop the product prefix (the section header already shows it),
 // then map known abbreviations token-by-token.
-const FIELD_PREFIX = /^(auto|car|cgl|cr|cy|dno|do|pi|prop|property|vs)_/;
+const FIELD_PREFIX = /^(auto|car|cgl|crime|cr|cyber|cy|dno|do|pi|prop|property|vs)_/;
 const TOK = {
   si:'Sum Insured', ded:'Deductible', tpl:'TPL', bi:'BI', pd:'PD', agg:'Aggregate', csl:'CSL',
   loi:'Limit of Indemnity', cov:'Cover', geo:'Geography', prev:'Prev.', ben:'Beneficiary',
