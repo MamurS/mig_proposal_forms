@@ -63,7 +63,8 @@
 
   .wrap { padding: 28px 24px 48px; max-width: 1140px; margin: 0 auto; }
   .wrap h1 { font-size: 22px; font-weight: 600; color: var(--mig); margin: 0 0 4px 0; }
-  .wrap .intro { margin: 0 0 22px; color: var(--muted); font-size: 13px; }
+  .wrap .intro { margin: 0; color: var(--muted); font-size: 13px; }
+  .acct-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 8px; flex-wrap: wrap; }
   .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
   .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 18px; }
   .panel h3 {
@@ -140,44 +141,12 @@
 
 <!-- App (admins only) -->
 <div class="wrap hidden" id="app">
-  <h1>Accounts</h1>
-  <p class="intro">Provision sign-in accounts for customers and staff. Credentials are shown once — copy and send them over a secure channel.</p>
-
-  <div class="grid">
-    <!-- New customer -->
-    <div class="panel">
-      <h3>New customer account</h3>
-      <div id="cust-msg"></div>
-      <div class="form-field"><label for="cust-email">Email</label>
-        <input type="email" id="cust-email" placeholder="client@company.com" autocomplete="off" /></div>
-      <div class="form-field"><label for="cust-name">Full name <span style="text-transform: none; color: var(--muted);">(optional)</span></label>
-        <input type="text" id="cust-name" /></div>
-      <div class="form-field"><label for="cust-company">Company <span style="text-transform: none; color: var(--muted);">(optional)</span></label>
-        <input type="text" id="cust-company" /></div>
-      <div class="form-field"><label for="cust-password">Password <span style="text-transform: none; color: var(--muted);">(optional — blank = auto-generate)</span></label>
-        <input type="text" id="cust-password" placeholder="auto-generate" autocomplete="off" /></div>
-      <button class="btn" id="btn-create-customer" style="width: 100%;">Create customer</button>
-      <div id="cust-result"></div>
+  <div class="acct-top">
+    <div>
+      <h1>Accounts</h1>
+      <p class="intro">Manage sign-in accounts for customers and staff.</p>
     </div>
-
-    <!-- New staff member -->
-    <div class="panel">
-      <h3>New staff member</h3>
-      <div id="staff-msg"></div>
-      <div class="form-field"><label for="staff-email">Email</label>
-        <input type="email" id="staff-email" placeholder="colleague@mig.uz" autocomplete="off" /></div>
-      <div class="form-field"><label for="staff-name">Full name <span style="text-transform: none; color: var(--muted);">(optional)</span></label>
-        <input type="text" id="staff-name" /></div>
-      <div class="form-field"><label for="staff-role">Role</label>
-        <select id="staff-role">
-          <option value="underwriter">Underwriter</option>
-          <option value="admin">Admin</option>
-        </select></div>
-      <div class="form-field"><label for="staff-password">Password <span style="text-transform: none; color: var(--muted);">(optional — blank = auto-generate)</span></label>
-        <input type="text" id="staff-password" placeholder="auto-generate" autocomplete="off" /></div>
-      <button class="btn" id="btn-create-staff" style="width: 100%;">Create staff member</button>
-      <div id="staff-result"></div>
-    </div>
+    <button class="btn" id="btn-new-account">+ New account</button>
   </div>
 
   <!-- All accounts -->
@@ -203,6 +172,43 @@
         <tr><td colspan="8" style="text-align: center; padding: 20px; color: var(--muted);"><span class="spinner"></span> Loading…</td></tr>
       </tbody>
     </table>
+  </div>
+</div>
+
+<!-- Create modal (unified customer/staff form) -->
+<div class="modal-backdrop hidden" id="create-modal">
+  <div class="modal">
+    <h3>Create new account</h3>
+    <div class="sub">A sign-in account is created immediately. Copy the credentials and send them to the user — the password is shown only once.</div>
+    <div id="create-msg"></div>
+    <div id="create-form">
+      <div class="form-field"><label for="new-type">Account type</label>
+        <select id="new-type">
+          <option value="customer">Customer — fills in proposals at /portal/</option>
+          <option value="staff">Staff — reviews/rates at /admin/</option>
+        </select></div>
+      <div class="form-field"><label for="new-email">Email</label>
+        <input type="email" id="new-email" placeholder="person@company.com" autocomplete="off" /></div>
+      <div class="form-field"><label for="new-name">Full name <span style="text-transform: none; color: var(--muted);">(optional)</span></label>
+        <input type="text" id="new-name" autocomplete="off" /></div>
+      <div class="form-field" id="new-company-field"><label for="new-company">Company <span style="text-transform: none; color: var(--muted);">(optional)</span></label>
+        <input type="text" id="new-company" autocomplete="off" /></div>
+      <div class="form-field hidden" id="new-role-field"><label for="new-role">Role</label>
+        <select id="new-role">
+          <option value="underwriter">Underwriter</option>
+          <option value="admin">Admin</option>
+        </select></div>
+      <div class="form-field"><label for="new-password">Password <span style="text-transform: none; color: var(--muted);">(optional — blank = auto-generate)</span></label>
+        <input type="text" id="new-password" placeholder="auto-generate" autocomplete="off" /></div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="create-cancel">Cancel</button>
+        <button class="btn" id="create-submit">Create account</button>
+      </div>
+    </div>
+    <div id="create-result"></div>
+    <div class="modal-actions hidden" id="create-done-actions">
+      <button class="btn" id="create-done">Done</button>
+    </div>
   </div>
 </div>
 
@@ -331,41 +337,64 @@ async function invokeFn(payload) {
   return data;
 }
 
-async function createAccount(payload, msgId, resultId, btn, origLabel) {
-  setAcctMsg(msgId, '', 'error');
-  $(resultId).innerHTML = '';
-  if (!payload.email || !payload.email.includes('@')) { setAcctMsg(msgId, 'Enter a valid email.', 'error'); return; }
+// ---- Create modal (unified customer/staff form) ----
+function syncNewType() {
+  const t = $('new-type').value;
+  $('new-company-field').classList.toggle('hidden', t !== 'customer');
+  $('new-role-field').classList.toggle('hidden', t !== 'staff');
+}
+$('new-type').addEventListener('change', syncNewType);
+
+function openCreate() {
+  $('create-msg').innerHTML = '';
+  $('create-result').innerHTML = '';
+  $('new-type').value = 'customer';
+  $('new-email').value = '';
+  $('new-name').value = '';
+  $('new-company').value = '';
+  $('new-role').value = 'underwriter';
+  $('new-password').value = '';
+  syncNewType();
+  $('create-form').classList.remove('hidden');
+  $('create-done-actions').classList.add('hidden');
+  $('create-submit').disabled = false;
+  $('create-submit').textContent = 'Create account';
+  $('create-modal').classList.remove('hidden');
+}
+function closeCreate() { $('create-modal').classList.add('hidden'); }
+
+$('btn-new-account').addEventListener('click', openCreate);
+$('create-cancel').addEventListener('click', closeCreate);
+$('create-done').addEventListener('click', closeCreate);
+$('create-modal').addEventListener('click', (e) => { if (e.target === $('create-modal')) closeCreate(); });
+
+$('create-submit').addEventListener('click', async () => {
+  const type = $('new-type').value;
+  const email = $('new-email').value.trim();
+  if (!email || !email.includes('@')) { setAcctMsg('create-msg', 'Enter a valid email.', 'error'); return; }
+  const payload = {
+    account_type: type,
+    email,
+    full_name: $('new-name').value.trim() || null,
+    password: $('new-password').value || undefined,
+  };
+  if (type === 'customer') payload.company = $('new-company').value.trim() || null;
+  if (type === 'staff') payload.role = $('new-role').value;
+
+  const btn = $('create-submit');
+  setAcctMsg('create-msg', '', 'error');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Creating…';
   try {
     const data = await invokeFn(payload);
     if (!data || !data.user_id) throw new Error('Unexpected response from server.');
-    renderCredentials(resultId, data);
-    loadUsers();  // reflect the new account in the table
+    renderCredentials('create-result', data);
+    $('create-form').classList.add('hidden');           // hide inputs; show credentials + Done
+    $('create-done-actions').classList.remove('hidden');
+    loadUsers();                                          // reflect the new account in the table
   } catch (e) {
-    setAcctMsg(msgId, 'Could not create account: ' + e.message, 'error');
-  } finally {
-    btn.disabled = false; btn.textContent = origLabel;
+    setAcctMsg('create-msg', 'Could not create account: ' + e.message, 'error');
+    btn.disabled = false; btn.textContent = 'Create account';
   }
-}
-
-$('btn-create-customer').addEventListener('click', () => {
-  createAccount({
-    account_type: 'customer',
-    email: $('cust-email').value.trim(),
-    full_name: $('cust-name').value.trim() || null,
-    company: $('cust-company').value.trim() || null,
-    password: $('cust-password').value || undefined,
-  }, 'cust-msg', 'cust-result', $('btn-create-customer'), 'Create customer');
-});
-
-$('btn-create-staff').addEventListener('click', () => {
-  createAccount({
-    account_type: 'staff',
-    email: $('staff-email').value.trim(),
-    full_name: $('staff-name').value.trim() || null,
-    role: $('staff-role').value,
-    password: $('staff-password').value || undefined,
-  }, 'staff-msg', 'staff-result', $('btn-create-staff'), 'Create staff member');
 });
 
 // ============================================================
