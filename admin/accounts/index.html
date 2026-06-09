@@ -61,7 +61,7 @@
   .gate { max-width: 460px; margin: 80px auto; padding: 0 24px; }
   .muted { color: var(--muted); }
 
-  .wrap { padding: 28px 24px 48px; max-width: 960px; margin: 0 auto; }
+  .wrap { padding: 28px 24px 48px; max-width: 1140px; margin: 0 auto; }
   .wrap h1 { font-size: 22px; font-weight: 600; color: var(--mig); margin: 0 0 4px 0; }
   .wrap .intro { margin: 0 0 22px; color: var(--muted); font-size: 13px; }
   .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
@@ -83,6 +83,33 @@
   .toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 18px; border-radius: 6px; color: white; font-size: 13px; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
   .toast.success { background: var(--success); }
   .toast.error { background: var(--error); }
+
+  /* === Users table === */
+  .users-head { display: flex; align-items: center; justify-content: space-between; margin: 28px 0 12px; }
+  .users-head h2 { font-size: 16px; font-weight: 600; color: var(--mig); margin: 0; }
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: auto; }
+  table.users { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.users th {
+    text-align: left; background: var(--surface-alt); padding: 9px 12px;
+    font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--muted); border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  table.users td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  table.users tr:last-child td { border-bottom: none; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; letter-spacing: 0.03em; }
+  .badge.staff { background: var(--mig-light); color: var(--mig); }
+  .badge.customer { background: #e6f3e8; color: var(--success); }
+  .badge.none { background: #ececec; color: var(--muted); }
+  .badge.admin { background: #fbf3dc; color: var(--warning); }
+  .badge.underwriter { background: #eef0f4; color: var(--muted); }
+  .row-actions { display: flex; gap: 6px; justify-content: flex-end; }
+
+  /* === Edit modal === */
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(11,20,36,0.45); display: flex; align-items: center; justify-content: center; z-index: 200; padding: 24px; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; width: 100%; max-width: 420px; box-shadow: 0 8px 32px rgba(11,20,36,0.18); }
+  .modal h3 { margin: 0 0 4px 0; font-size: 17px; color: var(--mig); }
+  .modal .sub { font-size: 12px; color: var(--muted); margin-bottom: 16px; word-break: break-all; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
   .hidden { display: none !important; }
 </style>
 </head>
@@ -152,6 +179,51 @@
       <div id="staff-result"></div>
     </div>
   </div>
+
+  <!-- All accounts -->
+  <div class="users-head">
+    <h2>All accounts</h2>
+    <button class="btn btn-secondary btn-sm" id="btn-refresh-users">Refresh</button>
+  </div>
+  <div class="table-wrap">
+    <table class="users">
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>Type</th>
+          <th>Authority</th>
+          <th>Name</th>
+          <th>Company</th>
+          <th>Created</th>
+          <th>Last sign-in</th>
+          <th style="text-align: right;">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="users-tbody">
+        <tr><td colspan="8" style="text-align: center; padding: 20px; color: var(--muted);"><span class="spinner"></span> Loading…</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Edit modal -->
+<div class="modal-backdrop hidden" id="edit-modal">
+  <div class="modal">
+    <h3 id="edit-title">Edit account</h3>
+    <div class="sub" id="edit-sub">—</div>
+    <div id="edit-msg"></div>
+    <div class="form-field"><label for="edit-email">Email</label><input type="email" id="edit-email" autocomplete="off" /></div>
+    <div class="form-field"><label for="edit-name">Full name</label><input type="text" id="edit-name" /></div>
+    <div class="form-field" id="edit-company-field"><label for="edit-company">Company</label><input type="text" id="edit-company" /></div>
+    <div class="form-field" id="edit-role-field"><label for="edit-role">Authority (role)</label>
+      <select id="edit-role"><option value="underwriter">Underwriter</option><option value="admin">Admin</option></select></div>
+    <div class="form-field"><label for="edit-password">New password <span style="text-transform: none; color: var(--muted);">(optional — blank = keep current)</span></label>
+      <input type="text" id="edit-password" placeholder="leave blank to keep" autocomplete="off" /></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="edit-cancel">Cancel</button>
+      <button class="btn" id="edit-save">Save changes</button>
+    </div>
+  </div>
 </div>
 
 <div id="toast-container"></div>
@@ -160,6 +232,8 @@
 <script src="/config.js"></script>
 <script>
 let sb = null;
+let meId = null;
+let usersCache = [];
 const $ = id => document.getElementById(id);
 
 function escapeHtml(s) {
@@ -209,11 +283,13 @@ function showGate(title, body) {
   }
 
   // Admin — reveal the app.
+  meId = session.user.id;
   $('auth-gate').classList.add('hidden');
   $('app').classList.remove('hidden');
   $('user-email').textContent = session.user.email || '';
   $('btn-signout').classList.remove('hidden');
   $('btn-signout').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+  loadUsers();
 })();
 
 // ============================================================
@@ -243,21 +319,28 @@ function renderCredentials(elId, res) {
   });
 }
 
+// Shared invoke helper — surfaces the Edge Function's JSON {error} on non-2xx.
+async function invokeFn(payload) {
+  const { data, error } = await sb.functions.invoke('create-account', { body: payload });
+  if (error) {
+    let detail = error.message;
+    try { const ctx = await error.context?.json?.(); if (ctx?.error) detail = ctx.error; } catch (_) {}
+    throw new Error(detail);
+  }
+  if (data && data.error) throw new Error(data.error);
+  return data;
+}
+
 async function createAccount(payload, msgId, resultId, btn, origLabel) {
   setAcctMsg(msgId, '', 'error');
   $(resultId).innerHTML = '';
   if (!payload.email || !payload.email.includes('@')) { setAcctMsg(msgId, 'Enter a valid email.', 'error'); return; }
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Creating…';
   try {
-    const { data, error } = await sb.functions.invoke('create-account', { body: payload });
-    if (error) {
-      let detail = error.message;
-      try { const ctx = await error.context?.json?.(); if (ctx?.error) detail = ctx.error; } catch (_) {}
-      throw new Error(detail);
-    }
-    if (data && data.error) throw new Error(data.error);
+    const data = await invokeFn(payload);
     if (!data || !data.user_id) throw new Error('Unexpected response from server.');
     renderCredentials(resultId, data);
+    loadUsers();  // reflect the new account in the table
   } catch (e) {
     setAcctMsg(msgId, 'Could not create account: ' + e.message, 'error');
   } finally {
@@ -284,6 +367,124 @@ $('btn-create-staff').addEventListener('click', () => {
     password: $('staff-password').value || undefined,
   }, 'staff-msg', 'staff-result', $('btn-create-staff'), 'Create staff member');
 });
+
+// ============================================================
+// All accounts — list / edit / delete
+// ============================================================
+function fmtDate(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+const TYPE_LABEL = { staff: 'Staff', customer: 'Customer', none: 'No profile' };
+
+async function loadUsers() {
+  const tb = $('users-tbody');
+  tb.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted);"><span class="spinner"></span> Loading…</td></tr>';
+  try {
+    const data = await invokeFn({ action: 'list' });
+    usersCache = (data && data.users) || [];
+    // staff first, then customers, then orphans — each alphabetical by email
+    const order = { staff: 0, customer: 1, none: 2 };
+    usersCache.sort((a, b) => (order[a.type] - order[b.type]) || String(a.email).localeCompare(String(b.email)));
+    renderUsers();
+  } catch (e) {
+    tb.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--error);">Could not load accounts: ${escapeHtml(e.message)}</td></tr>`;
+  }
+}
+
+function renderUsers() {
+  const tb = $('users-tbody');
+  if (!usersCache.length) {
+    tb.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted);">No accounts yet.</td></tr>';
+    return;
+  }
+  tb.innerHTML = usersCache.map(u => {
+    const authority = u.type === 'staff'
+      ? `<span class="badge ${escapeHtml(u.role || '')}">${escapeHtml(u.role || '—')}</span>`
+      : (u.type === 'customer' ? '<span style="color:var(--muted);">customer</span>' : '<span style="color:var(--muted);">—</span>');
+    const isMe = u.user_id === meId;
+    return `<tr>
+      <td><strong>${escapeHtml(u.email || '—')}</strong>${isMe ? ' <span style="color:var(--muted);font-size:11px;">(you)</span>' : ''}</td>
+      <td><span class="badge ${escapeHtml(u.type)}">${escapeHtml(TYPE_LABEL[u.type] || u.type)}</span></td>
+      <td>${authority}</td>
+      <td>${escapeHtml(u.full_name || '—')}</td>
+      <td>${escapeHtml(u.company || '—')}</td>
+      <td><span class="mono" style="font-size:12px;">${escapeHtml(fmtDate(u.created_at))}</span></td>
+      <td><span class="mono" style="font-size:12px;">${escapeHtml(fmtDate(u.last_sign_in_at))}</span></td>
+      <td><div class="row-actions">
+        <button class="btn btn-secondary btn-sm" data-edit="${escapeHtml(u.user_id)}">Edit</button>
+        <button class="btn btn-secondary btn-sm" data-del="${escapeHtml(u.user_id)}" ${isMe ? 'disabled title="You cannot delete your own account"' : ''} style="${isMe ? '' : 'color:var(--error);border-color:#f5c8c8;'}">Delete</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+  tb.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => openEdit(b.getAttribute('data-edit'))));
+  tb.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => deleteUser(b.getAttribute('data-del'))));
+}
+
+$('btn-refresh-users').addEventListener('click', loadUsers);
+
+// ---- Edit modal ----
+let editingUser = null;
+function openEdit(uid) {
+  const u = usersCache.find(x => x.user_id === uid);
+  if (!u) return;
+  editingUser = u;
+  $('edit-title').textContent = 'Edit ' + (TYPE_LABEL[u.type] || u.type).toLowerCase();
+  $('edit-sub').textContent = u.email || u.user_id;
+  $('edit-msg').innerHTML = '';
+  $('edit-email').value = u.email || '';
+  $('edit-name').value = u.full_name || '';
+  $('edit-company').value = u.company || '';
+  $('edit-role').value = u.role || 'underwriter';
+  $('edit-password').value = '';
+  // Company only for customers; Role only for staff.
+  $('edit-company-field').classList.toggle('hidden', u.type !== 'customer');
+  $('edit-role-field').classList.toggle('hidden', u.type !== 'staff');
+  $('edit-modal').classList.remove('hidden');
+}
+function closeEdit() { $('edit-modal').classList.add('hidden'); editingUser = null; }
+$('edit-cancel').addEventListener('click', closeEdit);
+$('edit-modal').addEventListener('click', (e) => { if (e.target === $('edit-modal')) closeEdit(); });
+
+$('edit-save').addEventListener('click', async () => {
+  if (!editingUser) return;
+  const payload = { action: 'update', user_id: editingUser.user_id };
+  const email = $('edit-email').value.trim();
+  if (email && email !== editingUser.email) payload.email = email;
+  payload.full_name = $('edit-name').value.trim() || null;
+  if (editingUser.type === 'customer') payload.company = $('edit-company').value.trim() || null;
+  if (editingUser.type === 'staff') payload.role = $('edit-role').value;
+  const pw = $('edit-password').value;
+  if (pw) {
+    if (pw.length < 8) { $('edit-msg').innerHTML = '<div class="login-error">Password must be at least 8 characters.</div>'; return; }
+    payload.password = pw;
+  }
+  const btn = $('edit-save');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Saving…';
+  try {
+    await invokeFn(payload);
+    closeEdit();
+    toast('Account updated');
+    loadUsers();
+  } catch (e) {
+    $('edit-msg').innerHTML = `<div class="login-error">${escapeHtml('Could not save: ' + e.message)}</div>`;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Save changes';
+  }
+});
+
+async function deleteUser(uid) {
+  const u = usersCache.find(x => x.user_id === uid);
+  if (!u) return;
+  if (!confirm('Permanently delete the account ' + (u.email || uid) + '?\n\nThis removes their sign-in and profile. This cannot be undone.')) return;
+  try {
+    await invokeFn({ action: 'delete', user_id: uid });
+    toast('Account deleted');
+    loadUsers();
+  } catch (e) {
+    toast('Could not delete: ' + e.message, 'error');
+  }
+}
 </script>
 </body>
 </html>
