@@ -2829,7 +2829,8 @@
       <div class="mb-10">
         <h3 class="sub-title mb-4 rule pb-2" data-i18n="h3_D_1_desired_coverage">D.1 &nbsp;Desired Coverage</h3>
         <div class="flex flex-wrap gap-x-6 gap-y-3">
-          <label class="chk"><input type="checkbox" name="cy_cov_shield" /><span data-i18n="chk_cyber_shield_1st_amp_3rd_party_422">Cyber Shield (1st &amp; 3rd party)</span></label>
+          <label class="chk"><input type="checkbox" name="cy_cov_first_party" /><span data-i18n="chk_cyber_first_party">Cyber — first party (own loss)</span></label>
+          <label class="chk"><input type="checkbox" name="cy_cov_third_party_liability" /><span data-i18n="chk_cyber_third_party_liability">Privacy &amp; network-security liability (third party)</span></label>
           <label class="chk"><input type="checkbox" name="cy_cov_extortion" /><span data-i18n="chk_cyber_extortion_423">Cyber Extortion</span></label>
           <label class="chk"><input type="checkbox" name="cy_cov_media" /><span data-i18n="chk_media_content_liability_424">Media Content Liability</span></label>
           <label class="chk"><input type="checkbox" name="cy_cov_interruption" /><span data-i18n="chk_network_interruption_425">Network Interruption</span></label>
@@ -3235,6 +3236,8 @@ window.__MIG_INLINE_TRANSLATIONS = {
     "fl_req_currency": "Валюта",
     "ph_req_sublimits": "напр., конкретные сублимиты и суммы",
     "note_pi_req_above": "Лимит ответственности и удержание указаны в разделе «Запрашиваемые лимиты» выше.",
+    "chk_cyber_first_party": "Кибер — первая сторона (собственные убытки)",
+    "chk_cyber_third_party_liability": "Ответственность за конфиденциальность и сетевую безопасность (третья сторона)",
     "fl_name_of_proposer_company_1": "1. Наименование Страхователя (компании)",
     "fl_date_of_incorporation_2": "2. Дата регистрации",
     "fl_web_site_3": "3. Веб-сайт",
@@ -3840,6 +3843,8 @@ window.__MIG_INLINE_TRANSLATIONS = {
     "fl_req_currency": "Valyuta",
     "ph_req_sublimits": "masalan, aniq sublimitlar va summalar",
     "note_pi_req_above": "Javobgarlik limiti va ushlab qolish yuqoridagi «So'ralayotgan limitlar» bo'limida ko'rsatilgan.",
+    "chk_cyber_first_party": "Kiber — birinchi tomon (o'z zarari)",
+    "chk_cyber_third_party_liability": "Maxfiylik va tarmoq xavfsizligi javobgarligi (uchinchi tomon)",
     "fl_name_of_proposer_company_1": "1. Sug'urtalanuvchining nomi (kompaniya)",
     "fl_date_of_incorporation_2": "2. Ro'yxatdan o'tgan sana",
     "fl_web_site_3": "3. Veb-sayt",
@@ -5077,6 +5082,12 @@ function collectFormData() {
   });
   data._products = getSelectedProducts();
   data._timestamp = new Date().toISOString();
+  // Cyber coverage is now two independent clauses (first-party / third-party
+  // liability). Keep the legacy combined flags consistent for older readers:
+  // cy_cov_shield + cy_cov_first_third are true if either clause is selected.
+  const _cyFP = !!data.cy_cov_first_party, _cyTP = !!data.cy_cov_third_party_liability;
+  data.cy_cov_shield = _cyFP || _cyTP;
+  data.cy_cov_first_third = _cyFP || _cyTP;
   return data;
 }
 
@@ -5123,7 +5134,17 @@ function populateFormData(fields) {
     });
   });
 
-  // 4. Re-apply toggles that depend on checkbox state set above.
+  // 4. Back-fill the split cyber clauses when editing a legacy submission that
+  //    only has the old combined flag (cy_cov_shield / cy_cov_first_third).
+  if (fields.cy_cov_first_party === undefined && fields.cy_cov_third_party_liability === undefined
+      && (fields.cy_cov_shield === true || fields.cy_cov_first_third === true)) {
+    const fp = form.querySelector('[name="cy_cov_first_party"]');
+    const tp = form.querySelector('[name="cy_cov_third_party_liability"]');
+    if (fp) fp.checked = true;
+    if (tp) tp.checked = true;
+  }
+
+  // 5. Re-apply toggles that depend on checkbox state set above.
   if (typeof applyPropertyMode === 'function') applyPropertyMode();
   if (typeof applyAuditVisibility === 'function') applyAuditVisibility();
   if (typeof updateProgressDots === 'function') updateProgressDots();
