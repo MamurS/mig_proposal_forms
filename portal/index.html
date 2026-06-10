@@ -173,6 +173,22 @@
         </tbody>
       </table>
     </div>
+
+    <h2 style="font-size:18px; font-weight:600; color:var(--mig); margin:28px 0 10px;">Quotations</h2>
+    <div class="table-wrap">
+      <table class="subs">
+        <thead><tr><th>Reference</th><th>Date</th><th>Total premium</th><th style="text-align:right;">Document</th></tr></thead>
+        <tbody id="quotes-tbody"><tr><td colspan="4" style="text-align:center;padding:18px;color:var(--muted);">—</td></tr></tbody>
+      </table>
+    </div>
+
+    <h2 style="font-size:18px; font-weight:600; color:var(--mig); margin:28px 0 10px;">Policies / wordings</h2>
+    <div class="table-wrap">
+      <table class="subs">
+        <thead><tr><th>Policy №</th><th>Line</th><th>Issued</th><th>Status</th><th style="text-align:right;">Document</th></tr></thead>
+        <tbody id="pols-tbody"><tr><td colspan="5" style="text-align:center;padding:18px;color:var(--muted);">—</td></tr></tbody>
+      </table>
+    </div>
   </div>
 </div>
 
@@ -260,9 +276,60 @@ async function enter(session) {
     $('user-email').textContent = currentUser.email;
     show('view-dash');
     loadSubmissions();
+    loadQuotations();
+    loadPolicies();
   } finally {
     entering = false;
   }
+}
+
+function money(v, cur) { const n = Number(v); if (!n) return '—'; return String(cur || 'USD').replace(/[^A-Z]/g, '').slice(0, 3) + ' ' + n.toLocaleString('en-US'); }
+
+async function loadQuotations() {
+  const tb = $('quotes-tbody');
+  const { data, error } = await sb.from('quotations')
+    .select('id, created_at, reference, total_premium, currency, doc_filename')
+    .order('created_at', { ascending: false });
+  if (error) { tb.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:18px;color:var(--error);">' + escapeHtml(error.message) + '</td></tr>'; return; }
+  if (!data || !data.length) { tb.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:18px;color:var(--muted);">No quotations yet.</td></tr>'; return; }
+  tb.innerHTML = data.map(q =>
+    '<tr><td><strong>' + escapeHtml(q.reference || '—') + '</strong></td>' +
+    '<td><span class="mono" style="font-size:12px;">' + escapeHtml(fmtDate(q.created_at)) + '</span></td>' +
+    '<td>' + escapeHtml(money(q.total_premium, q.currency)) + '</td>' +
+    '<td style="text-align:right;"><button class="btn btn-secondary btn-sm" data-dl="quotations" data-row="' + escapeHtml(q.id) + '">Download .docx</button></td></tr>').join('');
+  tb.querySelectorAll('[data-dl]').forEach(b => b.addEventListener('click', () => downloadDocRow(b)));
+}
+
+async function loadPolicies() {
+  const tb = $('pols-tbody');
+  const groups = await Promise.all([['cyber_policies', 'Cyber'], ['crime_policies', 'Crime']].map(async ([tbl, line]) => {
+    const { data } = await sb.from(tbl).select('id, policy_number, issued_at, status, doc_filename').order('issued_at', { ascending: false });
+    return (data || []).map(p => ({ ...p, _tbl: tbl, line }));
+  }));
+  const out = groups.flat();
+  out.sort((a, b) => new Date(b.issued_at || 0) - new Date(a.issued_at || 0));
+  if (!out.length) { tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:18px;color:var(--muted);">No policies issued yet.</td></tr>'; return; }
+  tb.innerHTML = out.map(p =>
+    '<tr><td><strong>' + escapeHtml(p.policy_number || '—') + '</strong></td><td>' + escapeHtml(p.line) + '</td>' +
+    '<td><span class="mono" style="font-size:12px;">' + escapeHtml(fmtDate(p.issued_at)) + '</span></td>' +
+    '<td><span class="status-badge ' + escapeHtml(p.status) + '">' + escapeHtml(statusLabel(p.status)) + '</span></td>' +
+    '<td style="text-align:right;">' + (p.doc_filename ? '<button class="btn btn-secondary btn-sm" data-dl="' + escapeHtml(p._tbl) + '" data-row="' + escapeHtml(p.id) + '">Download .docx</button>' : '<span class="muted" style="font-size:12px;">—</span>') + '</td></tr>').join('');
+  tb.querySelectorAll('[data-dl]').forEach(b => b.addEventListener('click', () => downloadDocRow(b)));
+}
+
+async function downloadDocRow(btn) {
+  const tbl = btn.getAttribute('data-dl'), id = btn.getAttribute('data-row');
+  const orig = btn.textContent; btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  try {
+    const { data, error } = await sb.from(tbl).select('doc_base64, doc_filename').eq('id', id).single();
+    if (error || !data || !data.doc_base64) { toast('No document stored.', 'error'); return; }
+    const bin = atob(data.doc_base64); const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const url = URL.createObjectURL(new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }));
+    const a = document.createElement('a'); a.href = url; a.download = data.doc_filename || 'document.docx';
+    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 200);
+  } catch (e) { toast('Download failed: ' + e.message, 'error'); }
+  finally { btn.disabled = false; btn.textContent = orig; }
 }
 
 // ============================================================
