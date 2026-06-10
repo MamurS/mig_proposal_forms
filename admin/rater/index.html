@@ -117,8 +117,7 @@
           <select id="sub-select"><option value="">— manual entry —</option></select>
         </div>
         <div style="align-self:end">
-          <button class="btn" id="btn-load-sub">Load into rater</button>
-          <span class="muted" id="load-note" style="font-size:12px;margin-left:8px"></span>
+          <span class="muted" id="load-note" style="font-size:12px">Selecting a submission fills the rater automatically.</span>
         </div>
       </div>
     </div>
@@ -567,7 +566,8 @@ function bindThousands(input) {
   $('btn-add-geo').onclick = () => { addGeoRow(); recalc(); };
   $('btn-add-region').onclick = () => { addRegionRow(); recalc(); };
   $('btn-save').onclick = saveQuote;
-  $('btn-load-sub').onclick = loadFromSubmission;
+  // Choosing a submission auto-loads it into the rater (no Load button).
+  $('sub-select').addEventListener('change', () => { if ($('sub-select').value) loadFromSubmission(); });
   $('rater-type').onchange = () => selectType($('rater-type').value);
 
   // honour ?type=… deep links (the old per-type pages redirect with ?type=cyber|crime)
