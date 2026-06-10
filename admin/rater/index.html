@@ -92,13 +92,23 @@
       <h2>Insurance type</h2>
       <div class="typesel">
         <select id="rater-type">
-          <option value="cyber">Cyber — premium rater</option>
-          <option value="crime">Crime — premium rater</option>
+          <option value="" selected>Choose insurance type…</option>
+          <option value="auto">Commercial Automobile</option>
+          <option value="property">Property</option>
+          <option value="cgl">General Liability (CGL)</option>
+          <option value="car">Contractors' All Risks (CAR)</option>
+          <option value="dno">Directors &amp; Officers (D&amp;O)</option>
+          <option value="pi">Professional Indemnity (PI)</option>
+          <option value="crime">Crime</option>
+          <option value="cyber">Cyber</option>
         </select>
         <span class="muted" style="font-size:12px">Choose the line to rate — the relevant inputs and rate card load below.</span>
       </div>
     </div>
 
+    <div class="card hidden" id="rater-msg" style="margin-bottom:20px"></div>
+
+    <div id="rater-form" class="hidden">
     <div class="card" style="margin-bottom:20px">
       <h2>Start from a submitted proposal (optional)</h2>
       <div class="row2">
@@ -288,6 +298,7 @@
       </table>
       <p class="muted" id="quotes-empty" style="margin-top:8px; font-size:13px">No quotes yet.</p>
     </div>
+    </div><!-- /#rater-form -->
   </div>
 </div>
 
@@ -499,9 +510,17 @@
 // by type. Per-type rate cards are cached in CARD[type].
 // ============================================================
 let sb = null, session = null, loadedSubmissionId = null, lastResult = null;
-let TYPE = 'cyber';
+let TYPE = '';                      // '' until the user picks an insurance type
 let T = null;                       // active type's rate-card tables
 const CARD = {};                    // type -> { rateCard, T, populated }
+// All proposal lines (matches the proposal form / quotation generator).
+const TYPE_LABELS = {
+  auto: 'Commercial Automobile', property: 'Property', cgl: 'General Liability (CGL)',
+  car: "Contractors' All Risks (CAR)", dno: 'Directors & Officers (D&O)', pi: 'Professional Indemnity (PI)',
+  crime: 'Crime', cyber: 'Cyber',
+};
+// Lines with a real rating engine + active rate card. Others are listed but not rated.
+const BUILT = ['cyber', 'crime'];
 const $ = id => document.getElementById(id);
 const fmt = n => Number(n).toLocaleString('en-US', { maximumFractionDigits: 2 });
 function showErr(msg) { const b = $('err-banner'); b.textContent = msg; b.style.display = msg ? 'block' : 'none'; }
@@ -551,17 +570,36 @@ function bindThousands(input) {
   $('btn-load-sub').onclick = loadFromSubmission;
   $('rater-type').onchange = () => selectType($('rater-type').value);
 
-  // honour ?type=cyber|crime deep links (used by the redirect from the old pages)
+  // honour ?type=… deep links (the old per-type pages redirect with ?type=cyber|crime)
   const qsType = new URLSearchParams(location.search).get('type');
-  TYPE = (qsType === 'crime') ? 'crime' : 'cyber';
-  $('rater-type').value = TYPE;
-  await selectType(TYPE);
+  const startType = (qsType && TYPE_LABELS[qsType]) ? qsType : '';
+  $('rater-type').value = startType;
+  await selectType(startType);
 })();
 
 async function selectType(type) {
-  TYPE = (type === 'crime') ? 'crime' : 'cyber';
+  TYPE = type || '';
   loadedSubmissionId = null;
   showErr('');
+  // No type chosen yet — show only the picker.
+  if (!TYPE) {
+    $('rater-form').classList.add('hidden');
+    $('rater-msg').classList.add('hidden');
+    $('card-version').textContent = '';
+    return;
+  }
+  // Listed but not rated (no engine / rate card).
+  if (!BUILT.includes(TYPE)) {
+    $('rater-form').classList.add('hidden');
+    $('rater-msg').classList.remove('hidden');
+    $('rater-msg').innerHTML = '<h2>' + (TYPE_LABELS[TYPE] || TYPE) + '</h2>' +
+      '<p class="muted" style="font-size:13px">Premium rating for this line isn’t configured yet — only <strong>Cyber</strong> and <strong>Crime</strong> have rate cards. ' +
+      'For other lines, set the underwriter’s terms directly in the <a href="/admin/quote/">Quotation generator</a>.</p>';
+    $('card-version').textContent = '';
+    return;
+  }
+  $('rater-msg').classList.add('hidden');
+  $('rater-form').classList.remove('hidden');
   $('grp-cyber').classList.toggle('hidden', TYPE !== 'cyber');
   $('grp-crime').classList.toggle('hidden', TYPE !== 'crime');
   $('bd-warn').style.display = 'none';
@@ -794,7 +832,7 @@ function updateRunSums(inputs) {
 
 // ---------- recalc / render ----------
 function recalc() {
-  if (!T) return;
+  if (!BUILT.includes(TYPE) || !T) return;
   if (TYPE === 'cyber') recalcCyber();
   else recalcCrime();
 }

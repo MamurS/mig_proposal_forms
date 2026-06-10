@@ -102,20 +102,29 @@
   <div id="app" class="hidden">
     <div class="err-banner" id="err-banner"></div>
 
-    <div class="cols">
+    <div class="card">
+      <h2>Insurance type</h2>
+      <div class="typesel">
+        <select id="policy-type">
+          <option value="" selected>Choose insurance type…</option>
+          <option value="auto">Commercial Automobile</option>
+          <option value="property">Property</option>
+          <option value="cgl">General Liability (CGL)</option>
+          <option value="car">Contractors' All Risks (CAR)</option>
+          <option value="dno">Directors &amp; Officers (D&amp;O)</option>
+          <option value="pi">Professional Indemnity (PI)</option>
+          <option value="crime">Crime</option>
+          <option value="cyber">Cyber</option>
+        </select>
+      </div>
+      <p class="note" style="margin-top:8px">Choose the line — the matching schedule, sublimits and bilingual wording are used.</p>
+    </div>
+
+    <div class="card hidden" id="policy-msg"></div>
+
+    <div class="cols hidden" id="policy-form">
       <!-- ============ LEFT: data sources + manual fields ============ -->
       <div>
-        <div class="card">
-          <h2>Insurance type</h2>
-          <div class="typesel">
-            <select id="policy-type">
-              <option value="cyber">Cyber — policy issuance</option>
-              <option value="crime">Crime — policy issuance</option>
-            </select>
-          </div>
-          <p class="note" style="margin-top:8px">Choose the line — the matching schedule, sublimits and bilingual wording are used.</p>
-        </div>
-
         <div class="card">
           <h2>1 · Data sources</h2>
           <label class="fl" id="sub-label">Submission (auto-fill)</label>

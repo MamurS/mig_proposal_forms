@@ -38,6 +38,15 @@ const TYPECFG = {
 };
 function cfg() { return TYPECFG[TYPE]; }
 
+// All proposal lines (matches the proposal form / quotation generator).
+const POLICY_LABELS = {
+  auto: 'Commercial Automobile', property: 'Property', cgl: 'General Liability (CGL)',
+  car: "Contractors' All Risks (CAR)", dno: 'Directors & Officers (D&O)', pi: 'Professional Indemnity (PI)',
+  crime: 'Crime', cyber: 'Cyber',
+};
+// Lines with full bilingual wording. Others are listed but not issuable here.
+const POLICY_BUILT = ['cyber', 'crime'];
+
 function bindThousands(input) {
   input.addEventListener('input', () => {
     const raw = stripC(input.value).replace(/[^\d.]/g, '');
@@ -220,7 +229,9 @@ function scheduleRows() {
 
 // ---------------- preview ----------------
 function renderPreview() {
-  const c = cfg(), W = c.W();
+  const c = cfg();
+  if (!c) { $('doc-root').innerHTML = ''; return; }  // no built type selected
+  const W = c.W();
   const rows = scheduleRows();
   let h = '<div class="sheet">';
   h += '<div class="doc-head">' +
@@ -620,8 +631,36 @@ async function confirmIssue() {
 
 // ---------------- type switch ----------------
 function selectType(type) {
-  TYPE = (type === 'crime') ? 'crime' : 'cyber';
+  TYPE = type || '';
   $('policy-type').value = TYPE;
+  // reset the issuance state on any switch — a different type targets a different table
+  loadedSubmissionId = null; loadedQuoteId = null;
+  issued = false; policyRecordId = null;
+  $('status-pill').textContent = 'draft'; $('status-pill').classList.remove('issued');
+  $('btn-final').classList.add('hidden');
+  $('load-note').textContent = '';
+  document.querySelectorAll('.prefill-badge').forEach(b => b.classList.add('hidden'));
+
+  // No type chosen yet — show only the picker.
+  if (!TYPE) {
+    $('policy-form').classList.add('hidden');
+    $('policy-msg').classList.add('hidden');
+    renderPreview();
+    return;
+  }
+  // Listed but no bilingual wording configured.
+  if (!POLICY_BUILT.includes(TYPE)) {
+    $('policy-form').classList.add('hidden');
+    $('policy-msg').classList.remove('hidden');
+    $('policy-msg').innerHTML = '<h2>' + esc(POLICY_LABELS[TYPE] || TYPE) + '</h2>' +
+      '<p class="note">Policy issuance for this line isn’t configured yet — only <strong>Cyber</strong> and <strong>Crime</strong> have bilingual wording. ' +
+      'For other lines, produce terms with the <a href="/admin/quote/">Quotation generator</a>, or ask an admin to add the wording.</p>';
+    renderPreview();
+    return;
+  }
+  // built (cyber / crime)
+  $('policy-msg').classList.add('hidden');
+  $('policy-form').classList.remove('hidden');
   const isCyber = TYPE === 'cyber';
   $('cy-covers').classList.toggle('hidden', !isCyber);
   $('cy-extra').classList.toggle('hidden', !isCyber);
@@ -630,13 +669,6 @@ function selectType(type) {
   $('f-polnum').placeholder = cfg().polnum;
   $('sub-label').textContent = (isCyber ? 'Cyber' : 'Crime') + ' submission (auto-fill)';
   $('rater-link').href = '/admin/rater/?type=' + TYPE;
-  // reset the issuance state — a switched type targets a different table
-  loadedSubmissionId = null; loadedQuoteId = null;
-  issued = false; policyRecordId = null;
-  $('status-pill').textContent = 'draft'; $('status-pill').classList.remove('issued');
-  $('btn-final').classList.add('hidden');
-  $('load-note').textContent = '';
-  document.querySelectorAll('.prefill-badge').forEach(b => b.classList.add('hidden'));
   $('sub-select').innerHTML = '<option value="">— none / manual —</option>';
   $('quote-select').innerHTML = '<option value="">— none / manual —</option>';
   loadSources();
@@ -705,7 +737,7 @@ function selectType(type) {
     $('btn-final').disabled = false;
   };
 
-  // honour ?type=cyber|crime deep links (redirect from the old per-type pages)
+  // honour ?type=… deep links (the old per-type pages redirect with ?type=cyber|crime)
   const qsType = new URLSearchParams(location.search).get('type');
-  selectType(qsType === 'crime' ? 'crime' : 'cyber');
+  selectType((qsType && POLICY_LABELS[qsType]) ? qsType : '');
 })();
