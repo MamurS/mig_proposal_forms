@@ -223,10 +223,15 @@ async function generateQuotation() {
     try {
       const b64 = await blobToBase64(blob);
       const me = (await sb.auth.getUser()).data.user;
+      // Link to the customer: the submission's customer, else resolve by INN.
+      let custId = (submission && submission.customer_id) || null;
+      if (!custId && g('q-inn')) {
+        try { const { data: cm } = await sb.from('customers').select('user_id').eq('inn', g('q-inn')).limit(1); if (cm && cm[0]) custId = cm[0].user_id; } catch (_) {}
+      }
       const { error: insErr } = await sb.from('quotations').insert({
         created_by: me ? me.id : null,
         submission_id: (submission && submission.id) || null,
-        customer_id: (submission && submission.customer_id) || null,
+        customer_id: custId,
         reference: g('q-ref'), currency: curCode, total_premium: total,
         inn: g('q-inn') || null,
         lines: lines, doc_base64: b64, doc_filename: fname, status: 'sent',

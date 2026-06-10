@@ -508,7 +508,13 @@
 // the form; the matching inputs, rate card, engine and tables are selected
 // by type. Per-type rate cards are cached in CARD[type].
 // ============================================================
-let sb = null, session = null, loadedSubmissionId = null, lastResult = null;
+let sb = null, session = null, loadedSubmissionId = null, loadedCustomerId = null, lastResult = null;
+
+// Read a submission field across BOTH naming schemes — the online proposal form
+// and the AI-intake scraper use different keys (e.g. employees_total vs total_employees).
+function subField(f, ...keys) { for (const k of keys) { const v = f[k]; if (v !== undefined && v !== null && v !== '') return v; } return ''; }
+function subNum(f, ...keys) { return Number(String(subField(f, ...keys)).replace(/,/g, '')) || 0; }
+function sumRegion(f, suffix) { let t = 0; const re = new RegExp('^(rev|region)_[a-z]+_' + suffix + '$'); Object.keys(f).forEach(k => { if (re.test(k)) t += Number(String(f[k]).replace(/,/g, '')) || 0; }); return t; }
 let TYPE = '';                      // '' until the user picks an insurance type
 let T = null;                       // active type's rate-card tables
 const CARD = {};                    // type -> { rateCard, T, populated }
@@ -580,6 +586,7 @@ function bindThousands(input) {
 async function selectType(type) {
   TYPE = type || '';
   loadedSubmissionId = null;
+  loadedCustomerId = null;
   showErr('');
   // No type chosen yet — show only the picker.
   if (!TYPE) {
@@ -934,48 +941,63 @@ async function loadFromSubmission() {
   const id = $('sub-select').value;
   if (!id) { $('load-note').textContent = 'Select a submission first.'; return; }
   const { data, error } = await sb.from('submissions')
-    .select('id, proposer_name, payload').eq('id', id).single();
+    .select('id, proposer_name, customer_id, payload').eq('id', id).single();
   if (error || !data) { $('load-note').textContent = 'Could not load.'; return; }
   const f = (data.payload && data.payload.fields) || {};
   loadedSubmissionId = data.id;
-  $('in-insured').value = data.proposer_name || '';
+  loadedCustomerId = data.customer_id || null;
+  $('in-insured').value = data.proposer_name || subField(f, 'proposer_name') || '';
 
   if (TYPE === 'cyber') {
-    if (f.annual_turnover) { $('in-revenue').value = String(f.annual_turnover); $('in-revenue').dispatchEvent(new Event('input')); }
-    $('ext-media').checked = f.cy_cov_media === 'Yes' || f.cy_cov_media === true;
-    $('ext-extortion').checked = f.cy_cov_extortion === 'Yes' || f.cy_cov_extortion === true;
-    $('ext-bi').checked = f.cy_cov_interruption === 'Yes' || f.cy_cov_interruption === true;
+    const rev = subNum(f, 'annual_turnover', 'total_turnover') || sumRegion(f, 'turnover');
+    if (rev) { $('in-revenue').value = String(rev); $('in-revenue').dispatchEvent(new Event('input')); }
+    $('ext-media').checked = /yes|true/i.test(String(subField(f, 'cy_cov_media', 'cyber_cov_media')));
+    $('ext-extortion').checked = /yes|true/i.test(String(subField(f, 'cy_cov_extortion', 'cyber_cov_extortion')));
+    $('ext-bi').checked = /yes|true/i.test(String(subField(f, 'cy_cov_interruption', 'cy_cov_bi', 'cyber_cov_interruption')));
     const ilfKeys = Object.keys(T.ilf).map(Number);
-    if (f.cy_limit) { const want = Number(String(f.cy_limit).replace(/,/g, '')) || 0; if (want > 0) $('cy-limit').value = String(snapToTable(want, ilfKeys)); }
-    if (f.cy_deductible) { $('in-retention').value = String(f.cy_deductible); $('in-retention').dispatchEvent(new Event('input')); }
-    $('load-note').textContent = 'Loaded: name, revenue, extensions, limit/retention. Income & geo split and adjustments are underwriter judgment.';
+    const lim = subNum(f, 'cy_limit', 'cyber_limit', 'cy_req_limit');
+    if (lim > 0) $('cy-limit').value = String(snapToTable(lim, ilfKeys));
+    const ded = subField(f, 'cy_deductible', 'cy_req_deductible', 'cyber_deductible');
+    if (ded) { $('in-retention').value = String(ded); $('in-retention').dispatchEvent(new Event('input')); }
+    $('load-note').textContent = 'Loaded name, revenue, limit/retention, extensions. Income & geo split + adjustments are underwriter judgment.';
   } else {
-    if (f.employees_total) { $('in-employees').value = String(f.employees_total); $('in-employees').dispatchEvent(new Event('input')); }
+    const emp = subNum(f, 'total_employees', 'employees_total') || sumRegion(f, 'employees');
+    if (emp) { $('in-employees').value = String(emp); $('in-employees').dispatchEvent(new Event('input')); }
+    const locs = subNum(f, 'num_locations', 'total_locations', 'locations') || sumRegion(f, 'locations');
+    if (locs) { $('in-locations').value = String(locs); $('in-locations').dispatchEvent(new Event('input')); }
     let maxLoss = 0, hasLoss = false;
-    Object.keys(f).forEach(k => {
-      const m = k.match(/^crime_loss_\d+_amount$/);
-      if (m && f[k]) { hasLoss = true; maxLoss = Math.max(maxLoss, Number(String(f[k]).replace(/,/g, '')) || 0); }
-    });
+    Object.keys(f).forEach(k => { if (/_loss_\d+_amount$/.test(k) && f[k]) { hasLoss = true; maxLoss = Math.max(maxLoss, Number(String(f[k]).replace(/,/g, '')) || 0); } });
     if (hasLoss) {
-      $('in-claims').value = maxLoss > 1000000 ? '> USD 1,000,000'
-        : maxLoss > 250000 ? 'USD 250,000 – 1,000,000' : '< USD 250,000';
+      $('in-claims').value = maxLoss > 1000000 ? '> USD 1,000,000' : maxLoss > 250000 ? 'USD 250,000 – 1,000,000' : '< USD 250,000';
     } else {
       $('in-claims').value = 'Nil';
     }
-    if (typeof f.cr_fraud_policy === 'string') $('in-fraud').value = f.cr_fraud_policy === 'Yes' ? 'yes' : 'no';
-    $('load-note').textContent = 'Loaded: name, employees, claims band. Other inputs are underwriter judgment.';
+    const fraud = String(subField(f, 'cr_fraud_policy', 'crime_fraud_policy'));
+    if (fraud) $('in-fraud').value = /yes|true/i.test(fraud) ? 'yes' : 'no';
+    $('load-note').textContent = 'Loaded name, employees, locations, claims band. Occupation, controls & region mix are underwriter judgment.';
   }
   recalc();
 }
 
 // ---------- quotes ----------
+// Resolve the owning customer: the loaded submission's customer, else match by company name.
+async function resolveCustomerId(name) {
+  if (loadedCustomerId) return loadedCustomerId;
+  const nm = (name || '').trim();
+  if (!nm) return null;
+  const { data } = await sb.from('customers').select('user_id').ilike('company', nm).limit(1);
+  return (data && data[0]) ? data[0].user_id : null;
+}
+
 async function saveQuote() {
   if (!lastResult || !lastResult.ok) return;
   $('btn-save').disabled = true;
   $('save-note').textContent = 'Saving…';
+  const customer_id = await resolveCustomerId(lastResult.inputs.insured_name);
   const { error } = await sb.from(TYPE + '_quotes').insert({
     created_by: session.user.id,
     submission_id: loadedSubmissionId,
+    customer_id,
     insured_name: lastResult.inputs.insured_name || '(unnamed)',
     inputs: lastResult.inputs,
     breakdown: lastResult.breakdown,

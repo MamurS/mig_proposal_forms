@@ -3,9 +3,23 @@
 // bilingual wording, target table and .docx are selected by type.
 /* global supabase, docx, CYBER_WORDING, CRIME_WORDING, SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY */
 
-let sb = null, session = null, loadedSubmissionId = null, loadedQuoteId = null;
+let sb = null, session = null, loadedSubmissionId = null, loadedQuoteId = null, loadedCustomerId = null;
 let issued = false, policyRecordId = null;
 let TYPE = 'cyber';
+
+// Read a submission field across BOTH naming schemes (online proposal form + AI-intake scraper).
+function subField(f, ...keys) { for (const k of keys) { const v = f[k]; if (v !== undefined && v !== null && v !== '') return v; } return ''; }
+// Build the territory list from geography flags, tolerant of key variants (world/worldwide, us/usa) and prefixes.
+function geoFromFields(f, prefixes) {
+  const on = (...vs) => prefixes.some(p => vs.some(v => { const x = f[p + '_geo_' + v]; return x === true || x === 'true' || x === 'Yes'; }));
+  const geo = [];
+  if (on('uz')) geo.push('UZ');
+  if (on('cis')) geo.push('CIS');
+  if (on('eu')) geo.push('EU');
+  if (on('us', 'usa')) geo.push('US');
+  if (on('worldwide', 'world', 'ww')) geo.push('WW');
+  return geo;
+}
 
 const $ = id => document.getElementById(id);
 const fmtN = n => Number(n).toLocaleString('en-US', { maximumFractionDigits: 2 });
@@ -487,32 +501,27 @@ async function loadAndFill() {
   loadedQuoteId = $('quote-select').value || null;
 
   if (loadedSubmissionId) {
-    const { data, error } = await sb.from('submissions').select('id, proposer_name, proposer_inn, payload').eq('id', loadedSubmissionId).single();
+    const { data, error } = await sb.from('submissions').select('id, proposer_name, proposer_inn, customer_id, payload').eq('id', loadedSubmissionId).single();
     if (!error && data) {
       const f = (data.payload && data.payload.fields) || {};
-      setVal('f-insured', data.proposer_name || f.proposer_name, 'pf-name');
-      setVal('f-inn', data.proposer_inn || f.proposer_inn, 'pf-inn');
-      setVal('f-address', f.address, 'pf-addr');
-      setVal('f-business', f.nature_of_business, 'pf-biz');
-      if (TYPE === 'cyber') {
-        setVal('f-from', f.cyber_period_from || f.cy_period_from, 'pf-from');
-        setVal('f-to', f.cyber_period_to || f.cy_period_to, 'pf-to');
-        const benName = f.cyber_ben_name || f.cy_ben_name, benAddr = f.cyber_ben_address || f.cy_ben_address;
-        if (benName) setVal('f-beneficiary', [benName, benAddr].filter(Boolean).join(', '), 'pf-ben');
-        const g = k => f['cyber_geo_' + k] === true || f['cyber_geo_' + k] === 'true' || f['cy_geo_' + k] === true || f['cy_geo_' + k] === 'true';
-        applyTerritory([g('uz') && 'UZ', g('cis') && 'CIS', g('eu') && 'EU', g('us') && 'US', g('worldwide') && 'WW'].filter(Boolean));
-      } else {
-        setVal('f-from', f.crime_period_from, 'pf-from');
-        setVal('f-to', f.crime_period_to, 'pf-to');
-        if (f.crime_ben_name) setVal('f-beneficiary', [f.crime_ben_name, f.crime_ben_address].filter(Boolean).join(', '), 'pf-ben');
-        const t = k => f['crime_geo_' + k] === true || f['crime_geo_' + k] === 'true';
-        applyTerritory([t('uz') && 'UZ', t('cis') && 'CIS', t('eu') && 'EU', t('us') && 'US', t('worldwide') && 'WW'].filter(Boolean));
-      }
+      loadedCustomerId = data.customer_id || null;
+      setVal('f-insured', data.proposer_name || subField(f, 'proposer_name'), 'pf-name');
+      setVal('f-inn', data.proposer_inn || subField(f, 'proposer_inn'), 'pf-inn');
+      setVal('f-address', subField(f, 'address', 'registered_address'), 'pf-addr');
+      setVal('f-business', subField(f, 'nature_of_business', 'business_description', 'business'), 'pf-biz');
+      const L = (TYPE === 'cyber') ? ['cyber', 'cy'] : ['crime', 'cr'];
+      setVal('f-from', subField(f, L[0] + '_period_from', L[1] + '_period_from', 'period_from'), 'pf-from');
+      setVal('f-to', subField(f, L[0] + '_period_to', L[1] + '_period_to', 'period_to'), 'pf-to');
+      const benName = subField(f, L[0] + '_ben_name', L[1] + '_ben_name');
+      const benAddr = subField(f, L[0] + '_ben_address', L[1] + '_ben_address');
+      if (benName) setVal('f-beneficiary', [benName, benAddr].filter(Boolean).join(', '), 'pf-ben');
+      applyTerritory(geoFromFields(f, L));
     }
   }
   if (loadedQuoteId) {
-    const { data, error } = await sb.from(cfg().quotes).select('id, insured_name, final_premium, inputs').eq('id', loadedQuoteId).single();
+    const { data, error } = await sb.from(cfg().quotes).select('id, insured_name, final_premium, inputs, customer_id').eq('id', loadedQuoteId).single();
     if (!error && data) {
+      if (!loadedCustomerId && data.customer_id) loadedCustomerId = data.customer_id;
       if (!$('f-insured').value) setVal('f-insured', data.insured_name, 'pf-name');
       setVal('f-limit', data.inputs.limit, 'pf-limit');
       setVal('f-retention', TYPE === 'cyber' ? data.inputs.retention : data.inputs.deductible, 'pf-ret');
@@ -530,6 +539,14 @@ async function loadAndFill() {
   $('load-note').textContent = 'Loaded. Verify every field, then complete the manual ones.';
   markDraft();
   renderPreview();
+}
+
+// Resolve the owning customer for a policy: loaded submission/quote, else by INN, else company name.
+async function resolvePolicyCustomerId(inn, name) {
+  if (loadedCustomerId) return loadedCustomerId;
+  if (inn) { const { data } = await sb.from('customers').select('user_id').eq('inn', String(inn).trim()).limit(1); if (data && data[0]) return data[0].user_id; }
+  if (name) { const { data } = await sb.from('customers').select('user_id').ilike('company', String(name).trim()).limit(1); if (data && data[0]) return data[0].user_id; }
+  return null;
 }
 
 function applyTerritory(geo) {
@@ -600,10 +617,12 @@ async function confirmIssue() {
     _docB64 = await blobToBase64(_blob);
     _docFn = policyFileBase() + '.docx';
   } catch (e) { console.error('Policy document generation failed:', e); }
+  const customer_id = await resolvePolicyCustomerId(r.inn, r.insured);
   const payload = {
     created_by: session.user.id,
     submission_id: loadedSubmissionId,
     quote_id: loadedQuoteId,
+    customer_id,
     policy_number: r.policy_number,
     insured_name: r.insured,
     inn: r.inn || null,
@@ -634,7 +653,7 @@ function selectType(type) {
   TYPE = type || '';
   $('policy-type').value = TYPE;
   // reset the issuance state on any switch — a different type targets a different table
-  loadedSubmissionId = null; loadedQuoteId = null;
+  loadedSubmissionId = null; loadedQuoteId = null; loadedCustomerId = null;
   issued = false; policyRecordId = null;
   $('status-pill').textContent = 'draft'; $('status-pill').classList.remove('issued');
   $('btn-final').classList.add('hidden');

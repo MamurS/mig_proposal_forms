@@ -496,8 +496,8 @@
   <div class="list-wrap">
     <div class="filters">
       <div class="filter-group">
-        <label>Search proposer</label>
-        <input type="text" id="filter-search" placeholder="Company name…" />
+        <label>Search proposer / INN</label>
+        <input type="text" id="filter-search" placeholder="Company name or INN…" />
       </div>
       <div class="filter-group" style="min-width: 160px;">
         <label>Status</label>
@@ -903,7 +903,7 @@ function renderSubmissions() {
   const statusFilter = document.getElementById('filter-status').value;
 
   let rows = allSubmissions;
-  if (search) rows = rows.filter(r => (r.proposer_name || '').toLowerCase().includes(search));
+  if (search) rows = rows.filter(r => ((r.proposer_name || '') + ' ' + (r.proposer_inn || '')).toLowerCase().includes(search));
   if (statusFilter) rows = rows.filter(r => r.status === statusFilter);
 
   document.getElementById('submission-count').textContent =

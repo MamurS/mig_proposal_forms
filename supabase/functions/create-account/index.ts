@@ -143,6 +143,16 @@ Deno.serve(async (req: Request) => {
         const { count } = await admin.from("mig_staff").select("*", { count: "exact", head: true }).eq("role", "admin");
         if ((count || 0) <= 1) return json({ error: "Cannot delete the last remaining admin." }, 400);
       }
+      // Insurance retention: never destroy a customer who has linked records.
+      const { data: cRow } = await admin.from("customers").select("user_id").eq("user_id", uid).maybeSingle();
+      if (cRow) {
+        const { count: nSub } = await admin.from("submissions").select("*", { count: "exact", head: true }).eq("customer_id", uid);
+        const { count: nQuo } = await admin.from("quotations").select("*", { count: "exact", head: true }).eq("customer_id", uid);
+        const linked = (nSub || 0) + (nQuo || 0);
+        if (linked > 0) {
+          return json({ error: "This customer has " + linked + " linked record(s) (proposals/quotations). Insurance records must be retained — disable the account instead of deleting it." }, 400);
+        }
+      }
       await admin.from("mig_staff").delete().eq("user_id", uid);
       await admin.from("customers").delete().eq("user_id", uid);
       const { error } = await admin.auth.admin.deleteUser(uid);
