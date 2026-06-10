@@ -88,6 +88,7 @@ async function generateQuotation() {
       ['Date of issue', g('q-date')],
       ['Validity of quotation', g('q-validity')],
       ['Proposed insured', g('q-insured')],
+      g('q-inn') ? ['Insured INN', g('q-inn')] : null,
       ['Period of insurance', g('q-period')],
       ['Coverage territory', g('q-territory')],
       ['Currency', g('q-currency')],
@@ -97,6 +98,7 @@ async function generateQuotation() {
     const f = fields;
     ch.push(heading('Addressed to', { before: 240 }));
     ch.push(para(g('q-insured'), { bold: true, after: 40 }));
+    if (g('q-inn')) ch.push(para('INN: ' + g('q-inn'), { after: 40 }));
     const attn = [f.contact_person, f.contact_title].filter(Boolean).join(', ');
     if (attn) ch.push(para('Attn: ' + attn, { after: 40 }));
     if (f.address) ch.push(para(String(f.address)));
@@ -226,6 +228,7 @@ async function generateQuotation() {
         submission_id: (submission && submission.id) || null,
         customer_id: (submission && submission.customer_id) || null,
         reference: g('q-ref'), currency: curCode, total_premium: total,
+        inn: g('q-inn') || null,
         lines: lines, doc_base64: b64, doc_filename: fname, status: 'sent',
       });
       saved = !insErr;

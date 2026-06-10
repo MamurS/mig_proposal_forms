@@ -163,13 +163,14 @@
           <th>Authority</th>
           <th>Name</th>
           <th>Company</th>
+          <th>INN</th>
           <th>Created</th>
           <th>Last sign-in</th>
           <th style="text-align: right;">Actions</th>
         </tr>
       </thead>
       <tbody id="users-tbody">
-        <tr><td colspan="8" style="text-align: center; padding: 20px; color: var(--muted);"><span class="spinner"></span> Loading…</td></tr>
+        <tr><td colspan="9" style="text-align: center; padding: 20px; color: var(--muted);"><span class="spinner"></span> Loading…</td></tr>
       </tbody>
     </table>
   </div>
@@ -193,6 +194,8 @@
         <input type="text" id="new-name" autocomplete="off" /></div>
       <div class="form-field" id="new-company-field"><label for="new-company">Company <span style="text-transform: none; color: var(--muted);">(optional)</span></label>
         <input type="text" id="new-company" autocomplete="off" /></div>
+      <div class="form-field" id="new-inn-field"><label for="new-inn">Company INN <span style="text-transform: none; color: var(--muted);">(taxpayer ID — optional)</span></label>
+        <input type="text" id="new-inn" autocomplete="off" /></div>
       <div class="form-field hidden" id="new-role-field"><label for="new-role">Role</label>
         <select id="new-role">
           <option value="underwriter">Underwriter</option>
@@ -221,6 +224,7 @@
     <div class="form-field"><label for="edit-email">Email</label><input type="email" id="edit-email" autocomplete="off" /></div>
     <div class="form-field"><label for="edit-name">Full name</label><input type="text" id="edit-name" /></div>
     <div class="form-field" id="edit-company-field"><label for="edit-company">Company</label><input type="text" id="edit-company" /></div>
+    <div class="form-field" id="edit-inn-field"><label for="edit-inn">Company INN</label><input type="text" id="edit-inn" /></div>
     <div class="form-field" id="edit-role-field"><label for="edit-role">Authority (role)</label>
       <select id="edit-role"><option value="underwriter">Underwriter</option><option value="admin">Admin</option></select></div>
     <div class="form-field"><label for="edit-password">New password <span style="text-transform: none; color: var(--muted);">(optional — blank = keep current)</span></label>
@@ -341,6 +345,7 @@ async function invokeFn(payload) {
 function syncNewType() {
   const t = $('new-type').value;
   $('new-company-field').classList.toggle('hidden', t !== 'customer');
+  $('new-inn-field').classList.toggle('hidden', t !== 'customer');
   $('new-role-field').classList.toggle('hidden', t !== 'staff');
 }
 $('new-type').addEventListener('change', syncNewType);
@@ -352,6 +357,7 @@ function openCreate() {
   $('new-email').value = '';
   $('new-name').value = '';
   $('new-company').value = '';
+  $('new-inn').value = '';
   $('new-role').value = 'underwriter';
   $('new-password').value = '';
   syncNewType();
@@ -378,7 +384,10 @@ $('create-submit').addEventListener('click', async () => {
     full_name: $('new-name').value.trim() || null,
     password: $('new-password').value || undefined,
   };
-  if (type === 'customer') payload.company = $('new-company').value.trim() || null;
+  if (type === 'customer') {
+    payload.company = $('new-company').value.trim() || null;
+    payload.inn = $('new-inn').value.trim() || null;
+  }
   if (type === 'staff') payload.role = $('new-role').value;
 
   const btn = $('create-submit');
@@ -408,7 +417,7 @@ const TYPE_LABEL = { staff: 'Staff', customer: 'Customer', none: 'No profile' };
 
 async function loadUsers() {
   const tb = $('users-tbody');
-  tb.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted);"><span class="spinner"></span> Loading…</td></tr>';
+  tb.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--muted);"><span class="spinner"></span> Loading…</td></tr>';
   try {
     const data = await invokeFn({ action: 'list' });
     usersCache = (data && data.users) || [];
@@ -417,14 +426,14 @@ async function loadUsers() {
     usersCache.sort((a, b) => (order[a.type] - order[b.type]) || String(a.email).localeCompare(String(b.email)));
     renderUsers();
   } catch (e) {
-    tb.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--error);">Could not load accounts: ${escapeHtml(e.message)}</td></tr>`;
+    tb.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--error);">Could not load accounts: ${escapeHtml(e.message)}</td></tr>`;
   }
 }
 
 function renderUsers() {
   const tb = $('users-tbody');
   if (!usersCache.length) {
-    tb.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted);">No accounts yet.</td></tr>';
+    tb.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--muted);">No accounts yet.</td></tr>';
     return;
   }
   tb.innerHTML = usersCache.map(u => {
@@ -438,6 +447,7 @@ function renderUsers() {
       <td>${authority}</td>
       <td>${escapeHtml(u.full_name || '—')}</td>
       <td>${escapeHtml(u.company || '—')}</td>
+      <td><span class="mono" style="font-size:12px;">${escapeHtml(u.inn || '—')}</span></td>
       <td><span class="mono" style="font-size:12px;">${escapeHtml(fmtDate(u.created_at))}</span></td>
       <td><span class="mono" style="font-size:12px;">${escapeHtml(fmtDate(u.last_sign_in_at))}</span></td>
       <td><div class="row-actions">
@@ -464,10 +474,12 @@ function openEdit(uid) {
   $('edit-email').value = u.email || '';
   $('edit-name').value = u.full_name || '';
   $('edit-company').value = u.company || '';
+  $('edit-inn').value = u.inn || '';
   $('edit-role').value = u.role || 'underwriter';
   $('edit-password').value = '';
-  // Company only for customers; Role only for staff.
+  // Company + INN only for customers; Role only for staff.
   $('edit-company-field').classList.toggle('hidden', u.type !== 'customer');
+  $('edit-inn-field').classList.toggle('hidden', u.type !== 'customer');
   $('edit-role-field').classList.toggle('hidden', u.type !== 'staff');
   $('edit-modal').classList.remove('hidden');
 }
@@ -481,7 +493,10 @@ $('edit-save').addEventListener('click', async () => {
   const email = $('edit-email').value.trim();
   if (email && email !== editingUser.email) payload.email = email;
   payload.full_name = $('edit-name').value.trim() || null;
-  if (editingUser.type === 'customer') payload.company = $('edit-company').value.trim() || null;
+  if (editingUser.type === 'customer') {
+    payload.company = $('edit-company').value.trim() || null;
+    payload.inn = $('edit-inn').value.trim() || null;
+  }
   if (editingUser.type === 'staff') payload.role = $('edit-role').value;
   const pw = $('edit-password').value;
   if (pw) {

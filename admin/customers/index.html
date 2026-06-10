@@ -77,8 +77,8 @@
   <div id="view-list">
     <h1>Customers</h1>
     <p class="intro">All provisioned customer accounts. Open one to see their proposals, quotations and policies.</p>
-    <div class="panel"><table><thead><tr><th>Email</th><th>Name</th><th>Company</th><th>Added</th></tr></thead>
-      <tbody class="clickable" id="cust-tbody"><tr><td colspan="4" class="empty"><span class="spinner"></span> Loading…</td></tr></tbody></table></div>
+    <div class="panel"><table><thead><tr><th>Email</th><th>Name</th><th>Company</th><th>INN</th><th>Added</th></tr></thead>
+      <tbody class="clickable" id="cust-tbody"><tr><td colspan="5" class="empty"><span class="spinner"></span> Loading…</td></tr></tbody></table></div>
   </div>
 
   <!-- DETAIL -->
@@ -153,10 +153,10 @@ function route(){
 async function loadCustomers(){
   const tb = $('cust-tbody');
   tb.innerHTML = '<tr><td colspan="4" class="empty"><span class="spinner"></span> Loading…</td></tr>';
-  const { data, error } = await sb.from('customers').select('user_id, email, full_name, company, created_at').order('created_at',{ascending:false});
-  if (error) { tb.innerHTML = '<tr><td colspan="4" class="empty">Could not load: '+esc(error.message)+'</td></tr>'; return; }
-  if (!data.length) { tb.innerHTML = '<tr><td colspan="4" class="empty">No customers yet.</td></tr>'; return; }
-  tb.innerHTML = data.map(c => '<tr data-id="'+esc(c.user_id)+'"><td><strong>'+esc(c.email||'—')+'</strong></td><td>'+esc(c.full_name||'—')+'</td><td>'+esc(c.company||'—')+'</td><td><span class="mono" style="font-size:12px;">'+esc(fmtDate(c.created_at))+'</span></td></tr>').join('');
+  const { data, error } = await sb.from('customers').select('user_id, email, full_name, company, inn, created_at').order('created_at',{ascending:false});
+  if (error) { tb.innerHTML = '<tr><td colspan="5" class="empty">Could not load: '+esc(error.message)+'</td></tr>'; return; }
+  if (!data.length) { tb.innerHTML = '<tr><td colspan="5" class="empty">No customers yet.</td></tr>'; return; }
+  tb.innerHTML = data.map(c => '<tr data-id="'+esc(c.user_id)+'"><td><strong>'+esc(c.email||'—')+'</strong></td><td>'+esc(c.full_name||'—')+'</td><td>'+esc(c.company||'—')+'</td><td><span class="mono" style="font-size:12px;">'+esc(c.inn||'—')+'</span></td><td><span class="mono" style="font-size:12px;">'+esc(fmtDate(c.created_at))+'</span></td></tr>').join('');
   tb.querySelectorAll('tr').forEach(tr => tr.addEventListener('click', ()=>{ const id=tr.dataset.id; history.pushState({},'','/admin/customers/?id='+encodeURIComponent(id)); route(); }));
 }
 
@@ -168,7 +168,7 @@ async function loadCustomer(uid){
   $('cust-name').textContent = c.full_name || c.email || '(customer)';
   $('cust-sub').textContent = c.email || uid;
   $('cust-profile').innerHTML =
-    kv('Email', c.email) + kv('Company', c.company) + kv('Full name', c.full_name) + kv('Added', fmtDate(c.created_at));
+    kv('Email', c.email) + kv('Company', c.company) + kv('INN', c.inn) + kv('Full name', c.full_name) + kv('Added', fmtDate(c.created_at));
 
   // Proposals
   const { data: subs } = await sb.from('submissions').select('id, created_at, proposer_name, products, status').eq('customer_id',uid).order('created_at',{ascending:false});
