@@ -103,6 +103,7 @@
         <div class="field"><label>Date of issue</label><input type="text" id="q-date" /></div>
         <div class="field"><label>Validity</label><input type="text" id="q-validity" value="30 days from date of issue" /></div>
         <div class="field"><label>Proposed insured</label><input type="text" id="q-insured" /></div>
+        <div class="field"><label>Insured INN</label><input type="text" id="q-inn" /></div>
         <div class="field"><label>Period of insurance</label><input type="text" id="q-period" /></div>
         <div class="field"><label>Coverage territory</label><input type="text" id="q-territory" /></div>
         <div class="field"><label>Currency</label><input type="text" id="q-currency" value="United States Dollars (USD)" /></div>
@@ -229,6 +230,7 @@ function buildBuilder() {
   $('q-ref').value = 'MIG-Q-' + year + '-' + slug + '-01';
   $('q-date').value = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
   $('q-insured').value = proposer;
+  $('q-inn').value = submission.proposer_inn || f.proposer_inn || '';
   $('q-currency').value = 'United States Dollars (USD)';
 
   // products selected on the submission

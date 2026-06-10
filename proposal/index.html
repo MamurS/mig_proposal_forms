@@ -461,6 +461,10 @@
             <div class="field-label" data-i18n="fl_name_of_proposer_company_1">1. Name of Proposer (Company)</div>
             <input type="text" name="proposer_name" />
           </div>
+          <div class="md:col-span-2">
+            <div class="field-label" data-i18n="fl_company_inn">1a. INN (Company Taxpayer ID)</div>
+            <input type="text" name="proposer_inn" inputmode="numeric" />
+          </div>
           <div>
             <div class="field-label" data-i18n="fl_date_of_incorporation_2">2. Date of Incorporation</div>
             <input type="text" name="incorporation_date" placeholder="dd.mm.yyyy" pattern="\d{2}\.\d{2}\.\d{4}" inputmode="numeric" data-date />
@@ -3335,6 +3339,7 @@ window.__MIG_INLINE_TRANSLATIONS = {
     "fs_uploading": "Загрузка…",
     "fs_uploaded": "Загружено ✓",
     "fl_name_of_proposer_company_1": "1. Наименование Страхователя (компании)",
+    "fl_company_inn": "1a. ИНН (идентификационный номер налогоплательщика)",
     "fl_date_of_incorporation_2": "2. Дата регистрации",
     "fl_web_site_3": "3. Веб-сайт",
     "fl_registered_address_4": "4. Юридический адрес",
@@ -3967,6 +3972,7 @@ window.__MIG_INLINE_TRANSLATIONS = {
     "fs_uploading": "Yuklanmoqda…",
     "fs_uploaded": "Yuklandi ✓",
     "fl_name_of_proposer_company_1": "1. Sug'urtalanuvchining nomi (kompaniya)",
+    "fl_company_inn": "1a. STIR (soliq to'lovchining identifikatsiya raqami)",
     "fl_date_of_incorporation_2": "2. Ro'yxatdan o'tgan sana",
     "fl_web_site_3": "3. Veb-sayt",
     "fl_registered_address_4": "4. Yuridik manzil",
@@ -6026,6 +6032,7 @@ document.getElementById('btn-submit').addEventListener('click', async () => {
           // Editing an existing (still-new) proposal — update in place.
           ({ error } = await supabaseClient.from('submissions').update({
             proposer_name: data.proposer_name || null,
+            proposer_inn: data.proposer_inn || null,
             products: data._products || [],
             language: currentLang,
             payload: payload  // refreshed fields, pdfBase64, pdfFilename
@@ -6033,6 +6040,7 @@ document.getElementById('btn-submit').addEventListener('click', async () => {
         } else {
           const insertRow = {
             proposer_name: data.proposer_name || null,
+            proposer_inn: data.proposer_inn || null,
             products: data._products || [],
             language: currentLang,
             user_agent: navigator.userAgent.slice(0, 200),
@@ -6076,6 +6084,19 @@ document.getElementById('btn-submit').addEventListener('click', async () => {
   const { data: isCust } = await supabaseClient.rpc('is_customer');
   if (!isCust) { window.location.replace('/portal/'); return; }
   customerSession = session;
+
+  // Pre-fill company name + INN from the signed-in customer's account so every
+  // proposal is tied to their company + INN. Editable; only fills empty fields.
+  try {
+    const { data: cust } = await supabaseClient.from('customers')
+      .select('company, inn').eq('user_id', session.user.id).maybeSingle();
+    if (cust) {
+      const nameEl = document.querySelector('[name="proposer_name"]');
+      const innEl = document.querySelector('[name="proposer_inn"]');
+      if (nameEl && !nameEl.value && cust.company) nameEl.value = cust.company;
+      if (innEl && !innEl.value && cust.inn) innEl.value = cust.inn;
+    }
+  } catch (_) { /* prefill is best-effort */ }
 
   // Edit mode? Load the customer's own submission (RLS restricts to theirs).
   const id = new URLSearchParams(window.location.search).get('id');
