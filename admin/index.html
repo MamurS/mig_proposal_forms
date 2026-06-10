@@ -827,7 +827,7 @@ async function enterApp(session, fresh) {
     const { data: isStaff, error: staffErr } = await sb.rpc('is_mig_staff');
     if (staffErr || !isStaff) {
       const email = session.user.email || 'this account';
-      await sb.auth.signOut();
+      // Do NOT signOut() here — it revokes the shared session for every page/tab.
       show('view-login');
       setLoginMsg(email + ' is not authorized for MIG admin. Ask an administrator to add you to staff.', 'error');
       return;

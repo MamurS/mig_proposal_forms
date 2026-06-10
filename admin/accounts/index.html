@@ -281,7 +281,7 @@ function showGate(title, body) {
   const { data: isStaff } = await sb.rpc('is_mig_staff');
   if (!isStaff) {
     const email = (session.user.email || 'This account');
-    await sb.auth.signOut();
+    // Do NOT signOut() here — it revokes the shared session for every page/tab.
     showGate('Account not authorized', email + ' is not on the MIG staff list. Sign in with an authorized account.');
     return;
   }

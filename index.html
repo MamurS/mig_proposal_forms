@@ -322,7 +322,8 @@ let sb = null;
   const { data: isStaff, error: staffErr } = await sb.rpc('is_mig_staff');
   if (staffErr || !isStaff) {
     const email = (session.user.email || 'This account').replace(/[<>&]/g, '');
-    await sb.auth.signOut();
+    // Do NOT signOut() here — signOut defaults to global scope and revokes the
+    // session shared across every admin page/tab, forcing a re-login everywhere.
     document.getElementById('auth-gate').innerHTML =
       '<div class="card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 28px;">' +
       '<h2>Account not authorized</h2>' +
