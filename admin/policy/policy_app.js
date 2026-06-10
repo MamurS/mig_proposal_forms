@@ -567,6 +567,61 @@ async function loadAndFill() {
   $('load-note').textContent = 'Loaded. Verify every field, then complete the manual ones.';
   markDraft();
   renderPreview();
+  aiRecommendPolicy();   // fill still-empty terms with Claude recommendations (amber)
+}
+
+// Auto-fill the still-empty schedule terms with Claude's recommended values
+// (limit / retention / premium / territory) and the granular sub-limits, each
+// marked amber so the underwriter sees it is a suggestion to verify. No button —
+// runs after the real submission/quote prefill, and never overwrites a value
+// that is already present.
+async function aiRecommendPolicy() {
+  if (!loadedSubmissionId || !window.MIG_REC) return;
+  const note = $('load-note');
+  const base = note.textContent;
+  note.textContent = base + '  ·  asking Claude for recommended terms…';
+  try {
+    MIG_REC.ensureCss();
+    const { byCode } = await MIG_REC.fetch(sb, loadedSubmissionId);
+    const r = byCode[TYPE];
+    if (!r) { note.textContent = base; return; }
+    const empty = id => !String($(id).value || '').trim();
+    const put = (id, badgeId, v) => {
+      if (!v || !empty(id)) return false;
+      setVal(id, v); MIG_REC.badge(badgeId, r.note || 'AI recommended — verify');
+      MIG_REC.mark($(id), 'AI recommended — verify'); return true;
+    };
+    let filled = 0;
+    filled += put('f-limit', 'pf-limit', r.limit) ? 1 : 0;
+    filled += put('f-retention', 'pf-ret', r.deductible) ? 1 : 0;
+    filled += put('f-premium', 'pf-prem', r.premium) ? 1 : 0;
+    filled += put('f-territory', 'pf-terr', r.territory) ? 1 : 0;
+    filled += aiFillSublimits();
+    note.textContent = filled
+      ? 'AI suggested ' + filled + ' empty field(s), shown in amber. Verify every value before issuing.'
+      : base;
+    markDraft(); renderPreview();
+  } catch (_e) {
+    note.textContent = base + '  ·  AI suggestion unavailable';
+  }
+}
+
+// Fill empty granular sub-limits from the limit using standard market
+// percentages, marking each amber. Returns how many were filled.
+function aiFillSublimits() {
+  const limit = Number(stripC($('f-limit').value)) || 0;
+  if (!limit) return 0;
+  const pct = TYPE === 'cyber'
+    ? [['f-sl-ext', .50], ['f-sl-osp', .25], ['f-sl-fines', .50], ['f-sl-tel', .05], ['f-sl-cj', .05]]
+    : [['f-sl-se', .10], ['f-sl-legal', .05], ['f-sl-inv', .05], ['f-sl-data', .05], ['f-sl-fire', .05]];
+  let n = 0;
+  pct.forEach(([id, p]) => {
+    if (String($(id).value || '').trim()) return;
+    setVal(id, Math.round(limit * p));
+    MIG_REC.mark($(id), 'Suggested sub-limit (' + Math.round(p * 100) + '% of limit) — verify');
+    n++;
+  });
+  return n;
 }
 
 // Resolve the owning customer for a policy: loaded submission/quote, else by INN, else company name.
