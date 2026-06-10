@@ -166,11 +166,11 @@
 
           <div class="row2">
             <div>
-              <label class="fl">Limit of liability (USD, AGG)</label>
+              <label class="fl">Limit of liability (USD, AGG) <span class="ai-badge hidden" id="ai-cy-limit">AI</span></label>
               <select id="cy-limit"></select>
             </div>
             <div>
-              <label class="fl">Retention (USD, recorded — no rating effect in v1)</label>
+              <label class="fl">Retention (USD, recorded — no rating effect in v1) <span class="ai-badge hidden" id="ai-cy-ret">AI</span></label>
               <input type="text" inputmode="numeric" class="num" id="in-retention" value="0" />
             </div>
           </div>
@@ -257,11 +257,11 @@
 
           <div class="row2">
             <div>
-              <label class="fl">Limit (USD)</label>
+              <label class="fl">Limit (USD) <span class="ai-badge hidden" id="ai-cr-limit">AI</span></label>
               <select id="cr-limit"></select>
             </div>
             <div>
-              <label class="fl">Deductible (USD)</label>
+              <label class="fl">Deductible (USD) <span class="ai-badge hidden" id="ai-cr-ded">AI</span></label>
               <select id="in-deductible"></select>
             </div>
           </div>
@@ -303,6 +303,7 @@
 
 <!-- Supabase credentials — centralised in /config.js -->
 <script src="/config.js"></script>
+<script src="/shared/recommend.js"></script>
 
 <script>
 // ============================================================
@@ -937,7 +938,9 @@ function snapToTable(value, keys) {
   return best;
 }
 
+let raterPre = { limit: false, retention: false };
 async function loadFromSubmission() {
+  raterPre = { limit: false, retention: false };
   const id = $('sub-select').value;
   if (!id) { $('load-note').textContent = 'Select a submission first.'; return; }
   const { data, error } = await sb.from('submissions')
@@ -956,9 +959,9 @@ async function loadFromSubmission() {
     $('ext-bi').checked = /yes|true/i.test(String(subField(f, 'cy_cov_interruption', 'cy_cov_bi', 'cyber_cov_interruption')));
     const ilfKeys = Object.keys(T.ilf).map(Number);
     const lim = subNum(f, 'cy_limit', 'cyber_limit', 'cy_req_limit');
-    if (lim > 0) $('cy-limit').value = String(snapToTable(lim, ilfKeys));
+    if (lim > 0) { $('cy-limit').value = String(snapToTable(lim, ilfKeys)); raterPre.limit = true; }
     const ded = subField(f, 'cy_deductible', 'cy_req_deductible', 'cyber_deductible');
-    if (ded) { $('in-retention').value = String(ded); $('in-retention').dispatchEvent(new Event('input')); }
+    if (ded) { $('in-retention').value = String(ded); $('in-retention').dispatchEvent(new Event('input')); raterPre.retention = true; }
     $('load-note').textContent = 'Loaded name, revenue, limit/retention, extensions. Income & geo split + adjustments are underwriter judgment.';
   } else {
     const emp = subNum(f, 'total_employees', 'employees_total') || sumRegion(f, 'employees');
@@ -977,6 +980,33 @@ async function loadFromSubmission() {
     $('load-note').textContent = 'Loaded name, employees, locations, claims band. Occupation, controls & region mix are underwriter judgment.';
   }
   recalc();
+  aiRecommendRater();   // recommend empty limit / retention-deductible with Claude (amber)
+}
+
+// Recommend the empty headline pricing terms (limit, retention/deductible) with
+// Claude when the proposal didn't supply them — snapped to the rate table and
+// marked amber. Underwriter-judgment adjustments are never auto-set.
+async function aiRecommendRater() {
+  if (!loadedSubmissionId || !window.MIG_REC) return;
+  const note = $('load-note'); const base = note.textContent;
+  note.textContent = base + '  ·  asking Claude for recommended terms…';
+  try {
+    MIG_REC.ensureCss();
+    const { byCode } = await MIG_REC.fetch(sb, loadedSubmissionId);
+    const r = byCode[TYPE]; if (!r) { note.textContent = base; return; }
+    const ilfKeys = Object.keys(T.ilf).map(Number);
+    let n = 0;
+    if (TYPE === 'cyber') {
+      if (!raterPre.limit && r.limit) { $('cy-limit').value = String(snapToTable(r.limit, ilfKeys)); MIG_REC.mark($('cy-limit'), 'AI recommended — verify'); MIG_REC.badge('ai-cy-limit'); n++; }
+      if (!raterPre.retention && r.deductible) { $('in-retention').value = String(r.deductible); $('in-retention').dispatchEvent(new Event('input')); MIG_REC.mark($('in-retention'), 'AI recommended — verify'); MIG_REC.badge('ai-cy-ret'); n++; }
+    } else {
+      const dedKeys = Object.keys(T.deductibles).map(Number);
+      if (r.limit) { $('cr-limit').value = String(snapToTable(r.limit, ilfKeys)); MIG_REC.mark($('cr-limit'), 'AI recommended — verify'); MIG_REC.badge('ai-cr-limit'); n++; }
+      if (r.deductible) { $('in-deductible').value = String(snapToTable(r.deductible, dedKeys)); MIG_REC.mark($('in-deductible'), 'AI recommended — verify'); MIG_REC.badge('ai-cr-ded'); n++; }
+    }
+    if (n) { recalc(); note.textContent = 'AI suggested ' + n + ' empty pricing term(s), in amber. Verify before saving.'; }
+    else note.textContent = base;
+  } catch (_e) { note.textContent = base + '  ·  AI suggestion unavailable'; }
 }
 
 // ---------- quotes ----------

@@ -113,11 +113,8 @@
     </div>
 
     <div class="panel">
-      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
-        <h2 style="margin:0;">Lines &amp; underwriter terms</h2>
-        <button class="btn btn-secondary btn-sm" id="btn-ai" type="button">✨ Suggest terms with AI</button>
-      </div>
-      <p class="muted" style="font-size:12px; margin:6px 0 12px;">Pre-filled from the customer's requested values and any saved rater quote. Click <em>Suggest terms with AI</em> for Claude's recommended limits, deductibles and premiums. Edit freely — these are the underwriter's terms.</p>
+      <h2 style="margin:0 0 6px;">Lines &amp; underwriter terms</h2>
+      <p class="muted" style="font-size:12px; margin:0 0 12px;">Pre-filled from the customer's requested values, any saved rater quote, and Claude's recommended terms for whatever is still empty (shown in <span style="background:#fff8ec; border:1px solid #ecd9b0; border-radius:4px; padding:0 4px;">amber</span> — verify before generating). Edit freely.</p>
       <div id="ai-note" class="muted" style="font-size:12px; margin:-4px 0 12px; display:none;"></div>
       <div id="lines"></div>
       <div class="total-row"><span style="font-weight:600; color:var(--mig);">Total — combined annual premium</span><span class="v" id="total-premium">—</span></div>
@@ -137,6 +134,7 @@
 <script src="/config.js"></script>
 <script src="/shared/inn.js"></script>
 <script src="/shared/storage.js"></script>
+<script src="/shared/recommend.js"></script>
 <script>
 let sb = null, submission = null, fields = {};
 if (window.MIG_INN) MIG_INN.attachHint(document.getElementById('q-inn'));
@@ -239,6 +237,7 @@ async function loadSubmission(id) {
   buildBuilder();
   $('builder').classList.remove('hidden');
   await fillFromRaterQuotes();   // overlay the underwriter's saved rater premiums/limits
+  aiSuggest();                   // fill any still-empty terms with Claude recommendations (amber)
 }
 
 // Pre-fill limit / deductible / premium from the saved rater quote (cyber/crime),
@@ -344,48 +343,48 @@ function collectLines() {
 
 $('btn-generate').addEventListener('click', generateQuotation);
 
-// ── Claude recommended terms ───────────────────────────────────────────
+// ── Claude recommended terms (automatic; fills only still-empty fields) ──
+// Runs after the proposal + rater prefill. Each value Claude recommends is
+// written only into a field the underwriter left blank, marked amber with an
+// "AI" tag, and cleared the moment they edit it. No button — same treatment as
+// the "auto"/"quote" prefill, applied to whatever is not yet entered.
 async function aiSuggest() {
-  if (!submission || !submission.id) { msg('Load a submission first.', 'error'); return; }
-  const btn = $('btn-ai'), note = $('ai-note');
-  const restore = btn.textContent;
-  btn.disabled = true; btn.textContent = '✨ Thinking…';
+  if (!submission || !submission.id || !window.MIG_REC) return;
+  const note = $('ai-note');
   note.style.display = 'block'; note.style.color = 'var(--muted)';
   note.textContent = 'Asking Claude for recommended terms…';
   try {
-    const { data, error } = await sb.functions.invoke('recommend-quotation', { body: { submission_id: submission.id } });
-    if (error) {
-      let m = error.message || 'Request failed';
-      try { const c = await error.context.json(); if (c && c.error) m = c.error; } catch (_) {}
-      throw new Error(m);
-    }
-    const lines = (data && data.lines) || [];
-    if (!lines.length) throw new Error('Claude returned no line recommendations.');
-    let applied = 0;
+    MIG_REC.ensureCss();
+    const { lines, note: overall } = await MIG_REC.fetch(sb, submission.id);
+    let filled = 0;
     const perLine = [];
     lines.forEach(l => {
       const card = document.querySelector('#lines .line-card[data-code="' + l.code + '"]');
       if (!card) return;
-      const set = (k, v) => { const el = card.querySelector('[data-k="' + k + '"]'); if (el && v != null && v !== '') el.value = v; };
-      set('limit', l.limit); set('deductible', l.deductible); set('premium', l.premium);
-      set('territory', l.territory); set('sublimits', l.sublimits);
-      applied++;
-      if (l.note) perLine.push((LINES[l.code] ? LINES[l.code].title : l.code) + ': ' + l.note);
+      const put = (k, v) => {
+        const el = card.querySelector('[data-k="' + k + '"]');
+        if (!el || v == null || v === '' || String(el.value).trim()) return false;  // empty-only
+        el.value = v;
+        MIG_REC.mark(el, l.note || 'AI recommended — verify');
+        const lbl = el.closest('.field') && el.closest('.field').querySelector('label');
+        if (lbl && !lbl.querySelector('.ai-badge')) { const b = document.createElement('span'); b.className = 'ai-badge'; b.textContent = 'AI'; lbl.appendChild(b); }
+        return true;
+      };
+      let any = false;
+      ['limit', 'deductible', 'premium', 'territory', 'sublimits'].forEach(k => { if (put(k, l[k])) { any = true; filled++; } });
+      if (any && l.note) perLine.push((LINES[l.code] ? LINES[l.code].title : l.code) + ': ' + l.note);
     });
     recomputeTotal();
-    const overall = (data && data.note) ? data.note : '';
+    if (!filled) { note.textContent = overall || 'All terms already filled from the proposal and rater — no AI suggestions needed.'; return; }
     note.style.color = 'var(--ink)';
-    note.innerHTML = '<strong>AI recommended terms applied to ' + applied + ' line(s)</strong> — review and edit before generating.' +
+    note.innerHTML = '<strong>AI suggested ' + filled + ' empty field(s)</strong>, shown in amber — verify before generating.' +
       (overall ? '<br>' + esc(overall) : '') +
       (perLine.length ? '<br>' + perLine.map(esc).join('<br>') : '');
   } catch (e) {
     note.style.color = 'var(--danger, #b91c1c)';
-    note.textContent = 'AI suggestion failed: ' + (e.message || e);
-  } finally {
-    btn.disabled = false; btn.textContent = restore;
+    note.textContent = 'AI suggestion unavailable: ' + (e.message || e);
   }
 }
-$('btn-ai').addEventListener('click', aiSuggest);
 </script>
 <script src="/admin/quote/quote_docx.js"></script>
 </body>
