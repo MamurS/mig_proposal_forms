@@ -347,7 +347,8 @@ async function enter(session) {
     const { data: isCust, error } = await sb.rpc('is_customer');
     if (error || !isCust) {
       const email = session.user.email || 'this account';
-      await sb.auth.signOut();
+      // Do NOT signOut() here — a staff member opening /portal/ would otherwise be
+      // logged out of their admin session too (shared, globally revoked).
       show('view-login');
       setLoginMsg(email + ' is not a customer account. This portal is for MIG customers — staff should use /admin/.', 'error');
       return;

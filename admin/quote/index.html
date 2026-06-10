@@ -113,8 +113,12 @@
     </div>
 
     <div class="panel">
-      <h2>Lines &amp; underwriter terms</h2>
-      <p class="muted" style="font-size:12px; margin:-4px 0 12px;">Pre-filled from the customer's requested values where available. Edit freely — these are the underwriter's terms.</p>
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+        <h2 style="margin:0;">Lines &amp; underwriter terms</h2>
+        <button class="btn btn-secondary btn-sm" id="btn-ai" type="button">✨ Suggest terms with AI</button>
+      </div>
+      <p class="muted" style="font-size:12px; margin:6px 0 12px;">Pre-filled from the customer's requested values and any saved rater quote. Click <em>Suggest terms with AI</em> for Claude's recommended limits, deductibles and premiums. Edit freely — these are the underwriter's terms.</p>
+      <div id="ai-note" class="muted" style="font-size:12px; margin:-4px 0 12px; display:none;"></div>
       <div id="lines"></div>
       <div class="total-row"><span style="font-weight:600; color:var(--mig);">Total — combined annual premium</span><span class="v" id="total-premium">—</span></div>
     </div>
@@ -199,7 +203,7 @@ function prefill(code) {
   const { data: isStaff } = await sb.rpc('is_mig_staff');
   if (!isStaff) {
     const email = session.user.email || 'This account';
-    await sb.auth.signOut();
+    // Do NOT signOut() here — it revokes the shared session for every page/tab.
     showGate('Account not authorized', email + ' is not on the MIG staff list.');
     return;
   }
@@ -234,6 +238,28 @@ async function loadSubmission(id) {
   fields = (data.payload && data.payload.fields) || {};
   buildBuilder();
   $('builder').classList.remove('hidden');
+  await fillFromRaterQuotes();   // overlay the underwriter's saved rater premiums/limits
+}
+
+// Pre-fill limit / deductible / premium from the saved rater quote (cyber/crime),
+// overriding the proposal's requested values — the rater is the underwriter basis.
+async function fillFromRaterQuotes() {
+  for (const [tbl, code] of [['cyber_quotes', 'cyber'], ['crime_quotes', 'crime']]) {
+    if (!(submission.products || []).includes(code)) continue;
+    try {
+      const { data } = await sb.from(tbl).select('inputs, final_premium')
+        .eq('submission_id', submission.id).order('created_at', { ascending: false }).limit(1);
+      if (!data || !data[0]) continue;
+      const q = data[0], inp = q.inputs || {};
+      const card = document.querySelector('#lines .line-card[data-code="' + code + '"]');
+      if (!card) continue;
+      const set = (k, v) => { const el = card.querySelector('[data-k="' + k + '"]'); if (el && v != null && v !== '') el.value = v; };
+      set('limit', inp.limit);
+      set('deductible', code === 'cyber' ? inp.retention : inp.deductible);
+      set('premium', Math.round(q.final_premium));
+    } catch (_) { /* no rater quote for this line */ }
+  }
+  recomputeTotal();
 }
 
 function buildBuilder() {
@@ -317,6 +343,49 @@ function collectLines() {
 }
 
 $('btn-generate').addEventListener('click', generateQuotation);
+
+// ── Claude recommended terms ───────────────────────────────────────────
+async function aiSuggest() {
+  if (!submission || !submission.id) { msg('Load a submission first.', 'error'); return; }
+  const btn = $('btn-ai'), note = $('ai-note');
+  const restore = btn.textContent;
+  btn.disabled = true; btn.textContent = '✨ Thinking…';
+  note.style.display = 'block'; note.style.color = 'var(--muted)';
+  note.textContent = 'Asking Claude for recommended terms…';
+  try {
+    const { data, error } = await sb.functions.invoke('recommend-quotation', { body: { submission_id: submission.id } });
+    if (error) {
+      let m = error.message || 'Request failed';
+      try { const c = await error.context.json(); if (c && c.error) m = c.error; } catch (_) {}
+      throw new Error(m);
+    }
+    const lines = (data && data.lines) || [];
+    if (!lines.length) throw new Error('Claude returned no line recommendations.');
+    let applied = 0;
+    const perLine = [];
+    lines.forEach(l => {
+      const card = document.querySelector('#lines .line-card[data-code="' + l.code + '"]');
+      if (!card) return;
+      const set = (k, v) => { const el = card.querySelector('[data-k="' + k + '"]'); if (el && v != null && v !== '') el.value = v; };
+      set('limit', l.limit); set('deductible', l.deductible); set('premium', l.premium);
+      set('territory', l.territory); set('sublimits', l.sublimits);
+      applied++;
+      if (l.note) perLine.push((LINES[l.code] ? LINES[l.code].title : l.code) + ': ' + l.note);
+    });
+    recomputeTotal();
+    const overall = (data && data.note) ? data.note : '';
+    note.style.color = 'var(--ink)';
+    note.innerHTML = '<strong>AI recommended terms applied to ' + applied + ' line(s)</strong> — review and edit before generating.' +
+      (overall ? '<br>' + esc(overall) : '') +
+      (perLine.length ? '<br>' + perLine.map(esc).join('<br>') : '');
+  } catch (e) {
+    note.style.color = 'var(--danger, #b91c1c)';
+    note.textContent = 'AI suggestion failed: ' + (e.message || e);
+  } finally {
+    btn.disabled = false; btn.textContent = restore;
+  }
+}
+$('btn-ai').addEventListener('click', aiSuggest);
 </script>
 <script src="/admin/quote/quote_docx.js"></script>
 </body>
