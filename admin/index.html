@@ -989,7 +989,7 @@ function renderDetail(s) {
   document.getElementById('detail-id').textContent = s.id;
   document.getElementById('detail-lang').textContent = (s.language || '—').toUpperCase();
   document.getElementById('detail-products-meta').innerHTML =
-    '<strong>Products:</strong> ' + (s.products || []).map(p => `<span class="product-pill">${escapeHtml(productLabel(p))}</span>`).join('') || '<span style="color: var(--muted);">—</span>';
+    '<strong>Products:</strong> ' + ((s.products || []).map(p => `<span class="product-pill">${escapeHtml(productLabel(p))}</span>`).join('') || '<span style="color: var(--muted);">—</span>');
 
   document.getElementById('detail-status-select').value = s.status || 'new';
   document.getElementById('internal-notes').value = s.internal_notes || '';
@@ -1272,7 +1272,10 @@ function renderEsAttachments() {
   el.querySelectorAll('[data-rm]').forEach(b => b.addEventListener('click', () => { esAttachments.splice(+b.dataset.rm, 1); renderEsAttachments(); }));
 }
 async function addEsFiles(fileList, kind) {
-  for (const file of fileList) {
+  // Snapshot the FileList — it is live and gets cleared by the caller; iterating
+  // it across awaits would otherwise drop every file after the first.
+  const files = Array.from(fileList);
+  for (const file of files) {
     if (file.size > ATTACH_MAX) { toast(file.name + ' is too large (max 8 MB).', 'error'); continue; }
     try { const b64 = await fileToB64(file); esAttachments.push({ name: file.name, type: file.type || '', size: file.size, kind, b64 }); }
     catch (e) { toast('Could not read ' + file.name, 'error'); }
@@ -1339,8 +1342,8 @@ document.getElementById('btn-edit-submission').addEventListener('click', openEdi
 document.getElementById('es-cancel').addEventListener('click', closeEditSubmission);
 document.getElementById('edit-sub-modal').addEventListener('click', (e) => { if (e.target === document.getElementById('edit-sub-modal')) closeEditSubmission(); });
 document.getElementById('es-save').addEventListener('click', saveSubmission);
-document.getElementById('es-file-proposal').addEventListener('change', (e) => { addEsFiles(e.target.files, 'proposal'); e.target.value = ''; });
-document.getElementById('es-file-fs').addEventListener('change', (e) => { addEsFiles(e.target.files, 'fs'); e.target.value = ''; });
+document.getElementById('es-file-proposal').addEventListener('change', (e) => { const files = Array.from(e.target.files); e.target.value = ''; addEsFiles(files, 'proposal'); });
+document.getElementById('es-file-fs').addEventListener('change', (e) => { const files = Array.from(e.target.files); e.target.value = ''; addEsFiles(files, 'fs'); });
 </script>
 </body>
 </html>
