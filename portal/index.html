@@ -103,6 +103,9 @@
   .toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 18px; border-radius: 6px; color: white; font-size: 13px; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
   .toast.success { background: var(--success); }
   .toast.error { background: var(--error); }
+  .lang-pills { display: inline-flex; gap: 4px; }
+  .lang-pills button { font-size: 11px; padding: 2px 9px; border-radius: 10px; border: 1px solid var(--border-strong); background: var(--surface); color: var(--muted); cursor: pointer; font-family: inherit; }
+  .lang-pills button.active { background: var(--mig); color: #fff; border-color: var(--mig); }
   .hidden { display: none !important; }
 </style>
 </head>
@@ -113,19 +116,20 @@
 <!-- ============================================================ -->
 <div id="view-login" class="login-wrap">
   <div class="login-card">
-    <h1>MIG Customer Portal</h1>
-    <div class="subtitle">Sign in to start and manage your insurance proposals.</div>
+    <div style="text-align:center; margin-bottom:14px;"><span class="lang-pills" id="lang-pills-login"></span></div>
+    <h1 data-i18n="portal_title">MIG Customer Portal</h1>
+    <div class="subtitle" data-i18n="portal_subtitle">Sign in to start and manage your insurance proposals.</div>
     <div id="login-msg"></div>
     <div class="form-field">
-      <label for="login-email">Email</label>
-      <input type="email" id="login-email" placeholder="you@company.com" autocomplete="email" />
+      <label for="login-email" data-i18n="email">Email</label>
+      <input type="email" id="login-email" placeholder="you@company.com" data-i18n-ph="email_ph" autocomplete="email" />
     </div>
     <div class="form-field">
-      <label for="login-password">Password</label>
-      <input type="password" id="login-password" placeholder="Your password" autocomplete="current-password" />
+      <label for="login-password" data-i18n="password">Password</label>
+      <input type="password" id="login-password" placeholder="Your password" data-i18n-ph="password_ph" autocomplete="current-password" />
     </div>
-    <button class="btn" id="btn-login" style="width: 100%;">Sign in</button>
-    <div style="font-size: 12px; color: var(--muted); margin-top: 12px; text-align: center;">
+    <button class="btn" id="btn-login" style="width: 100%;" data-i18n="sign_in">Sign in</button>
+    <div style="font-size: 12px; color: var(--muted); margin-top: 12px; text-align: center;" data-i18n="login_footer">
       Accounts are created by MIG. Contact your MIG representative if you need access or a password reset.
     </div>
   </div>
@@ -138,54 +142,55 @@
   <div class="topbar">
     <div class="brand">
       <div class="brand-mark">M</div>
-      <span>MIG Customer Portal</span>
+      <span data-i18n="portal_title">MIG Customer Portal</span>
     </div>
     <div class="user-info">
+      <span class="lang-pills" id="lang-pills-dash"></span>
       <span id="user-email"></span>
-      <button class="btn btn-secondary btn-sm" id="btn-signout">Sign out</button>
+      <button class="btn btn-secondary btn-sm" id="btn-signout" data-i18n="sign_out">Sign out</button>
     </div>
   </div>
 
   <div class="wrap">
     <div class="dash-head">
       <div>
-        <h1>My proposals</h1>
-        <p>Start a new proposal, or edit and manage the ones you have submitted.</p>
+        <h1 data-i18n="my_proposals">My proposals</h1>
+        <p data-i18n="my_proposals_sub">Start a new proposal, or edit and manage the ones you have submitted.</p>
       </div>
-      <a class="btn" href="/proposal/">+ New proposal</a>
+      <a class="btn" href="/proposal/" data-i18n="new_proposal">+ New proposal</a>
     </div>
 
     <div class="table-wrap">
       <table class="subs">
         <thead>
           <tr>
-            <th style="width: 150px;">Submitted</th>
-            <th>Proposer</th>
-            <th style="width: 220px;">Products</th>
-            <th style="width: 120px;">Status</th>
-            <th style="width: 230px; text-align: right;">Actions</th>
+            <th style="width: 150px;" data-i18n="th_submitted">Submitted</th>
+            <th data-i18n="th_proposer">Proposer</th>
+            <th style="width: 220px;" data-i18n="th_products">Products</th>
+            <th style="width: 120px;" data-i18n="th_status">Status</th>
+            <th style="width: 230px; text-align: right;" data-i18n="th_actions">Actions</th>
           </tr>
         </thead>
         <tbody id="subs-tbody">
           <tr><td colspan="5" style="text-align: center; padding: 24px; color: var(--muted);">
-            <span class="spinner"></span> Loading…
+            <span class="spinner"></span> <span data-i18n="loading">Loading…</span>
           </td></tr>
         </tbody>
       </table>
     </div>
 
-    <h2 style="font-size:18px; font-weight:600; color:var(--mig); margin:28px 0 10px;">Quotations</h2>
+    <h2 style="font-size:18px; font-weight:600; color:var(--mig); margin:28px 0 10px;" data-i18n="quotations">Quotations</h2>
     <div class="table-wrap">
       <table class="subs">
-        <thead><tr><th>Reference</th><th>Date</th><th>Total premium</th><th style="text-align:right;">Document</th></tr></thead>
+        <thead><tr><th data-i18n="th_reference">Reference</th><th data-i18n="th_date">Date</th><th data-i18n="th_total_premium">Total premium</th><th style="text-align:right;" data-i18n="th_document">Document</th></tr></thead>
         <tbody id="quotes-tbody"><tr><td colspan="4" style="text-align:center;padding:18px;color:var(--muted);">—</td></tr></tbody>
       </table>
     </div>
 
-    <h2 style="font-size:18px; font-weight:600; color:var(--mig); margin:28px 0 10px;">Policies / wordings</h2>
+    <h2 style="font-size:18px; font-weight:600; color:var(--mig); margin:28px 0 10px;" data-i18n="policies">Policies / wordings</h2>
     <div class="table-wrap">
       <table class="subs">
-        <thead><tr><th>Policy №</th><th>Line</th><th>Issued</th><th>Status</th><th style="text-align:right;">Document</th></tr></thead>
+        <thead><tr><th data-i18n="th_policy_no">Policy №</th><th data-i18n="th_line">Line</th><th data-i18n="th_issued">Issued</th><th data-i18n="th_status">Status</th><th style="text-align:right;" data-i18n="th_document">Document</th></tr></thead>
         <tbody id="pols-tbody"><tr><td colspan="5" style="text-align:center;padding:18px;color:var(--muted);">—</td></tr></tbody>
       </table>
     </div>
@@ -202,6 +207,79 @@
 // ============================================================
 let sb = null, currentUser = null;
 const $ = id => document.getElementById(id);
+
+// ============================================================
+// i18n (EN / RU / UZ) — customer-facing portal
+// ============================================================
+const PORTAL_I18N = {
+  en: {
+    portal_title: 'MIG Customer Portal', portal_subtitle: 'Sign in to start and manage your insurance proposals.',
+    email: 'Email', email_ph: 'you@company.com', password: 'Password', password_ph: 'Your password',
+    sign_in: 'Sign in', sign_out: 'Sign out',
+    login_footer: 'Accounts are created by MIG. Contact your MIG representative if you need access or a password reset.',
+    my_proposals: 'My proposals', my_proposals_sub: 'Start a new proposal, or edit and manage the ones you have submitted.',
+    new_proposal: '+ New proposal', th_submitted: 'Submitted', th_proposer: 'Proposer', th_products: 'Products',
+    th_status: 'Status', th_actions: 'Actions', loading: 'Loading…', quotations: 'Quotations', th_reference: 'Reference',
+    th_date: 'Date', th_total_premium: 'Total premium', th_document: 'Document', policies: 'Policies / wordings',
+    th_policy_no: 'Policy №', th_line: 'Line', th_issued: 'Issued', edit: 'Edit', delete: 'Delete', locked: 'locked',
+    download_docx: 'Download .docx', no_proposals: 'You have no proposals yet.', start_first: '+ Start your first proposal',
+    no_quotations: 'No quotations yet.', no_policies: 'No policies issued yet.', deleted: 'Proposal deleted',
+    confirm_delete: 'Delete this proposal? This cannot be undone.',
+    status_new: 'New', status_in_review: 'In review', status_quoted: 'Quoted', status_bound: 'Bound', status_declined: 'Declined', status_withdrawn: 'Withdrawn',
+  },
+  ru: {
+    portal_title: 'Клиентский портал MIG', portal_subtitle: 'Войдите, чтобы создавать и управлять заявками на страхование.',
+    email: 'Эл. почта', email_ph: 'you@company.com', password: 'Пароль', password_ph: 'Ваш пароль',
+    sign_in: 'Войти', sign_out: 'Выйти',
+    login_footer: 'Учётные записи создаёт MIG. Для доступа или сброса пароля обратитесь к представителю MIG.',
+    my_proposals: 'Мои заявки', my_proposals_sub: 'Создайте новую заявку или редактируйте и управляйте отправленными.',
+    new_proposal: '+ Новая заявка', th_submitted: 'Отправлено', th_proposer: 'Страхователь', th_products: 'Продукты',
+    th_status: 'Статус', th_actions: 'Действия', loading: 'Загрузка…', quotations: 'Котировки', th_reference: 'Номер',
+    th_date: 'Дата', th_total_premium: 'Итоговая премия', th_document: 'Документ', policies: 'Полисы / правила',
+    th_policy_no: 'Полис №', th_line: 'Вид', th_issued: 'Выдан', edit: 'Изменить', delete: 'Удалить', locked: 'заблокировано',
+    download_docx: 'Скачать .docx', no_proposals: 'У вас пока нет заявок.', start_first: '+ Создать первую заявку',
+    no_quotations: 'Котировок пока нет.', no_policies: 'Полисы ещё не выданы.', deleted: 'Заявка удалена',
+    confirm_delete: 'Удалить эту заявку? Это действие необратимо.',
+    status_new: 'Новая', status_in_review: 'На рассмотрении', status_quoted: 'Котировка', status_bound: 'Заключён', status_declined: 'Отклонён', status_withdrawn: 'Отозван',
+  },
+  uz: {
+    portal_title: 'MIG mijozlar portali', portal_subtitle: 'Sugʻurta arizalarini yaratish va boshqarish uchun tizimga kiring.',
+    email: 'Elektron pochta', email_ph: 'you@company.com', password: 'Parol', password_ph: 'Parolingiz',
+    sign_in: 'Kirish', sign_out: 'Chiqish',
+    login_footer: 'Hisoblar MIG tomonidan yaratiladi. Kirish yoki parolni tiklash uchun MIG vakiliga murojaat qiling.',
+    my_proposals: 'Mening arizalarim', my_proposals_sub: 'Yangi ariza yarating yoki yuborilganlarini tahrirlang va boshqaring.',
+    new_proposal: '+ Yangi ariza', th_submitted: 'Yuborilgan', th_proposer: 'Sugʻurtalanuvchi', th_products: 'Mahsulotlar',
+    th_status: 'Holati', th_actions: 'Amallar', loading: 'Yuklanmoqda…', quotations: 'Kotirovkalar', th_reference: 'Raqam',
+    th_date: 'Sana', th_total_premium: 'Umumiy mukofot', th_document: 'Hujjat', policies: 'Polislar / qoidalar',
+    th_policy_no: 'Polis №', th_line: 'Turi', th_issued: 'Berilgan', edit: 'Tahrirlash', delete: 'Oʻchirish', locked: 'qulflangan',
+    download_docx: '.docx yuklab olish', no_proposals: 'Sizda hali arizalar yoʻq.', start_first: '+ Birinchi arizani yarating',
+    no_quotations: 'Hali kotirovkalar yoʻq.', no_policies: 'Hali polislar berilmagan.', deleted: 'Ariza oʻchirildi',
+    confirm_delete: 'Bu arizani oʻchirilsinmi? Buni qaytarib boʻlmaydi.',
+    status_new: 'Yangi', status_in_review: 'Koʻrib chiqilmoqda', status_quoted: 'Kotirovka', status_bound: 'Tuzilgan', status_declined: 'Rad etilgan', status_withdrawn: 'Qaytarib olingan',
+  },
+};
+let portalLang = localStorage.getItem('mig_portal_lang') || (navigator.language || 'en').slice(0, 2).toLowerCase();
+if (!PORTAL_I18N[portalLang]) portalLang = 'en';
+function pt(key) { return (PORTAL_I18N[portalLang] && PORTAL_I18N[portalLang][key]) || PORTAL_I18N.en[key] || key; }
+function applyPortalI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => { const k = el.getAttribute('data-i18n'); if (PORTAL_I18N.en[k] !== undefined) el.textContent = pt(k); });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => { const k = el.getAttribute('data-i18n-ph'); if (PORTAL_I18N.en[k] !== undefined) el.placeholder = pt(k); });
+  document.documentElement.lang = portalLang;
+}
+function buildLangPills() {
+  ['lang-pills-login', 'lang-pills-dash'].forEach(id => {
+    const host = $(id); if (!host) return; host.innerHTML = '';
+    [['en', 'EN'], ['ru', 'RU'], ['uz', 'UZ']].forEach(([code, label]) => {
+      const b = document.createElement('button'); b.textContent = label; if (code === portalLang) b.className = 'active';
+      b.addEventListener('click', () => {
+        portalLang = code; localStorage.setItem('mig_portal_lang', code);
+        buildLangPills(); applyPortalI18n();
+        if (currentUser) { loadSubmissions(); loadQuotations(); loadPolicies(); }
+      });
+      host.appendChild(b);
+    });
+  });
+}
 
 function show(viewId) {
   ['view-login', 'view-dash'].forEach(id => $(id).classList.toggle('hidden', id !== viewId));
@@ -225,7 +303,8 @@ function productLabel(code) {
   return { auto:'Auto', property:'Property', cgl:'CGL', car:'CAR', dno:'D&O', pi:'PI', crime:'Crime', cyber:'Cyber' }[code] || code;
 }
 function statusLabel(s) {
-  return { new:'New', in_review:'In review', quoted:'Quoted', bound:'Bound', declined:'Declined', withdrawn:'Withdrawn' }[s] || s;
+  const k = 'status_' + s;
+  return (PORTAL_I18N.en[k] !== undefined) ? pt(k) : (s || '');
 }
 function setLoginMsg(text, type = 'error') {
   $('login-msg').innerHTML = text ? `<div class="login-${type}">${escapeHtml(text)}</div>` : '';
@@ -291,12 +370,12 @@ async function loadQuotations() {
     .select('id, created_at, reference, total_premium, currency, doc_filename')
     .order('created_at', { ascending: false });
   if (error) { tb.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:18px;color:var(--error);">' + escapeHtml(error.message) + '</td></tr>'; return; }
-  if (!data || !data.length) { tb.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:18px;color:var(--muted);">No quotations yet.</td></tr>'; return; }
+  if (!data || !data.length) { tb.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:18px;color:var(--muted);">' + escapeHtml(pt('no_quotations')) + '</td></tr>'; return; }
   tb.innerHTML = data.map(q =>
     '<tr><td><strong>' + escapeHtml(q.reference || '—') + '</strong></td>' +
     '<td><span class="mono" style="font-size:12px;">' + escapeHtml(fmtDate(q.created_at)) + '</span></td>' +
     '<td>' + escapeHtml(money(q.total_premium, q.currency)) + '</td>' +
-    '<td style="text-align:right;"><button class="btn btn-secondary btn-sm" data-dl="quotations" data-row="' + escapeHtml(q.id) + '">Download .docx</button></td></tr>').join('');
+    '<td style="text-align:right;"><button class="btn btn-secondary btn-sm" data-dl="quotations" data-row="' + escapeHtml(q.id) + '">' + escapeHtml(pt('download_docx')) + '</button></td></tr>').join('');
   tb.querySelectorAll('[data-dl]').forEach(b => b.addEventListener('click', () => downloadDocRow(b)));
 }
 
@@ -308,12 +387,12 @@ async function loadPolicies() {
   }));
   const out = groups.flat();
   out.sort((a, b) => new Date(b.issued_at || 0) - new Date(a.issued_at || 0));
-  if (!out.length) { tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:18px;color:var(--muted);">No policies issued yet.</td></tr>'; return; }
+  if (!out.length) { tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:18px;color:var(--muted);">' + escapeHtml(pt('no_policies')) + '</td></tr>'; return; }
   tb.innerHTML = out.map(p =>
     '<tr><td><strong>' + escapeHtml(p.policy_number || '—') + '</strong></td><td>' + escapeHtml(p.line) + '</td>' +
     '<td><span class="mono" style="font-size:12px;">' + escapeHtml(fmtDate(p.issued_at)) + '</span></td>' +
     '<td><span class="status-badge ' + escapeHtml(p.status) + '">' + escapeHtml(statusLabel(p.status)) + '</span></td>' +
-    '<td style="text-align:right;">' + (p.doc_filename ? '<button class="btn btn-secondary btn-sm" data-dl="' + escapeHtml(p._tbl) + '" data-row="' + escapeHtml(p.id) + '">Download .docx</button>' : '<span class="muted" style="font-size:12px;">—</span>') + '</td></tr>').join('');
+    '<td style="text-align:right;">' + (p.doc_filename ? '<button class="btn btn-secondary btn-sm" data-dl="' + escapeHtml(p._tbl) + '" data-row="' + escapeHtml(p.id) + '">' + escapeHtml(pt('download_docx')) + '</button>' : '<span class="muted" style="font-size:12px;">—</span>') + '</td></tr>').join('');
   tb.querySelectorAll('[data-dl]').forEach(b => b.addEventListener('click', () => downloadDocRow(b)));
 }
 
@@ -349,8 +428,8 @@ async function loadSubmissions() {
   if (!data || !data.length) {
     tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state">
       <div class="icon">📄</div>
-      <div>You have no proposals yet.</div>
-      <div style="margin-top:12px;"><a class="btn" href="/proposal/">+ Start your first proposal</a></div>
+      <div>${escapeHtml(pt('no_proposals'))}</div>
+      <div style="margin-top:12px;"><a class="btn" href="/proposal/">${escapeHtml(pt('start_first'))}</a></div>
     </div></td></tr>`;
     return;
   }
@@ -359,11 +438,11 @@ async function loadSubmissions() {
       || '<span style="color:var(--muted);font-size:11px;">—</span>';
     const isNew = r.status === 'new';
     const actions = isNew
-      ? `<a class="btn btn-secondary btn-sm" href="/proposal/?id=${encodeURIComponent(r.id)}">Edit</a>
+      ? `<a class="btn btn-secondary btn-sm" href="/proposal/?id=${encodeURIComponent(r.id)}">${escapeHtml(pt('edit'))}</a>
          <button class="btn btn-secondary btn-sm" data-pdf="${escapeHtml(r.id)}">PDF</button>
-         <button class="btn btn-danger btn-sm" data-del="${escapeHtml(r.id)}">Delete</button>`
+         <button class="btn btn-danger btn-sm" data-del="${escapeHtml(r.id)}">${escapeHtml(pt('delete'))}</button>`
       : `<button class="btn btn-secondary btn-sm" data-pdf="${escapeHtml(r.id)}">PDF</button>
-         <span style="font-size:11px;color:var(--muted);align-self:center;">locked</span>`;
+         <span style="font-size:11px;color:var(--muted);align-self:center;">${escapeHtml(pt('locked'))}</span>`;
     return `<tr>
       <td><span class="mono" style="font-size:12px;">${escapeHtml(fmtDate(r.created_at))}</span></td>
       <td><strong>${escapeHtml(r.proposer_name || '(unnamed)')}</strong></td>
@@ -378,10 +457,10 @@ async function loadSubmissions() {
 }
 
 async function deleteSubmission(id) {
-  if (!confirm('Delete this proposal? This cannot be undone.')) return;
+  if (!confirm(pt('confirm_delete'))) return;
   const { error } = await sb.from('submissions').delete().eq('id', id);
   if (error) { toast('Could not delete: ' + error.message, 'error'); return; }
-  toast('Proposal deleted');
+  toast(pt('deleted'));
   loadSubmissions();
 }
 
@@ -413,6 +492,8 @@ async function downloadPdf(id, btn) {
 // Init
 // ============================================================
 (async function init() {
+  buildLangPills();
+  applyPortalI18n();
   if (typeof supabase === 'undefined' || !supabase.createClient) {
     setLoginMsg('Could not load the sign-in system. Check your connection and reload.');
     return;
