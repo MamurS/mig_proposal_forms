@@ -374,6 +374,20 @@
     to { transform: translateX(0); opacity: 1; }
   }
 
+  /* === EDIT MODAL === */
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(11,20,36,0.45); display: flex; align-items: center; justify-content: center; z-index: 200; padding: 24px; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; width: 100%; max-width: 580px; max-height: 90vh; overflow: auto; box-shadow: 0 8px 32px rgba(11,20,36,0.18); }
+  .modal h3 { margin: 0 0 4px; font-size: 18px; color: var(--mig); }
+  .modal .sub { font-size: 12px; color: var(--muted); margin-bottom: 16px; word-break: break-all; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+  .chk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
+  .chk-grid label { display: flex; gap: 6px; align-items: center; font-size: 13px; color: var(--ink); text-transform: none; font-weight: 400; cursor: pointer; margin: 0; }
+  .attach-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 0; border-bottom: 1px solid #f0eee6; font-size: 13px; }
+  .attach-row:last-child { border-bottom: none; }
+  .attach-row .rm { background: transparent; border: 1px solid var(--border-strong); color: var(--error); border-radius: 4px; width: 26px; height: 26px; cursor: pointer; flex-shrink: 0; }
+  .attach-kind { display: inline-block; background: var(--mig-light); color: var(--mig); border-radius: 4px; font-size: 10px; padding: 1px 6px; margin-right: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+  details.adv summary { cursor: pointer; font-size: 12px; color: var(--mig); margin: 12px 0 6px; }
+
   /* === HIDE / SHOW === */
   .hidden { display: none !important; }
   .spinner {
@@ -508,6 +522,7 @@
           <tr>
             <th style="width: 140px;">Date</th>
             <th>Proposer</th>
+            <th style="width: 130px;">INN</th>
             <th style="width: 200px;">Products</th>
             <th style="width: 100px;">Lang</th>
             <th style="width: 110px;">Status</th>
@@ -515,7 +530,7 @@
           </tr>
         </thead>
         <tbody id="submissions-tbody">
-          <tr><td colspan="6" style="text-align: center; padding: 24px; color: var(--muted);">
+          <tr><td colspan="7" style="text-align: center; padding: 24px; color: var(--muted);">
             <span class="spinner"></span> Loading submissions…
           </td></tr>
         </tbody>
@@ -549,6 +564,7 @@
       <h1 class="detail-title" id="detail-proposer">—</h1>
       <div class="detail-meta">
         <span><strong>Submitted:</strong> <span id="detail-date">—</span></span>
+        <span><strong>INN:</strong> <span id="detail-inn">—</span></span>
         <span><strong>ID:</strong> <span class="mono" id="detail-id" style="font-size: 11px;">—</span></span>
         <span><strong>Language:</strong> <span id="detail-lang">—</span></span>
         <span id="detail-products-meta"></span>
@@ -562,6 +578,7 @@
           <option value="declined">Declined</option>
           <option value="withdrawn">Withdrawn</option>
         </select>
+        <button class="btn btn-secondary" id="btn-edit-submission">Edit submission</button>
         <button class="btn btn-secondary" id="btn-download-pdf">Download PDF</button>
         <button class="btn btn-secondary" id="btn-generate-quote">Generate quotation</button>
         <button class="btn" id="btn-analyze-ai">Analyze with AI</button>
@@ -587,12 +604,75 @@
           </div>
         </div>
 
+        <div class="panel" style="margin-bottom: 16px;">
+          <h3>Attachments</h3>
+          <div id="detail-attachments"><span style="color: var(--muted); font-size: 12px;">No files attached. Use <strong>Edit submission</strong> to upload the filled proposal form or financial statements.</span></div>
+        </div>
+
         <div class="panel">
           <h3>Internal notes</h3>
           <textarea id="internal-notes" rows="8" placeholder="Underwriter notes, terms, follow-up actions…"></textarea>
           <button class="btn btn-secondary btn-sm" id="btn-save-notes" style="margin-top: 8px; width: 100%;">Save notes</button>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- EDIT SUBMISSION MODAL -->
+<!-- ============================================================ -->
+<div class="modal-backdrop hidden" id="edit-sub-modal">
+  <div class="modal">
+    <h3>Edit submission</h3>
+    <div class="sub" id="es-sub">—</div>
+    <div id="es-msg"></div>
+
+    <label for="es-proposer">Proposer (company)</label>
+    <input type="text" id="es-proposer" autocomplete="off" />
+    <label for="es-inn">INN</label>
+    <input type="text" id="es-inn" autocomplete="off" />
+    <label for="es-status">Status</label>
+    <select id="es-status">
+      <option value="new">New</option>
+      <option value="in_review">In review</option>
+      <option value="quoted">Quoted</option>
+      <option value="bound">Bound</option>
+      <option value="declined">Declined</option>
+      <option value="withdrawn">Withdrawn</option>
+    </select>
+
+    <label style="margin-top: 12px;">Products</label>
+    <div class="chk-grid" id="es-products">
+      <label><input type="checkbox" value="auto" /> Commercial Automobile</label>
+      <label><input type="checkbox" value="property" /> Property</label>
+      <label><input type="checkbox" value="cgl" /> General Liability (CGL)</label>
+      <label><input type="checkbox" value="car" /> Contractors' All Risks (CAR)</label>
+      <label><input type="checkbox" value="dno" /> Directors &amp; Officers (D&amp;O)</label>
+      <label><input type="checkbox" value="pi" /> Professional Indemnity (PI)</label>
+      <label><input type="checkbox" value="crime" /> Crime</label>
+      <label><input type="checkbox" value="cyber" /> Cyber</label>
+    </div>
+
+    <label style="margin-top: 14px;">Attachments</label>
+    <div id="es-attachments"></div>
+    <div style="display: flex; gap: 18px; flex-wrap: wrap; margin-top: 8px;">
+      <label style="font-size: 12px;">+ Manually-filled proposal form
+        <input type="file" id="es-file-proposal" accept="application/pdf,image/*" style="display: block; margin-top: 4px; font-size: 12px;" /></label>
+      <label style="font-size: 12px;">+ Financial statements
+        <input type="file" id="es-file-fs" accept="application/pdf,image/*,.xlsx,.xls,.doc,.docx,.csv" multiple style="display: block; margin-top: 4px; font-size: 12px;" /></label>
+    </div>
+    <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">Files are stored with the submission (up to ~8 MB each).</div>
+
+    <details class="adv">
+      <summary>Advanced — edit raw proposal fields (JSON)</summary>
+      <textarea id="es-fields" rows="10" style="font-family: 'JetBrains Mono', monospace; font-size: 12px;"></textarea>
+      <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">Overrides the captured field values. Must be valid JSON. Leave unchanged to keep them.</div>
+    </details>
+
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="es-cancel">Cancel</button>
+      <button class="btn" id="es-save">Save changes</button>
     </div>
   </div>
 </div>
@@ -798,17 +878,17 @@ if (sb) {
 // ============================================================
 async function loadSubmissions() {
   const tbody = document.getElementById('submissions-tbody');
-  tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 24px;"><span class="spinner"></span> Loading…</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 24px;"><span class="spinner"></span> Loading…</td></tr>';
 
   // We exclude the heavy `payload` blob from the list query — fetch it lazily on detail view.
   const { data, error } = await sb
     .from('submissions')
-    .select('id, created_at, updated_at, proposer_name, products, language, status, ai_analyzed_at, assigned_to')
+    .select('id, created_at, updated_at, proposer_name, proposer_inn, products, language, status, ai_analyzed_at, assigned_to')
     .order('created_at', { ascending: false })
     .limit(500);
 
   if (error) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 24px; color: var(--error);">
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 24px; color: var(--error);">
       Could not load submissions: ${escapeHtml(error.message)}
       <br><span style="font-size: 12px; color: var(--muted);">You may need to be added to mig_staff. See deploy instructions.</span>
     </td></tr>`;
@@ -833,7 +913,7 @@ function renderSubmissions() {
 
   const tbody = document.getElementById('submissions-tbody');
   if (rows.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state">
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state">
       <div>No submissions match the filter.</div>
     </div></td></tr>`;
     return;
@@ -847,6 +927,7 @@ function renderSubmissions() {
     return `<tr data-id="${escapeHtml(r.id)}">
       <td><span class="mono" style="font-size: 12px;">${escapeHtml(fmtDateOnly(r.created_at))}</span></td>
       <td><strong>${escapeHtml(r.proposer_name || '(no name)')}</strong></td>
+      <td><span class="mono" style="font-size: 12px;">${escapeHtml(r.proposer_inn || '—')}</span></td>
       <td>${products || '<span style="color: var(--muted); font-size: 11px;">—</span>'}</td>
       <td><span class="mono" style="font-size: 11px; text-transform: uppercase; color: var(--muted);">${escapeHtml(r.language || '—')}</span></td>
       <td><span class="status-badge ${escapeHtml(r.status)}">${escapeHtml(statusLabel(r.status))}</span></td>
@@ -908,10 +989,12 @@ function renderDetail(s) {
   document.getElementById('detail-id').textContent = s.id;
   document.getElementById('detail-lang').textContent = (s.language || '—').toUpperCase();
   document.getElementById('detail-products-meta').innerHTML =
-    '<strong>Products:</strong> ' + (s.products || []).map(p => `<span class="product-pill">${escapeHtml(productLabel(p))}</span>`).join('') || '<span style="color: var(--muted);">—</span>';
+    '<strong>Products:</strong> ' + ((s.products || []).map(p => `<span class="product-pill">${escapeHtml(productLabel(p))}</span>`).join('') || '<span style="color: var(--muted);">—</span>');
 
   document.getElementById('detail-status-select').value = s.status || 'new';
   document.getElementById('internal-notes').value = s.internal_notes || '';
+  document.getElementById('detail-inn').textContent = s.proposer_inn || (s.payload?.fields?.proposer_inn) || '—';
+  renderDetailAttachments(s.payload?.attachments || []);
 
   // Render structured fields from payload.fields
   const fields = s.payload?.fields || {};
@@ -1140,6 +1223,127 @@ document.getElementById('btn-analyze-ai').addEventListener('click', async () => 
     btn.disabled = false; btn.textContent = 'Analyze with AI';
   }
 });
+
+// ============================================================
+// EDIT SUBMISSION — proposer / INN / products / status, file uploads
+// (filled proposal form + financial statements) and an advanced raw-field
+// JSON editor. Uploaded files are stored base64 in payload.attachments[].
+// ============================================================
+const ATTACH_MAX = 8 * 1024 * 1024; // ~8 MB per file
+const KIND_LABEL = { proposal: 'Form', fs: 'FS', other: 'File' };
+let esAttachments = [];
+
+function fileToB64(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result).split(',')[1] || '');
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
+function dlAttachment(att) {
+  try {
+    const bin = atob(att.b64); const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const url = URL.createObjectURL(new Blob([bytes], { type: att.type || 'application/octet-stream' }));
+    const a = document.createElement('a'); a.href = url; a.download = att.name || 'attachment';
+    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 200);
+  } catch (e) { toast('Could not download: ' + e.message, 'error'); }
+}
+function fmtBytes(n) { if (!n) return ''; const u = ['B','KB','MB']; let i = 0, x = n; while (x >= 1024 && i < 2) { x /= 1024; i++; } return x.toFixed(x < 10 && i ? 1 : 0) + ' ' + u[i]; }
+
+function attachRowHtml(a, i, removable) {
+  const meta = `<span><span class="attach-kind">${escapeHtml(KIND_LABEL[a.kind] || 'File')}</span>${escapeHtml(a.name || 'file')} <span style="color: var(--muted); font-size: 11px;">${escapeHtml(fmtBytes(a.size))}</span></span>`;
+  const action = removable
+    ? `<button class="rm" data-rm="${i}" title="Remove">✕</button>`
+    : `<button class="btn btn-secondary btn-sm" data-att="${i}">Download</button>`;
+  return `<div class="attach-row">${meta}${action}</div>`;
+}
+function renderDetailAttachments(atts) {
+  const el = document.getElementById('detail-attachments');
+  if (!atts || !atts.length) { el.innerHTML = '<span style="color: var(--muted); font-size: 12px;">No files attached. Use <strong>Edit submission</strong> to upload the filled proposal form or financial statements.</span>'; return; }
+  el.innerHTML = atts.map((a, i) => attachRowHtml(a, i, false)).join('');
+  el.querySelectorAll('[data-att]').forEach(b => b.addEventListener('click', () => dlAttachment(atts[+b.dataset.att])));
+}
+function renderEsAttachments() {
+  const el = document.getElementById('es-attachments');
+  if (!esAttachments.length) { el.innerHTML = '<span style="color: var(--muted); font-size: 12px;">No files attached.</span>'; return; }
+  el.innerHTML = esAttachments.map((a, i) => attachRowHtml(a, i, true)).join('');
+  el.querySelectorAll('[data-rm]').forEach(b => b.addEventListener('click', () => { esAttachments.splice(+b.dataset.rm, 1); renderEsAttachments(); }));
+}
+async function addEsFiles(fileList, kind) {
+  // Snapshot the FileList — it is live and gets cleared by the caller; iterating
+  // it across awaits would otherwise drop every file after the first.
+  const files = Array.from(fileList);
+  for (const file of files) {
+    if (file.size > ATTACH_MAX) { toast(file.name + ' is too large (max 8 MB).', 'error'); continue; }
+    try { const b64 = await fileToB64(file); esAttachments.push({ name: file.name, type: file.type || '', size: file.size, kind, b64 }); }
+    catch (e) { toast('Could not read ' + file.name, 'error'); }
+  }
+  renderEsAttachments();
+}
+
+function openEditSubmission() {
+  if (!currentSubmission) return;
+  const s = currentSubmission;
+  document.getElementById('es-msg').innerHTML = '';
+  document.getElementById('es-sub').textContent = s.id;
+  document.getElementById('es-proposer').value = s.proposer_name || '';
+  document.getElementById('es-inn').value = s.proposer_inn || (s.payload?.fields?.proposer_inn) || '';
+  document.getElementById('es-status').value = s.status || 'new';
+  const prods = s.products || [];
+  document.querySelectorAll('#es-products input[type=checkbox]').forEach(cb => { cb.checked = prods.includes(cb.value); });
+  esAttachments = (s.payload?.attachments || []).map(a => ({ ...a }));
+  renderEsAttachments();
+  document.getElementById('es-file-proposal').value = '';
+  document.getElementById('es-file-fs').value = '';
+  document.getElementById('es-fields').value = JSON.stringify(s.payload?.fields || {}, null, 2);
+  const adv = document.querySelector('#edit-sub-modal details.adv'); if (adv) adv.open = false;
+  document.getElementById('edit-sub-modal').classList.remove('hidden');
+}
+function closeEditSubmission() { document.getElementById('edit-sub-modal').classList.add('hidden'); }
+
+async function saveSubmission() {
+  if (!currentSubmission) return;
+  let fields;
+  try {
+    fields = JSON.parse(document.getElementById('es-fields').value || '{}');
+    if (typeof fields !== 'object' || Array.isArray(fields)) throw new Error('must be a JSON object');
+  } catch (e) {
+    document.getElementById('es-msg').innerHTML = '<div class="login-error">Raw fields JSON is invalid: ' + escapeHtml(e.message) + '</div>'; return;
+  }
+  const proposer = document.getElementById('es-proposer').value.trim();
+  const inn = document.getElementById('es-inn').value.trim();
+  const status = document.getElementById('es-status').value;
+  const products = [...document.querySelectorAll('#es-products input:checked')].map(cb => cb.value);
+  // keep the stored proposal fields consistent with the dedicated columns
+  fields.proposer_name = proposer || fields.proposer_name || '';
+  fields.proposer_inn = inn;
+  fields._products = products;
+  const newPayload = { ...(currentSubmission.payload || {}), fields, attachments: esAttachments };
+
+  const btn = document.getElementById('es-save'); btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Saving…';
+  const { error } = await sb.from('submissions').update({
+    proposer_name: proposer || null,
+    proposer_inn: inn || null,
+    products,
+    status,
+    payload: newPayload,
+  }).eq('id', currentSubmission.id);
+  btn.disabled = false; btn.textContent = 'Save changes';
+  if (error) { document.getElementById('es-msg').innerHTML = '<div class="login-error">' + escapeHtml('Could not save: ' + error.message) + '</div>'; return; }
+  closeEditSubmission();
+  toast('Submission updated');
+  openDetail(currentSubmission.id);  // reload the detail view
+  loadSubmissions();                 // refresh the list (INN / proposer / products / status)
+}
+
+document.getElementById('btn-edit-submission').addEventListener('click', openEditSubmission);
+document.getElementById('es-cancel').addEventListener('click', closeEditSubmission);
+document.getElementById('edit-sub-modal').addEventListener('click', (e) => { if (e.target === document.getElementById('edit-sub-modal')) closeEditSubmission(); });
+document.getElementById('es-save').addEventListener('click', saveSubmission);
+document.getElementById('es-file-proposal').addEventListener('change', (e) => { const files = Array.from(e.target.files); e.target.value = ''; addEsFiles(files, 'proposal'); });
+document.getElementById('es-file-fs').addEventListener('change', (e) => { const files = Array.from(e.target.files); e.target.value = ''; addEsFiles(files, 'fs'); });
 </script>
 </body>
 </html>
