@@ -249,16 +249,22 @@ async function generateQuotation() {
       if (!custId && g('q-inn')) {
         try { const { data: cm } = await sb.from('customers').select('user_id').eq('inn', g('q-inn')).limit(1); if (cm && cm[0]) custId = cm[0].user_id; } catch (_) {}
       }
-      const { error: insErr } = await sb.from('quotations').insert({
+      const { data: qrow, error: insErr } = await sb.from('quotations').insert({
         created_by: me ? me.id : null,
         submission_id: (submission && submission.id) || null,
         customer_id: custId,
         reference: g('q-ref'), currency: curCode, total_premium: total,
         inn: g('q-inn') || null,
         lines: lines, doc_base64: b64, doc_filename: fname, status: 'sent',
-      });
+      }).select('id').single();
       saved = !insErr;
       if (insErr) console.error('Quotation save error:', insErr);
+      // Move the document to Storage; on success drop the heavy base64 from the row.
+      else if (window.MIG_DOC && qrow) {
+        const path = 'quotations/' + (custId || 'unlinked') + '/' + qrow.id + '.docx';
+        const stored = await MIG_DOC.upload(sb, path, blob);
+        if (stored) await sb.from('quotations').update({ doc_path: stored, doc_base64: null }).eq('id', qrow.id);
+      }
     } catch (e) { console.error('Quotation save exception:', e); }
     note.textContent = 'Generated ' + fname + (saved ? ' — saved to the customer record.' : ' (downloaded; not saved to DB).');
   } catch (e) {

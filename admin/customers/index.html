@@ -139,6 +139,7 @@
 <div id="toast-container"></div>
 <script src="/config.js"></script>
 <script src="/shared/inn.js"></script>
+<script src="/shared/storage.js"></script>
 <script>
 let sb = null, isAdmin = false, currentCustomer = null;
 const $ = id => document.getElementById(id);
@@ -296,9 +297,16 @@ async function downloadDoc(btn){
   const tbl = btn.getAttribute('data-dl'), id = btn.getAttribute('data-row');
   const orig = btn.textContent; btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
   try {
-    const { data, error } = await sb.from(tbl).select('doc_base64, doc_filename').eq('id', id).single();
-    if (error || !data || !data.doc_base64) { toast('No document stored.', 'error'); return; }
-    dlBase64(data.doc_base64, data.doc_filename || 'document.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    const { data, error } = await sb.from(tbl).select('doc_path, doc_base64, doc_filename').eq('id', id).single();
+    if (error || !data) { toast('No document stored.', 'error'); return; }
+    if (data.doc_path && window.MIG_DOC) {                       // new docs live in Storage
+      const blob = await MIG_DOC.download(sb, data.doc_path);
+      if (blob) { MIG_DOC.saveBlob(blob, data.doc_filename || 'document.docx'); return; }
+    }
+    if (data.doc_base64) {                                       // older docs are base64
+      dlBase64(data.doc_base64, data.doc_filename || 'document.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'); return;
+    }
+    toast('No document stored.', 'error');
   } catch(e) { toast('Download failed: '+e.message, 'error'); }
   finally { btn.disabled=false; btn.textContent=orig; }
 }

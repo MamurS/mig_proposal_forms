@@ -201,6 +201,7 @@
 
 <!-- Supabase credentials — centralised in /config.js -->
 <script src="/config.js"></script>
+<script src="/shared/storage.js"></script>
 <script>
 // ============================================================
 // Customer portal
@@ -400,11 +401,17 @@ async function downloadDocRow(btn) {
   const tbl = btn.getAttribute('data-dl'), id = btn.getAttribute('data-row');
   const orig = btn.textContent; btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
   try {
-    const { data, error } = await sb.from(tbl).select('doc_base64, doc_filename').eq('id', id).single();
-    if (error || !data || !data.doc_base64) { toast('No document stored.', 'error'); return; }
-    const bin = atob(data.doc_base64); const bytes = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-    const url = URL.createObjectURL(new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }));
+    const { data, error } = await sb.from(tbl).select('doc_path, doc_base64, doc_filename').eq('id', id).single();
+    if (error || !data) { toast('No document stored.', 'error'); return; }
+    let blob = null;
+    if (data.doc_path && window.MIG_DOC) blob = await MIG_DOC.download(sb, data.doc_path);   // new docs live in Storage
+    if (!blob && data.doc_base64) {                                                          // older docs are base64
+      const bin = atob(data.doc_base64); const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+    }
+    if (!blob) { toast('No document stored.', 'error'); return; }
+    const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = data.doc_filename || 'document.docx';
     document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 200);
   } catch (e) { toast('Download failed: ' + e.message, 'error'); }
