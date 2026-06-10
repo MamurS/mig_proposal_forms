@@ -50,6 +50,15 @@
   @keyframes spin { to { transform:rotate(360deg); } }
   .toast { position:fixed; bottom:24px; right:24px; padding:12px 18px; border-radius:6px; color:#fff; font-size:13px; z-index:100; box-shadow:0 4px 12px rgba(0,0,0,.12); }
   .toast.success { background:var(--success); } .toast.error { background:var(--error); }
+  input[type=text], input[type=email], input[type=password] { font-family:inherit; font-size:14px; padding:8px 10px; border:1px solid var(--border-strong); border-radius:6px; background:var(--surface); color:var(--ink); width:100%; }
+  input:focus { outline:none; border-color:var(--mig); box-shadow:0 0 0 3px rgba(31,56,100,.1); }
+  .modal-backdrop { position:fixed; inset:0; background:rgba(11,20,36,.45); display:flex; align-items:center; justify-content:center; z-index:200; padding:24px; }
+  .modal { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:24px; width:100%; max-width:420px; box-shadow:0 8px 32px rgba(11,20,36,.18); }
+  .modal h3 { margin:0 0 4px; font-size:17px; color:var(--mig); }
+  .modal .sub { font-size:12px; color:var(--muted); margin-bottom:16px; word-break:break-all; }
+  .modal label { display:block; font-size:12px; color:var(--muted); margin:10px 0 4px; font-weight:500; }
+  .modal-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:16px; }
+  .login-error { color:var(--error); background:#fef1f1; border:1px solid #f5c8c8; padding:8px 12px; border-radius:6px; font-size:13px; margin-bottom:12px; }
   .hidden { display:none !important; }
 </style>
 </head>
@@ -84,8 +93,10 @@
   <!-- DETAIL -->
   <div id="view-detail" class="hidden">
     <div class="breadcrumb"><a id="back-link">← All customers</a></div>
-    <h1 id="cust-name">—</h1>
-    <p class="intro mono" id="cust-sub">—</p>
+    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+      <div><h1 id="cust-name">—</h1><p class="intro mono" id="cust-sub">—</p></div>
+      <button class="btn btn-secondary btn-sm hidden" id="btn-edit-cust" style="margin-top:6px;">Edit customer</button>
+    </div>
     <div class="panel"><div class="profile" id="cust-profile"></div></div>
 
     <div class="panel">
@@ -106,10 +117,29 @@
   </div>
 </div>
 
+<!-- Edit customer modal -->
+<div class="modal-backdrop hidden" id="edit-modal">
+  <div class="modal">
+    <h3>Edit customer</h3>
+    <div class="sub" id="edit-sub">—</div>
+    <div id="edit-msg"></div>
+    <label for="edit-email">Email</label><input type="email" id="edit-email" autocomplete="off" />
+    <label for="edit-name">Full name</label><input type="text" id="edit-name" autocomplete="off" />
+    <label for="edit-company">Company</label><input type="text" id="edit-company" autocomplete="off" />
+    <label for="edit-inn">Company INN</label><input type="text" id="edit-inn" autocomplete="off" />
+    <label for="edit-password">New password <span style="text-transform:none; color:var(--muted);">(blank = keep current)</span></label>
+    <input type="text" id="edit-password" placeholder="leave blank to keep" autocomplete="off" />
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="edit-cancel">Cancel</button>
+      <button class="btn" id="edit-save">Save changes</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast-container"></div>
 <script src="/config.js"></script>
 <script>
-let sb = null;
+let sb = null, isAdmin = false, currentCustomer = null;
 const $ = id => document.getElementById(id);
 const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmtDate = iso => iso ? new Date(iso).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '—';
@@ -135,14 +165,63 @@ function dlBase64(b64, filename, mime) {
   if (!session) return;
   const { data: isStaff } = await sb.rpc('is_mig_staff');
   if (!isStaff) { const e=session.user.email||'This account'; await sb.auth.signOut(); showGate('Account not authorized', e+' is not on the MIG staff list.'); return; }
+  const { data: adm } = await sb.rpc('is_mig_admin', { uid: session.user.id }); isAdmin = !!adm;
   $('auth-gate').classList.add('hidden'); $('app').classList.remove('hidden');
   $('user-email').textContent = session.user.email||'';
   $('btn-signout').classList.remove('hidden');
   $('btn-signout').onclick = async ()=>{ await sb.auth.signOut(); location.reload(); };
   $('back-link').onclick = ()=>{ history.pushState({},'','/admin/customers/'); route(); };
+  $('btn-edit-cust').onclick = openEditCustomer;
+  $('edit-cancel').onclick = closeEditModal;
+  $('edit-modal').addEventListener('click', e => { if (e.target === $('edit-modal')) closeEditModal(); });
+  $('edit-save').onclick = saveCustomer;
   window.addEventListener('popstate', route);
   route();
 })();
+
+// Edge function call (admin-only update of customer profile).
+async function invokeFn(payload) {
+  const { data, error } = await sb.functions.invoke('create-account', { body: payload });
+  if (error) {
+    let detail = error.message;
+    try { const ctx = await error.context?.json?.(); if (ctx?.error) detail = ctx.error; } catch (_) {}
+    throw new Error(detail);
+  }
+  if (data && data.error) throw new Error(data.error);
+  return data;
+}
+function openEditCustomer() {
+  if (!currentCustomer) return;
+  $('edit-msg').innerHTML = '';
+  $('edit-sub').textContent = currentCustomer.email || currentCustomer.user_id;
+  $('edit-email').value = currentCustomer.email || '';
+  $('edit-name').value = currentCustomer.full_name || '';
+  $('edit-company').value = currentCustomer.company || '';
+  $('edit-inn').value = currentCustomer.inn || '';
+  $('edit-password').value = '';
+  $('edit-modal').classList.remove('hidden');
+}
+function closeEditModal() { $('edit-modal').classList.add('hidden'); }
+async function saveCustomer() {
+  if (!currentCustomer) return;
+  const payload = { action: 'update', user_id: currentCustomer.user_id };
+  const email = $('edit-email').value.trim();
+  if (email && email !== currentCustomer.email) payload.email = email;
+  payload.full_name = $('edit-name').value.trim() || null;
+  payload.company = $('edit-company').value.trim() || null;
+  payload.inn = $('edit-inn').value.trim() || null;
+  const pw = $('edit-password').value;
+  if (pw) { if (pw.length < 8) { $('edit-msg').innerHTML = '<div class="login-error">Password must be at least 8 characters.</div>'; return; } payload.password = pw; }
+  const btn = $('edit-save'); btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Saving…';
+  try {
+    await invokeFn(payload);
+    closeEditModal();
+    toast('Customer updated');
+    loadCustomer(currentCustomer.user_id);
+  } catch (e) {
+    $('edit-msg').innerHTML = '<div class="login-error">' + esc('Could not save: ' + e.message) + '</div>';
+  } finally { btn.disabled = false; btn.textContent = 'Save changes'; }
+}
 
 function route(){
   const id = new URLSearchParams(location.search).get('id');
@@ -163,8 +242,11 @@ async function loadCustomers(){
 async function loadCustomer(uid){
   $('cust-name').textContent='Loading…'; $('cust-sub').textContent='';
   $('cust-profile').innerHTML=''; $('subs-tbody').innerHTML=''; $('quotes-tbody').innerHTML=''; $('pols-tbody').innerHTML='';
+  $('btn-edit-cust').classList.add('hidden');
   const { data: c } = await sb.from('customers').select('*').eq('user_id',uid).single();
   if (!c) { $('cust-name').textContent='Customer not found'; return; }
+  currentCustomer = c;
+  $('btn-edit-cust').classList.toggle('hidden', !isAdmin);
   $('cust-name').textContent = c.full_name || c.email || '(customer)';
   $('cust-sub').textContent = c.email || uid;
   $('cust-profile').innerHTML =
