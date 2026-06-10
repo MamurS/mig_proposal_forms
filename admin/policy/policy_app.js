@@ -289,14 +289,14 @@ function renderPreview() {
   h += '<h2 class="s">ПОДПИСИ СТОРОН / SIGNATURES</h2>';
   h += '<p style="font-size:11px; margin-bottom:6px">Страхователь ознакомлен и согласен с условиями и положениями страхования, предоставленного настоящим Страховым Полисом / The Insured is familiarized and agrees with the terms and conditions of the insurance provided under this Policy.</p>';
   h += '<p style="font-size:11px; margin-bottom:8px">Дата подписания / Policy signing date: ' + esc(F().d.poldate) + '</p>';
-  h += '<table class="sig"><tr><td><b>Company / Компания:</b> “MOSAIC INSURANCE GROUP” JSC / АО СО «MOSAIC INSURANCE GROUP»<br/><span style="font-size:10px">Acc: 2021 4000 1053 3830 3001 (UZS), 2021 4840 3053 3830 3001 (USD), 2021 4978 9053 3830 3001 (EUR). JSC “KDB Bank Uzbekistan”, Bank Code 00842, SWIFT KODBUZ22, TIN/ИНН 308143734</span><br/><br/><br/>_________________________ For the Company / За Компанию</td>' +
-       '<td><b>Insured / Страхователь:</b> ' + ph + '<br/><span style="font-size:10px">ИНН / INN: ' + esc(F().d.inn) + '</span><br/><span style="font-size:10px">Адрес / Address: ' + esc(F().d.address) + '</span><br/><br/><br/>_________________________ For the Insured / За Страхователя</td></tr></table>';
+  h += '<table class="sig"><tr><td><b>Компания / Company:</b> “MOSAIC INSURANCE GROUP” JSC / АО СО «MOSAIC INSURANCE GROUP»<br/><span style="font-size:10px">Acc: 2021 4000 1053 3830 3001 (UZS), 2021 4840 3053 3830 3001 (USD), 2021 4978 9053 3830 3001 (EUR). JSC “KDB Bank Uzbekistan”, Bank Code 00842, SWIFT KODBUZ22, TIN/ИНН 308143734</span><br/><br/><br/>_________________________ За Компанию / For the Company</td>' +
+       '<td><b>Страхователь / Insured:</b> ' + ph + '<br/><span style="font-size:10px">ИНН / INN: ' + esc(F().d.inn) + '</span><br/><span style="font-size:10px">Адрес / Address: ' + esc(F().d.address) + '</span><br/><br/><br/>_________________________ За Страхователя / For the Insured</td></tr></table>';
   // Wording
   h += '<h2 class="s" style="margin-top:26px">' + esc(c.wordingRu) + '<br/>' + esc(c.wordingEn) + '</h2>';
   h += '<table class="wrd">';
   for (const item of W.wording) {
     const cls = item.t === 'h1' ? 'h1c' : item.t === 'h2' ? 'h2c' : '';
-    h += '<tr><td class="' + cls + '">' + esc(item.en) + '</td><td class="' + cls + '">' + esc(item.ru) + '</td></tr>';
+    h += '<tr><td class="' + cls + '">' + esc(item.ru) + '</td><td class="' + cls + '">' + esc(item.en) + '</td></tr>';
   }
   h += '</table>';
   h += '<div class="foot">' + esc(c.footer) + '</div>';
@@ -335,7 +335,7 @@ async function generateDocx() {
       children: [ isH1 ? heading(text, { align: AlignmentType.CENTER, size: 22, before: 60 })
                 : isH2 ? heading(text, { size: 19, before: 100 }) : para(text) ],
     });
-    return new TableRow({ children: [mk(item.en), mk(item.ru)] });
+    return new TableRow({ children: [mk(item.ru), mk(item.en)] });  // RU left, EN right — consistent with the schedule
   };
   const schedRow = ([ruL, enL, ruV, enV]) => {
     const mk = (label, value) => new TableCell({
@@ -421,17 +421,17 @@ async function generateDocx() {
   ch.push(new Table({ width: { size: CONTENT, type: WidthType.DXA }, columnWidths: [HALF, HALF], rows: [
     new TableRow({ children: [
       new TableCell({ borders, width: { size: HALF, type: WidthType.DXA }, margins, children: [
-        para("Company / Компания: “MOSAIC INSURANCE GROUP” JSC / АО СО «MOSAIC INSURANCE GROUP»", { bold: true, size: 18 }),
-        para("Banking details / Банковские реквизиты: Acc: 2021 4000 1053 3830 3001 (UZS), 2021 4840 3053 3830 3001 (USD), 2021 4978 9053 3830 3001 (EUR). JSC “KDB Bank Uzbekistan”, Bank Code 00842, SWIFT KODBUZ22, TIN/ИНН 308143734", { size: 17 }),
+        para("Компания / Company: “MOSAIC INSURANCE GROUP” JSC / АО СО «MOSAIC INSURANCE GROUP»", { bold: true, size: 18 }),
+        para("Банковские реквизиты / Banking details: Acc: 2021 4000 1053 3830 3001 (UZS), 2021 4840 3053 3830 3001 (USD), 2021 4978 9053 3830 3001 (EUR). JSC “KDB Bank Uzbekistan”, Bank Code 00842, SWIFT KODBUZ22, TIN/ИНН 308143734", { size: 17 }),
         para("", { after: 200 }),
-        para("_________________________  For the Company / За Компанию", { size: 18 }),
+        para("_________________________  За Компанию / For the Company", { size: 18 }),
       ]}),
       new TableCell({ borders, width: { size: HALF, type: WidthType.DXA }, margins, children: [
-        para("Insured / Страхователь: " + ph, { bold: true, size: 18 }),
+        para("Страхователь / Insured: " + ph, { bold: true, size: 18 }),
         para("ИНН / INN: " + F().d.inn, { size: 17 }),
         para("Адрес / Address: " + F().d.address, { size: 17 }),
         para("", { after: 200 }),
-        para("_________________________  For the Insured / За Страхователя", { size: 18 }),
+        para("_________________________  За Страхователя / For the Insured", { size: 18 }),
       ]}),
     ]}),
   ]}));
@@ -743,7 +743,7 @@ function selectType(type) {
   const { data: isStaff, error: staffErr } = await sb.rpc('is_mig_staff');
   if (staffErr || !isStaff) {
     const email = (session.user.email || 'This account').replace(/[<>&]/g, '');
-    await sb.auth.signOut();
+    // Do NOT signOut() here — it revokes the shared session for every page/tab.
     $('auth-gate').innerHTML = '<div class="card"><h2>Account not authorized</h2>' +
       '<p class="note" style="margin:10px 0 16px">' + email + ' is signed in but is not on the MIG staff list, so it cannot access admin tools. Contact an administrator to be added, or sign in with an authorized account.</p>' +
       '<a class="btn primary" href="/admin/" style="text-decoration:none">Back to login</a></div>';
