@@ -639,9 +639,9 @@ async function confirmIssue() {
   $('btn-confirm').disabled = true;
   $('gen-note').textContent = 'Generating document & saving policy record…';
   // Persist the issued Word document so the customer can download it from their portal.
-  let _docB64 = null, _docFn = null;
+  let _docB64 = null, _docFn = null, _blob = null;
   try {
-    const _blob = await generateDocx();
+    _blob = await generateDocx();
     _docB64 = await blobToBase64(_blob);
     _docFn = policyFileBase() + '.docx';
   } catch (e) { console.error('Policy document generation failed:', e); }
@@ -666,9 +666,15 @@ async function confirmIssue() {
   } else {
     resp = await sb.from(cfg().table).insert(payload).select('id').single();
   }
-  $('btn-confirm').disabled = false;
-  if (resp.error) { $('gen-note').textContent = 'Error: ' + resp.error.message; return; }
+  if (resp.error) { $('btn-confirm').disabled = false; $('gen-note').textContent = 'Error: ' + resp.error.message; return; }
   policyRecordId = resp.data ? resp.data.id : policyRecordId;
+  // Move the document to Storage; on success drop the heavy base64 from the row.
+  if (window.MIG_DOC && _blob && policyRecordId) {
+    const path = 'policies/' + (customer_id || 'unlinked') + '/' + policyRecordId + '.docx';
+    const stored = await MIG_DOC.upload(sb, path, _blob);
+    if (stored) await sb.from(cfg().table).update({ doc_path: stored, doc_base64: null }).eq('id', policyRecordId);
+  }
+  $('btn-confirm').disabled = false;
   issued = true;
   $('status-pill').textContent = 'issued';
   $('status-pill').classList.add('issued');
