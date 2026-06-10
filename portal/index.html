@@ -302,11 +302,11 @@ async function loadQuotations() {
 
 async function loadPolicies() {
   const tb = $('pols-tbody');
-  const out = [];
-  for (const [tbl, line] of [['cyber_policies', 'Cyber'], ['crime_policies', 'Crime']]) {
+  const groups = await Promise.all([['cyber_policies', 'Cyber'], ['crime_policies', 'Crime']].map(async ([tbl, line]) => {
     const { data } = await sb.from(tbl).select('id, policy_number, issued_at, status, doc_filename').order('issued_at', { ascending: false });
-    (data || []).forEach(p => out.push({ ...p, _tbl: tbl, line }));
-  }
+    return (data || []).map(p => ({ ...p, _tbl: tbl, line }));
+  }));
+  const out = groups.flat();
   out.sort((a, b) => new Date(b.issued_at || 0) - new Date(a.issued_at || 0));
   if (!out.length) { tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:18px;color:var(--muted);">No policies issued yet.</td></tr>'; return; }
   tb.innerHTML = out.map(p =>

@@ -152,9 +152,10 @@ const LINES = {
 const ORDER = ['auto','property','cgl','car','dno','pi','crime','cyber'];
 
 function deriveTerritory(per) {
-  if (fields[per + '_geo_worldwide'] === true || fields[per + '_geo_worldwide'] === 'Yes') return 'Worldwide';
+  // tolerant of both naming schemes (online form + AI-intake): true/'true'/'Yes', world/worldwide, us/usa
+  const has = k => { const v = fields[per + '_geo_' + k]; return v === true || v === 'true' || v === 'Yes'; };
+  if (has('worldwide') || has('world') || has('ww')) return 'Worldwide';
   const parts = [];
-  const has = k => fields[per + '_geo_' + k] === true || fields[per + '_geo_' + k] === 'Yes';
   if (has('uz')) parts.push('Republic of Uzbekistan');
   if (has('cis')) parts.push('CIS');
   if (has('eu')) parts.push('EU');
