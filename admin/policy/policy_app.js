@@ -108,9 +108,9 @@ function F() {
     });
   }
   const d = {
-    polnum: txt('f-polnum'), poldate: txt('f-poldate'), broker: $('f-broker').value.trim() || 'N/A',
+    polnum: txt('f-polnum'), poldate: txt('f-poldate'), broker: $('f-broker').value.trim(),
     insured: txt('f-insured'), inn: txt('f-inn'), address: txt('f-address'),
-    beneficiary: txt('f-beneficiary'), business: txt('f-business'),
+    beneficiary: $('f-beneficiary').value.trim() || 'N/A', business: txt('f-business'),
     limit: money('f-limit'), retention: money('f-retention'), premium: money('f-premium'),
     premdue: txt('f-premdue'), from: txt('f-from'), to: txt('f-to'),
     retro: txt('f-retro'), territory: txt('f-territory'),
@@ -250,7 +250,12 @@ function scheduleRows() {
     const row = ['КУРС ВАЛЮТЫ (USD→UZS):', 'EXCHANGE RATE (USD→UZS):', ru, en];
     if (i >= 0) rows.splice(i + 1, 0, row); else rows.push(row);
   }
-  return rows;
+  // Drop optional rows the underwriter left blank, so the document doesn't carry
+  // empty "____________" lines (e.g. no broker, no retroactive date). Beneficiary
+  // is kept — it shows "N/A" by default rather than being removed.
+  const isBlank = v => { const s = String(v || '').trim(); return s === '' || /^[_\s]+$/.test(s); };
+  const DROP_IF_BLANK = new Set(['INSURANCE BROKER:', 'RETROACTIVE DATE:']);
+  return rows.filter(r => !(DROP_IF_BLANK.has(r[1]) && isBlank(r[2]) && isBlank(r[3])));
 }
 
 // ---------------- preview ----------------
@@ -501,6 +506,9 @@ async function suggestPolicyNumber() {
 
 // ---------------- prefill ----------------
 async function loadSources() {
+  // Reset to the placeholder (avoids duplicate options when the type is switched).
+  $('sub-select').innerHTML = '<option value="">— none / manual —</option>';
+  $('quote-select').innerHTML = '<option value="">— none / manual —</option>';
   const { data: subs } = await sb.from('submissions')
     .select('id, created_at, proposer_name, products')
     .contains('products', [TYPE])
@@ -514,6 +522,11 @@ async function loadSources() {
   (quotes || []).forEach(q => {
     $('quote-select').add(new Option(new Date(q.created_at).toLocaleDateString() + ' — ' + (q.insured_name || '(unnamed)') + ' — ' + fmtN(q.final_premium), q.id));
   });
+  // Default to the latest available submission + rater quote so the terms pull
+  // and the AI recommendations run immediately; if none, stays "— none / manual —".
+  if (subs && subs.length) $('sub-select').value = subs[0].id;
+  if (quotes && quotes.length) $('quote-select').value = quotes[0].id;
+  if ($('sub-select').value || $('quote-select').value) loadAndFill();
 }
 
 function setVal(id, v, badgeId) {
@@ -554,7 +567,8 @@ async function loadAndFill() {
       setVal('f-limit', data.inputs.limit, 'pf-limit');
       setVal('f-retention', TYPE === 'cyber' ? data.inputs.retention : data.inputs.deductible, 'pf-ret');
       setVal('f-premium', Math.round(data.final_premium), 'pf-prem');
-      $('f-currency').value = 'USD'; // rater is USD-based
+      // Currency stays at the UZS default (rater premiums are USD-rated — set the
+      // USD→UZS exchange rate below, or switch the currency to USD, before issuing).
       if (TYPE === 'cyber') {
         const ext = data.inputs.extensions || {};
         $('f-cov-bi').checked = !!ext.business_interruption;

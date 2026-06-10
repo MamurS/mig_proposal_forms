@@ -921,6 +921,7 @@ function recalcCrime() {
 
 // ---------- load from proposal ----------
 async function loadSubmissions() {
+  $('sub-select').innerHTML = '<option value="">— manual entry —</option>';
   const { data, error } = await sb.from('submissions')
     .select('id, created_at, proposer_name, products')
     .contains('products', [TYPE])
@@ -930,6 +931,9 @@ async function loadSubmissions() {
     const d = new Date(s.created_at).toLocaleDateString();
     $('sub-select').add(new Option(d + ' — ' + (s.proposer_name || '(unnamed)'), s.id));
   });
+  // Default to the latest submission so its data pulls and the AI recommendations
+  // run immediately; if there are none, stays "— manual entry —".
+  if (data.length) { $('sub-select').value = data[0].id; loadFromSubmission(); }
 }
 
 function snapToTable(value, keys) {

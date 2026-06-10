@@ -226,6 +226,9 @@ async function loadList() {
       esc(new Date(r.created_at).toLocaleDateString('en-GB')) + ' — ' + esc(r.proposer_name || '(unnamed)') +
       ' [' + esc((r.products || []).join(', ')) + ']</option>').join('');
   sel.onchange = () => { if (sel.value) loadSubmission(sel.value); };
+  // Default to the latest submission so the builder + rater overlay + AI
+  // recommendations populate immediately; if none, stays "— select a submission —".
+  if (data && data.length) { sel.value = data[0].id; loadSubmission(data[0].id); }
 }
 
 async function loadSubmission(id) {
