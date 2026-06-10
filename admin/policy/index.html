@@ -182,6 +182,10 @@
             <div><label class="fl">Premium payment due (dd.mm.yyyy)</label><input type="text" id="f-premdue" /></div>
           </div>
           <div class="row2">
+            <div><label class="fl">Exchange rate USD→UZS <span style="text-transform:none; color:var(--muted);">(if converted)</span></label><input type="text" class="num" id="f-fx-rate" /></div>
+            <div><label class="fl">Exchange-rate date (dd.mm.yyyy)</label><input type="text" id="f-fx-date" /></div>
+          </div>
+          <div class="row2">
             <div><label class="fl">Period from <span class="prefill-badge hidden" id="pf-from">auto</span></label><input type="text" id="f-from" placeholder="dd.mm.yyyy" /></div>
             <div><label class="fl">Period to <span class="prefill-badge hidden" id="pf-to">auto</span></label><input type="text" id="f-to" placeholder="dd.mm.yyyy" /></div>
           </div>
@@ -264,6 +268,7 @@
 
 <!-- Supabase credentials — centralised in /config.js -->
 <script src="/config.js"></script>
+<script src="/shared/inn.js"></script>
 <script src="./policy_app.js"></script>
 </body>
 </html>

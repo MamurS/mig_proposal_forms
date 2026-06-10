@@ -138,9 +138,11 @@
 
 <div id="toast-container"></div>
 <script src="/config.js"></script>
+<script src="/shared/inn.js"></script>
 <script>
 let sb = null, isAdmin = false, currentCustomer = null;
 const $ = id => document.getElementById(id);
+if (window.MIG_INN) MIG_INN.attachHint(document.getElementById('edit-inn'));
 const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmtDate = iso => iso ? new Date(iso).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '—';
 const productLabel = c => ({auto:'Auto',property:'Property',cgl:'CGL',car:'CAR',dno:'D&O',pi:'PI',crime:'Crime',cyber:'Cyber'}[c]||c);

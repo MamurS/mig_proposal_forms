@@ -4589,7 +4589,9 @@ window.__MIG_INLINE_TRANSLATIONS = {
 </script>
 <!-- Supabase credentials — centralised in /config.js -->
 <script src="/config.js"></script>
+<script src="/shared/inn.js"></script>
 <script>
+if (window.MIG_INN) MIG_INN.attachHint(document.querySelector('[name="proposer_inn"]'));
 // ============================================================
 // ============================================================
 // EMBEDDED MIG LOGO (PNG, base64)

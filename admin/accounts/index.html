@@ -240,9 +240,11 @@
 
 <!-- Supabase credentials — centralised in /config.js -->
 <script src="/config.js"></script>
+<script src="/shared/inn.js"></script>
 <script>
 let sb = null;
 let meId = null;
+if (window.MIG_INN) { MIG_INN.attachHint(document.getElementById('new-inn')); MIG_INN.attachHint(document.getElementById('edit-inn')); }
 let usersCache = [];
 const $ = id => document.getElementById(id);
 
