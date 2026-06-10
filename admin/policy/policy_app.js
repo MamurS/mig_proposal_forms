@@ -715,7 +715,10 @@ function selectType(type) {
   });
 
   $('policy-type').onchange = () => selectType($('policy-type').value);
-  $('btn-load').onclick = loadAndFill;
+  // Choosing a submission and/or a saved quote auto-fills the policy (no Load button).
+  const onPick = () => { if ($('sub-select').value || $('quote-select').value) loadAndFill(); };
+  $('sub-select').addEventListener('change', onPick);
+  $('quote-select').addEventListener('change', onPick);
   $('btn-suggest-sl').onclick = suggestSublimits;
   $('btn-docx').onclick = async () => {
     $('btn-docx').disabled = true; $('gen-note').textContent = 'Generating Word document…';
