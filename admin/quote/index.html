@@ -107,6 +107,8 @@
         <div class="field"><label>Period of insurance</label><input type="text" id="q-period" /></div>
         <div class="field"><label>Coverage territory</label><input type="text" id="q-territory" /></div>
         <div class="field"><label>Currency</label><input type="text" id="q-currency" value="United States Dollars (USD)" /></div>
+        <div class="field"><label>Document language</label>
+          <select id="q-lang"><option value="en">English</option><option value="ru">Русский</option></select></div>
       </div>
     </div>
 
@@ -142,14 +144,22 @@ function fmtMoney(v, cur) { const n = num(v); if (!n) return ''; return (cur || 
 
 // ---- Insurance lines: product code -> config (title, prefixes, insuring scope) ----
 const LINES = {
-  auto:     { title:'Commercial Automobile', P:'auto',  PER:'auto',  scope:'Indemnifies the insured against own-damage to the scheduled vehicles and third-party liability (bodily injury and property damage) arising from the use of the insured fleet.' },
-  property: { title:'Property',               P:'prop',  PER:'prop',  scope:'Indemnifies the insured against physical loss of or damage to the insured property at the declared locations caused by fire and the perils selected, on the sums insured and basis of valuation declared.' },
-  cgl:      { title:'General Liability',      P:'cgl',   PER:'cgl',   scope:'Indemnifies the insured against legal liability to third parties for bodily injury and property damage arising from the insured’s premises, operations and products, together with related defence costs.' },
-  car:      { title:'Contractors’ All Risks', P:'car', PER:'car', scope:'Indemnifies the principal and contractors against physical loss of or damage to the contract works, materials and plant on site, and third-party liability arising from the construction works, for the contract period.' },
-  dno:      { title:'Directors & Officers Liability', P:'dno', PER:'dno', scope:'Indemnifies directors and officers (and the company where applicable) against loss arising from claims for wrongful acts committed in their capacity as directors or officers, together with defence costs.' },
-  pi:       { title:'Professional Indemnity', P:'pi',    PER:'pi',    scope:'Indemnifies the insured against legal liability to third parties arising from a breach of professional duty — negligent act, error or omission — in the conduct of the insured’s professional business, together with defence costs.' },
-  crime:    { title:'Crime / Fidelity (first-party)', P:'crime', PER:'crime', scope:'Indemnifies the insured for direct loss of its own money, securities and property arising from: employee dishonesty and infidelity; robbery, theft and fraud; forgery and alteration; mysterious disappearance and destruction; funds-transfer fraud and computer fraud; and social engineering / fraudulent instruction.' },
-  cyber:    { title:'Cyber', P:'cy', PER:'cyber', scope:'First-party: the insured’s own direct costs and loss arising from a cyber event — incident-response, forensic, legal and notification costs; restoration of data and systems; network / business interruption; and cyber extortion / ransomware response and payments (where lawfully payable).' },
+  auto:     { title:'Commercial Automobile', P:'auto',  PER:'auto',  scope:'Indemnifies the insured against own-damage to the scheduled vehicles and third-party liability (bodily injury and property damage) arising from the use of the insured fleet.',
+              t_ru:'Страхование коммерческого автотранспорта', s_ru:'Возмещает Страхователю ущерб (повреждение) застрахованных транспортных средств, а также ответственность перед третьими лицами (вред жизни/здоровью и имуществу), возникающую при эксплуатации застрахованного автопарка.' },
+  property: { title:'Property',               P:'prop',  PER:'prop',  scope:'Indemnifies the insured against physical loss of or damage to the insured property at the declared locations caused by fire and the perils selected, on the sums insured and basis of valuation declared.',
+              t_ru:'Страхование имущества', s_ru:'Возмещает Страхователю физическую гибель или повреждение застрахованного имущества в заявленных местах вследствие пожара и выбранных рисков, в пределах страховых сумм и на заявленной основе оценки.' },
+  cgl:      { title:'General Liability',      P:'cgl',   PER:'cgl',   scope:'Indemnifies the insured against legal liability to third parties for bodily injury and property damage arising from the insured’s premises, operations and products, together with related defence costs.',
+              t_ru:'Страхование общегражданской ответственности', s_ru:'Возмещает Страхователю установленную законом ответственность перед третьими лицами за причинение вреда жизни/здоровью и имуществу в связи с помещениями, деятельностью и продукцией Страхователя, включая сопутствующие расходы на защиту.' },
+  car:      { title:'Contractors’ All Risks', P:'car', PER:'car', scope:'Indemnifies the principal and contractors against physical loss of or damage to the contract works, materials and plant on site, and third-party liability arising from the construction works, for the contract period.',
+              t_ru:'Страхование строительно-монтажных рисков (CAR)', s_ru:'Возмещает заказчику и подрядчикам физическую гибель или повреждение строительных работ, материалов и техники на площадке, а также ответственность перед третьими лицами в связи со строительными работами в течение срока договора.' },
+  dno:      { title:'Directors & Officers Liability', P:'dno', PER:'dno', scope:'Indemnifies directors and officers (and the company where applicable) against loss arising from claims for wrongful acts committed in their capacity as directors or officers, together with defence costs.',
+              t_ru:'Страхование ответственности директоров и должностных лиц (D&O)', s_ru:'Возмещает директорам и должностным лицам (и компании, где применимо) убытки по претензиям за неправомерные действия, совершённые в качестве директоров или должностных лиц, включая расходы на защиту.' },
+  pi:       { title:'Professional Indemnity', P:'pi',    PER:'pi',    scope:'Indemnifies the insured against legal liability to third parties arising from a breach of professional duty — negligent act, error or omission — in the conduct of the insured’s professional business, together with defence costs.',
+              t_ru:'Страхование профессиональной ответственности', s_ru:'Возмещает Страхователю установленную законом ответственность перед третьими лицами вследствие нарушения профессиональных обязанностей — небрежного действия, ошибки или упущения — при ведении профессиональной деятельности, включая расходы на защиту.' },
+  crime:    { title:'Crime / Fidelity (first-party)', P:'crime', PER:'crime', scope:'Indemnifies the insured for direct loss of its own money, securities and property arising from: employee dishonesty and infidelity; robbery, theft and fraud; forgery and alteration; mysterious disappearance and destruction; funds-transfer fraud and computer fraud; and social engineering / fraudulent instruction.',
+              t_ru:'Страхование от преступлений / нелояльности (первая сторона)', s_ru:'Возмещает Страхователю прямые убытки его собственных денежных средств, ценных бумаг и имущества вследствие: нелояльности и нечестности сотрудников; ограбления, кражи и мошенничества; подделки и подлога; загадочного исчезновения и уничтожения; мошенничества при переводе средств и компьютерного мошенничества; социальной инженерии / мошеннического поручения.' },
+  cyber:    { title:'Cyber', P:'cy', PER:'cyber', scope:'First-party: the insured’s own direct costs and loss arising from a cyber event — incident-response, forensic, legal and notification costs; restoration of data and systems; network / business interruption; and cyber extortion / ransomware response and payments (where lawfully payable).',
+              t_ru:'Страхование киберрисков', s_ru:'Первая сторона: собственные прямые расходы и убытки Страхователя вследствие киберинцидента — реагирование на инцидент, расходы на экспертизу, юридические расходы и уведомления; восстановление данных и систем; перерыв в работе сети/деятельности; реагирование на кибервымогательство / программы-вымогатели и выплаты (где это законно).' },
 };
 const ORDER = ['auto','property','cgl','car','dno','pi','crime','cyber'];
 
@@ -295,6 +305,7 @@ function collectLines() {
     const tp = card.querySelector('.ln-tp');
     out.push({
       code, title: LINES[code].title, scope: LINES[code].scope,
+      titleRu: LINES[code].t_ru, scopeRu: LINES[code].s_ru,
       limit: get('limit'), aggregate: get('aggregate'), deductible: get('deductible'),
       premium: get('premium'), currency: get('currency') || 'USD',
       territory: get('territory'), period: get('period'), sublimits: get('sublimits'),

@@ -20,6 +20,12 @@ async function generateQuotation() {
   if (!lines.length) { note.textContent = 'Select at least one line to include.'; return; }
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Generating…'; note.textContent = '';
 
+  // Document language (EN / RU). L() picks the variant; lt()/lsc() pick line title/scope.
+  const lang = (document.getElementById('q-lang') && document.getElementById('q-lang').value === 'ru') ? 'ru' : 'en';
+  const L = (en, ru) => lang === 'ru' ? ru : en;
+  const lt = l => (lang === 'ru' && l.titleRu) ? l.titleRu : l.title;
+  const lsc = l => (lang === 'ru' && l.scopeRu) ? l.scopeRu : l.scope;
+
   try {
     const {
       Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
@@ -69,123 +75,138 @@ async function generateQuotation() {
         shading: { fill: NAVY, type: ShadingType.CLEAR },
         children: [
           new Paragraph({ children: [new TextRun({ text: 'MOSAIC INSURANCE GROUP JSC', bold: true, size: 26, font: FONT, color: 'FFFFFF' })] }),
-          new Paragraph({ spacing: { before: 20 }, children: [new TextRun({ text: 'Financial Risks — Commercial Insurance', size: 18, font: FONT, color: 'CDD9EE' })] }),
+          new Paragraph({ spacing: { before: 20 }, children: [new TextRun({ text: L('Financial Risks — Commercial Insurance', 'Финансовые риски — коммерческое страхование'), size: 18, font: FONT, color: 'CDD9EE' })] }),
         ],
       })] }),
     ] }));
 
     // ---- Title + subtitle ----
-    const subtitle = lines.map(l => l.code === 'cyber'
-      ? 'Cyber (first-' + (l.thirdParty ? ' & third-party liability' : ' party') + ')'
-      : l.title).join(' & ');
-    ch.push(heading('INSURANCE QUOTATION', { align: AlignmentType.CENTER, size: 34, before: 220, after: 40 }));
+    const subtitle = lines.map(lt).join(L(' & ', ' и '));
+    ch.push(heading(L('INSURANCE QUOTATION', 'СТРАХОВАЯ КОТИРОВКА'), { align: AlignmentType.CENTER, size: 34, before: 220, after: 40 }));
     ch.push(para(subtitle, { align: AlignmentType.CENTER, size: 20, italics: true, after: 200 }));
 
     // ---- Meta table ----
     const g = id => (document.getElementById(id).value || '').trim();
     ch.push(kvTable([
-      ['Quotation reference', g('q-ref')],
-      ['Date of issue', g('q-date')],
-      ['Validity of quotation', g('q-validity')],
-      ['Proposed insured', g('q-insured')],
-      g('q-inn') ? ['Insured INN', g('q-inn')] : null,
-      ['Period of insurance', g('q-period')],
-      ['Coverage territory', g('q-territory')],
-      ['Currency', g('q-currency')],
+      [L('Quotation reference', 'Номер котировки'), g('q-ref')],
+      [L('Date of issue', 'Дата выдачи'), g('q-date')],
+      [L('Validity of quotation', 'Срок действия котировки'), g('q-validity')],
+      [L('Proposed insured', 'Предполагаемый Страхователь'), g('q-insured')],
+      g('q-inn') ? [L('Insured INN', 'ИНН Страхователя'), g('q-inn')] : null,
+      [L('Period of insurance', 'Период страхования'), g('q-period')],
+      [L('Coverage territory', 'Территория покрытия'), g('q-territory')],
+      [L('Currency', 'Валюта'), g('q-currency')],
     ]));
 
     // ---- Addressed to ----
     const f = fields;
-    ch.push(heading('Addressed to', { before: 240 }));
+    ch.push(heading(L('Addressed to', 'Кому адресовано'), { before: 240 }));
     ch.push(para(g('q-insured'), { bold: true, after: 40 }));
-    if (g('q-inn')) ch.push(para('INN: ' + g('q-inn'), { after: 40 }));
+    if (g('q-inn')) ch.push(para(L('INN: ', 'ИНН: ') + g('q-inn'), { after: 40 }));
     const attn = [f.contact_person, f.contact_title].filter(Boolean).join(', ');
-    if (attn) ch.push(para('Attn: ' + attn, { after: 40 }));
+    if (attn) ch.push(para(L('Attn: ', 'Вниманию: ') + attn, { after: 40 }));
     if (f.address) ch.push(para(String(f.address)));
 
     // ---- The proposed insured ----
-    ch.push(heading('The proposed insured', { before: 200 }));
-    const yrs = f.years_operating ? (String(f.years_operating) + (f.reg_date ? ' (registered ' + f.reg_date + ')' : '')) : (f.reg_date || '');
+    ch.push(heading(L('The proposed insured', 'Предполагаемый Страхователь'), { before: 200 }));
+    const yrs = f.years_operating ? (String(f.years_operating) + (f.reg_date ? L(' (registered ', ' (зарегистрирован ') + f.reg_date + ')' : '')) : (f.reg_date || '');
     ch.push(kvTable([
-      f.nature_of_business ? ['Business activity', String(f.nature_of_business)] : null,
-      yrs ? ['Years in operation', yrs] : null,
-      f.annual_turnover ? ['Annual turnover', fmtMoney(f.annual_turnover, 'USD')] : null,
-      f.total_employees ? ['Total employees', String(f.total_employees)] : null,
+      f.nature_of_business ? [L('Business activity', 'Вид деятельности'), String(f.nature_of_business)] : null,
+      yrs ? [L('Years in operation', 'Лет в деятельности'), yrs] : null,
+      f.annual_turnover ? [L('Annual turnover', 'Годовой оборот'), fmtMoney(f.annual_turnover, 'USD')] : null,
+      f.total_employees ? [L('Total employees', 'Всего сотрудников'), String(f.total_employees)] : null,
     ]));
 
     // ---- Scope ----
-    ch.push(heading('Scope of this quotation', { before: 200 }));
-    ch.push(para('This quotation comprises the following cover' + (lines.length > 1 ? 's' : '') + ': ' +
-      lines.map(l => l.title).join('; ') + '. Cover not quoted below is excluded and, where required, must be placed separately. ' +
-      'These terms are offered on Mosaic Insurance Group’s standard policy wordings.'));
+    ch.push(heading(L('Scope of this quotation', 'Объём настоящей котировки'), { before: 200 }));
+    ch.push(para(L(
+      'This quotation comprises the following cover' + (lines.length > 1 ? 's' : '') + ': ' + lines.map(l => l.title).join('; ') + '. Cover not quoted below is excluded and, where required, must be placed separately. These terms are offered on Mosaic Insurance Group’s standard policy wordings.',
+      'Настоящая котировка включает следующие покрытия: ' + lines.map(lt).join('; ') + '. Покрытия, не указанные ниже, исключены и при необходимости должны быть размещены отдельно. Условия предлагаются на основании стандартных правил страхования Mosaic Insurance Group.'
+    )));
 
     // ---- Per-line sections ----
     lines.forEach((l, i) => {
-      ch.push(heading('Section ' + (i + 1) + ' — ' + l.title, { before: 220 }));
-      ch.push(para('Insuring scope. ' + l.scope));
+      ch.push(heading(L('Section ', 'Раздел ') + (i + 1) + ' — ' + lt(l), { before: 220 }));
+      ch.push(para(L('Insuring scope. ', 'Объём страхования. ') + lsc(l)));
       if (l.code === 'cyber') {
         if (l.thirdParty) {
-          ch.push(para('Third-party liability: the insured’s legal liability to third parties for failure to protect data and confidential information, unauthorized access or use, transmission of malicious code, and denial-of-service arising from a failure of network security (“privacy & network-security liability”), together with related defence costs.'));
+          ch.push(para(L(
+            'Third-party liability: the insured’s legal liability to third parties for failure to protect data and confidential information, unauthorized access or use, transmission of malicious code, and denial-of-service arising from a failure of network security (“privacy & network-security liability”), together with related defence costs.',
+            'Ответственность перед третьими лицами: установленная законом ответственность Страхователя перед третьими лицами за необеспечение защиты данных и конфиденциальной информации, несанкционированный доступ или использование, передачу вредоносного кода и отказ в обслуживании вследствие сбоя сетевой безопасности («ответственность за конфиденциальность и сетевую безопасность»), включая сопутствующие расходы на защиту.'
+          )));
         }
-        ch.push(para('Key exclusion. Technology / professional-services errors & omissions (liability arising from the rendering of, or failure to render, IT services to third parties) is excluded from this section and must be arranged under a separate Technology E&O / Professional Indemnity policy.', { italics: true }));
+        ch.push(para(L(
+          'Key exclusion. Technology / professional-services errors & omissions (liability arising from the rendering of, or failure to render, IT services to third parties) is excluded from this section and must be arranged under a separate Technology E&O / Professional Indemnity policy.',
+          'Ключевое исключение. Ошибки и упущения в технологических / профессиональных услугах (ответственность вследствие оказания или неоказания ИТ-услуг третьим лицам) исключены из настоящего раздела и должны быть оформлены по отдельному полису Technology E&O / страхования профессиональной ответственности.'
+        ), { italics: true }));
       }
       ch.push(kvTable([
-        ['Limit of indemnity', fmtMoney(l.limit, l.currency) || (l.limit || '—')],
-        l.aggregate ? ['Annual aggregate', fmtMoney(l.aggregate, l.currency) || l.aggregate] : null,
-        ['Deductible', fmtMoney(l.deductible, l.currency) || (l.deductible || '—')],
-        l.sublimits ? ['Sublimits', l.sublimits] : null,
-        (l.code === 'cyber') ? ['Privacy & network-security liability (third party)', l.thirdParty ? 'Included — full limit' : 'Excluded'] : null,
-        ['Coverage territory', l.territory || '—'],
-        l.period ? ['Period of insurance', l.period] : null,
-        ['Annual premium', fmtMoney(l.premium, l.currency) || (l.premium || '— (to be confirmed)')],
+        [L('Limit of indemnity', 'Лимит ответственности'), fmtMoney(l.limit, l.currency) || (l.limit || '—')],
+        l.aggregate ? [L('Annual aggregate', 'Годовой агрегатный лимит'), fmtMoney(l.aggregate, l.currency) || l.aggregate] : null,
+        [L('Deductible', 'Франшиза'), fmtMoney(l.deductible, l.currency) || (l.deductible || '—')],
+        l.sublimits ? [L('Sublimits', 'Сублимиты'), l.sublimits] : null,
+        (l.code === 'cyber') ? [L('Privacy & network-security liability (third party)', 'Ответственность за конфиденциальность и сетевую безопасность (третья сторона)'), l.thirdParty ? L('Included — full limit', 'Включено — полный лимит') : L('Excluded', 'Исключено')] : null,
+        [L('Coverage territory', 'Территория покрытия'), l.territory || '—'],
+        l.period ? [L('Period of insurance', 'Период страхования'), l.period] : null,
+        [L('Annual premium', 'Годовая премия'), fmtMoney(l.premium, l.currency) || (l.premium || L('— (to be confirmed)', '— (подлежит подтверждению)'))],
       ]));
     });
 
     // ---- Premium summary ----
-    ch.push(heading('Premium summary', { before: 240 }));
+    ch.push(heading(L('Premium summary', 'Сводка по премии'), { before: 240 }));
     const headCell = t => new TableCell({ borders, margins, shading: { fill: NAVY, type: ShadingType.CLEAR },
       children: [new Paragraph({ children: [new TextRun({ text: t, bold: true, size: 19, font: FONT, color: 'FFFFFF' })] })] });
     const cell = (t, o = {}) => new TableCell({ borders, margins,
       children: [new Paragraph({ alignment: o.right ? AlignmentType.RIGHT : AlignmentType.LEFT, children: [new TextRun({ text: t, bold: !!o.bold, size: 19, font: FONT })] })] });
     const cw = [Math.round(CONTENT * 0.5), Math.round(CONTENT * 0.25), Math.round(CONTENT * 0.25)];
     let total = 0; const curCode = (g('q-currency').match(/[A-Z]{3}/) || ['USD'])[0];
-    const sumRows = [new TableRow({ children: [headCell('Cover'), headCell('Limit'), headCell('Annual premium')] })];
+    const sumRows = [new TableRow({ children: [headCell(L('Cover', 'Покрытие')), headCell(L('Limit', 'Лимит')), headCell(L('Annual premium', 'Годовая премия'))] })];
     lines.forEach(l => {
       total += num(l.premium);
       sumRows.push(new TableRow({ children: [
-        cell(l.title), cell(fmtMoney(l.limit, l.currency) || '—', { right: true }), cell(fmtMoney(l.premium, l.currency) || '—', { right: true }),
+        cell(lt(l)), cell(fmtMoney(l.limit, l.currency) || '—', { right: true }), cell(fmtMoney(l.premium, l.currency) || '—', { right: true }),
       ] }));
     });
     sumRows.push(new TableRow({ children: [
-      cell('Total — combined annual premium', { bold: true }), cell('', { right: true }),
+      cell(L('Total — combined annual premium', 'Итого — совокупная годовая премия'), { bold: true }), cell('', { right: true }),
       cell(total ? (curCode + ' ' + total.toLocaleString('en-US')) : '—', { bold: true, right: true }),
     ] }));
     ch.push(new Table({ width: { size: CONTENT, type: WidthType.DXA }, columnWidths: cw, rows: sumRows }));
-    ch.push(para('Premiums are exclusive of any insurance-premium tax or statutory charges where applicable. Minimum and deposit premiums are fully earned at inception.', { before: 100, size: 18, italics: true }));
+    ch.push(para(L(
+      'Premiums are exclusive of any insurance-premium tax or statutory charges where applicable. Minimum and deposit premiums are fully earned at inception.',
+      'Премии указаны без учёта налога на страховую премию и иных обязательных сборов, где применимо. Минимальная и депозитная премии считаются полностью заработанными с момента вступления в силу.'
+    ), { before: 100, size: 18, italics: true }));
 
     // ---- Conditions & subjectivities ----
-    ch.push(heading('Conditions and subjectivities', { before: 220 }));
+    ch.push(heading(L('Conditions and subjectivities', 'Условия и оговорки'), { before: 220 }));
     [
-      'This quotation is based on the signed proposal form and the information supplied therein. Cover is offered on the basis that all such information is true, complete and not misleading.',
-      'Cover is subject to no material change in the risk between the date of this quotation and inception, and to the insured notifying the insurer of any such change.',
-      'Where any limit exceeds the insurer’s net retention, terms are subject to confirmation of facultative reinsurance.',
-      'This quotation, and any cover bound under it, is governed by and subject to the full terms, conditions, definitions and exclusions of the applicable Mosaic Insurance Group policy wording, which prevails over this summary.',
+      L('This quotation is based on the signed proposal form and the information supplied therein. Cover is offered on the basis that all such information is true, complete and not misleading.',
+        'Настоящая котировка основана на подписанном заявлении-вопроснике и предоставленной в нём информации. Покрытие предлагается при условии, что вся такая информация является достоверной, полной и не вводящей в заблуждение.'),
+      L('Cover is subject to no material change in the risk between the date of this quotation and inception, and to the insured notifying the insurer of any such change.',
+        'Покрытие предоставляется при условии отсутствия существенного изменения риска в период с даты настоящей котировки до вступления в силу, а также при условии уведомления Страхователем Страховщика о любом таком изменении.'),
+      L('Where any limit exceeds the insurer’s net retention, terms are subject to confirmation of facultative reinsurance.',
+        'В случае, если какой-либо лимит превышает собственное удержание Страховщика, условия подлежат подтверждению факультативного перестрахования.'),
+      L('This quotation, and any cover bound under it, is governed by and subject to the full terms, conditions, definitions and exclusions of the applicable Mosaic Insurance Group policy wording, which prevails over this summary.',
+        'Настоящая котировка и любое заключённое на её основании покрытие регулируются и подчиняются полным условиям, определениям и исключениям применимых правил страхования Mosaic Insurance Group, которые имеют преимущественную силу над настоящей сводкой.'),
     ].forEach((t, i) => ch.push(para((i + 1) + '. ' + t, { after: 60 })));
 
     // ---- Important notice ----
-    ch.push(heading('Important notice', { before: 200 }));
-    ch.push(para('This document is a quotation only and does not constitute a contract of insurance, a cover note, or confirmation that cover is in force. No cover is provided until a policy is issued by Mosaic Insurance Group and the insured has confirmed acceptance of the terms set out above. The insurer reserves the right to amend or withdraw this quotation prior to inception. Mosaic Insurance Group is not acting as the insured’s adviser; the insured should satisfy itself that the scope and limits meet its own and any third-party requirements.'));
+    ch.push(heading(L('Important notice', 'Важное уведомление'), { before: 200 }));
+    ch.push(para(L(
+      'This document is a quotation only and does not constitute a contract of insurance, a cover note, or confirmation that cover is in force. No cover is provided until a policy is issued by Mosaic Insurance Group and the insured has confirmed acceptance of the terms set out above. The insurer reserves the right to amend or withdraw this quotation prior to inception. Mosaic Insurance Group is not acting as the insured’s adviser; the insured should satisfy itself that the scope and limits meet its own and any third-party requirements.',
+      'Настоящий документ является исключительно котировкой и не является договором страхования, ковер-нотой или подтверждением действия покрытия. Покрытие не предоставляется до выдачи полиса компанией Mosaic Insurance Group и подтверждения Страхователем согласия с изложенными выше условиями. Страховщик оставляет за собой право изменить или отозвать настоящую котировку до вступления в силу. Mosaic Insurance Group не выступает консультантом Страхователя; Страхователю следует самостоятельно убедиться, что объём и лимиты отвечают его собственным требованиям и требованиям третьих лиц.'
+    )));
 
     // ---- Signature ----
-    ch.push(para('For and on behalf of Mosaic Insurance Group JSC', { before: 220, after: 200, bold: true }));
+    ch.push(para(L('For and on behalf of Mosaic Insurance Group JSC', 'От имени и по поручению АО «Mosaic Insurance Group»'), { before: 220, after: 200, bold: true }));
     ch.push(para('Mamur Sadikov', { after: 20, bold: true }));
-    ch.push(para('Director, Financial Risks', { after: 20 }));
-    ch.push(para('Date: ' + g('q-date')));
+    ch.push(para(L('Director, Financial Risks', 'Директор по финансовым рискам'), { after: 20 }));
+    ch.push(para(L('Date: ', 'Дата: ') + g('q-date')));
 
     const footer = new Footer({ children: [new Paragraph({ alignment: AlignmentType.CENTER,
-      children: [new TextRun({ text: g('q-ref') + '   ·   Page ', size: 15, font: FONT, color: '999999' }),
+      children: [new TextRun({ text: g('q-ref') + '   ·   ' + L('Page ', 'Стр. '), size: 15, font: FONT, color: '999999' }),
                  new TextRun({ children: [PageNumber.CURRENT], size: 15, font: FONT, color: '999999' }),
-                 new TextRun({ text: ' of ', size: 15, font: FONT, color: '999999' }),
+                 new TextRun({ text: L(' of ', ' из '), size: 15, font: FONT, color: '999999' }),
                  new TextRun({ children: [PageNumber.TOTAL_PAGES], size: 15, font: FONT, color: '999999' })] })] });
 
     const doc = new Document({
