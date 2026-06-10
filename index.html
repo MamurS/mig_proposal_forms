@@ -101,8 +101,11 @@
   }
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 14px;
+  }
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: repeat(2, 1fr); }
   }
   @media (max-width: 600px) {
     .grid { grid-template-columns: 1fr; }
@@ -200,6 +203,13 @@
         </div>
         <div class="tile-desc">Review inbox with AI triage — read incoming proposals, set status, and run underwriting analysis.</div>
       </a>
+      <a class="tile" href="/admin/intake/">
+        <div class="tile-top">
+          <span class="tile-title">Manual intake (AI scrape)</span>
+          <span class="tile-mark">✎</span>
+        </div>
+        <div class="tile-desc">Upload a manually-filled proposal form and/or emailed financial statements — Claude transcribes them into a submission, as if filled online.</div>
+      </a>
     </div>
   </div>
 
@@ -207,19 +217,12 @@
   <div class="group">
     <div class="group-head">Raters · premium calculators</div>
     <div class="grid">
-      <a class="tile" href="/admin/cyber/">
+      <a class="tile" href="/admin/rater/">
         <div class="tile-top">
-          <span class="tile-title">Cyber Premium Rater</span>
-          <span class="tile-mark">C</span>
+          <span class="tile-title">Premium Rater</span>
+          <span class="tile-mark">R</span>
         </div>
-        <div class="tile-desc">Calculate cyber premiums from revenue, activity split, geography, and adjustment factors.</div>
-      </a>
-      <a class="tile" href="/admin/crime/">
-        <div class="tile-top">
-          <span class="tile-title">Crime Premium Rater</span>
-          <span class="tile-mark">Cr</span>
-        </div>
-        <div class="tile-desc">Calculate crime premiums and save quotes for review and binding.</div>
+        <div class="tile-desc">Calculate premiums for any line — pick the insurance type inside the form, set the risk inputs, and save the quote.</div>
       </a>
     </div>
   </div>
@@ -228,36 +231,63 @@
   <div class="group">
     <div class="group-head">Policy issuance · fill schedule → issue → download DOCX</div>
     <div class="grid">
-      <a class="tile" href="/admin/cyber/policy/">
+      <a class="tile" href="/admin/policy/">
         <div class="tile-top">
-          <span class="tile-title">Cyber Policy Issuance</span>
-          <span class="tile-mark">C</span>
+          <span class="tile-title">Policy Issuance</span>
+          <span class="tile-mark">P</span>
         </div>
-        <div class="tile-desc">Fill the schedule, issue the policy, and download the finished Word document.</div>
-        <div class="tile-note">✦ includes full bilingual wording</div>
-      </a>
-      <a class="tile" href="/admin/crime/policy/">
-        <div class="tile-top">
-          <span class="tile-title">Crime Policy Issuance</span>
-          <span class="tile-mark">Cr</span>
-        </div>
-        <div class="tile-desc">Fill the schedule, issue the policy, and download the finished Word document.</div>
+        <div class="tile-desc">Pick the insurance type inside the form, fill the schedule, issue the policy, and download the finished Word document.</div>
         <div class="tile-note">✦ includes full bilingual wording</div>
       </a>
     </div>
   </div>
 
-  <!-- Public -->
+  <!-- Quotations -->
   <div class="group">
-    <div class="group-head">Public</div>
+    <div class="group-head">Quotations · underwriter terms → download DOCX</div>
     <div class="grid">
-      <a class="tile" href="/proposal/" target="_blank" rel="noopener">
+      <a class="tile" href="/admin/quote/">
         <div class="tile-top">
-          <span class="tile-title">Public Proposal Form</span>
+          <span class="tile-title">Quotation Generator</span>
+          <span class="tile-mark">Q</span>
+        </div>
+        <div class="tile-desc">Open a submission, set the underwriter's limits/premiums per line, and generate the MIG quotation document.</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Customers -->
+  <div class="group">
+    <div class="group-head">Customers</div>
+    <div class="grid">
+      <a class="tile" href="/admin/customers/">
+        <div class="tile-top">
+          <span class="tile-title">Customers</span>
+          <span class="tile-mark">👥</span>
+        </div>
+        <div class="tile-desc">Directory of all customer accounts — open one to see their proposals, quotations and policies.</div>
+      </a>
+      <a class="tile" href="/portal/" target="_blank" rel="noopener">
+        <div class="tile-top">
+          <span class="tile-title">Customer Portal</span>
           <span class="tile-mark">↗</span>
         </div>
-        <div class="tile-desc">The client-facing proposal form that feeds the submissions inbox.</div>
+        <div class="tile-desc">The customer-facing sign-in (account required). Share this link with provisioned customers.</div>
         <div class="tile-ext">↗ opens in a new tab</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Administration (admins only) -->
+  <div class="group hidden" id="group-admin">
+    <div class="group-head">Administration</div>
+    <div class="grid">
+      <a class="tile" href="/admin/accounts/">
+        <div class="tile-top">
+          <span class="tile-title">Accounts</span>
+          <span class="tile-mark">⚙</span>
+        </div>
+        <div class="tile-desc">Create customer and staff sign-in accounts and copy their credentials.</div>
       </a>
     </div>
   </div>
@@ -308,6 +338,10 @@ let sb = null;
   const signout = document.getElementById('btn-signout');
   signout.classList.remove('hidden');
   signout.onclick = async () => { await sb.auth.signOut(); location.reload(); };
+
+  // Account provisioning is admin-only — show the Administration group for admins.
+  const { data: isAdmin } = await sb.rpc('is_mig_admin', { uid: session.user.id });
+  if (isAdmin) document.getElementById('group-admin').classList.remove('hidden');
 })();
 </script>
 </body>
