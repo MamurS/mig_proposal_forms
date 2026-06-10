@@ -885,7 +885,7 @@ async function loadSubmissions() {
   // We exclude the heavy `payload` blob from the list query — fetch it lazily on detail view.
   const { data, error } = await sb
     .from('submissions')
-    .select('id, created_at, updated_at, proposer_name, proposer_inn, products, language, status, ai_analyzed_at, assigned_to')
+    .select('id, created_at, updated_at, proposer_name, proposer_inn, products, language, status, submission_private(ai_analyzed_at)')
     .order('created_at', { ascending: false })
     .limit(500);
 
@@ -923,7 +923,9 @@ function renderSubmissions() {
 
   tbody.innerHTML = rows.map(r => {
     const products = (r.products || []).map(p => `<span class="product-pill">${escapeHtml(productLabel(p))}</span>`).join('');
-    const aiCell = r.ai_analyzed_at
+    const sp = Array.isArray(r.submission_private) ? r.submission_private[0] : r.submission_private;
+    const analyzedAt = sp && sp.ai_analyzed_at;
+    const aiCell = analyzedAt
       ? `<span style="color: var(--success); font-size: 11px;">● Analyzed</span>`
       : `<span style="color: var(--muted); font-size: 11px;">—</span>`;
     return `<tr data-id="${escapeHtml(r.id)}">
@@ -980,6 +982,19 @@ async function openDetail(id) {
     document.getElementById('detail-fields').innerHTML = `<div style="color: var(--error);">Could not load submission: ${escapeHtml(error?.message || 'unknown error')}</div>`;
     return;
   }
+
+  // Underwriter-only fields (notes, AI analysis) live in the staff-only
+  // submission_private table so customers can't read them. Prefer those values;
+  // fall back to the legacy columns until migration 0008 drops them.
+  try {
+    const { data: priv } = await sb.from('submission_private')
+      .select('internal_notes, ai_analysis, ai_analyzed_at').eq('submission_id', id).maybeSingle();
+    if (priv) {
+      if (priv.internal_notes != null) data.internal_notes = priv.internal_notes;
+      if (priv.ai_analysis != null) data.ai_analysis = priv.ai_analysis;
+      if (priv.ai_analyzed_at != null) data.ai_analyzed_at = priv.ai_analyzed_at;
+    }
+  } catch (_) { /* table absent pre-migration → legacy columns used */ }
 
   currentSubmission = data;
   renderDetail(data);
@@ -1154,10 +1169,10 @@ document.getElementById('btn-save-notes').addEventListener('click', async () => 
   const notes = document.getElementById('internal-notes').value;
   const btn = document.getElementById('btn-save-notes');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Saving…';
+  // Notes are underwriter-only → stored in the staff-only submission_private table.
   const { error } = await sb
-    .from('submissions')
-    .update({ internal_notes: notes })
-    .eq('id', currentSubmission.id);
+    .from('submission_private')
+    .upsert({ submission_id: currentSubmission.id, internal_notes: notes }, { onConflict: 'submission_id' });
   btn.disabled = false; btn.textContent = 'Save notes';
   if (error) toast('Could not save notes: ' + error.message, 'error');
   else { currentSubmission.internal_notes = notes; toast('Notes saved'); }
@@ -1207,6 +1222,9 @@ document.getElementById('btn-analyze-ai').addEventListener('click', async () => 
     if (data && data.analysis) {
       currentSubmission.ai_analysis = data.analysis;
       currentSubmission.ai_analyzed_at = new Date().toISOString();
+      // Mirror into the staff-only table so it reads back from there during the
+      // transition (the edge function is repointed to submission_private on merge).
+      try { await sb.from('submission_private').upsert({ submission_id: currentSubmission.id, ai_analysis: data.analysis, ai_analyzed_at: currentSubmission.ai_analyzed_at }, { onConflict: 'submission_id' }); } catch (_) {}
       renderAIAnalysis(data.analysis, currentSubmission.ai_analyzed_at);
       toast('Analysis complete');
     } else if (data && data.error) {
