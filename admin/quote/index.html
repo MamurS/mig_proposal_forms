@@ -375,7 +375,7 @@ async function aiSuggest() {
       if (any && l.note) perLine.push((LINES[l.code] ? LINES[l.code].title : l.code) + ': ' + l.note);
     });
     recomputeTotal();
-    if (!filled) { note.textContent = overall ? esc(overall) : 'All terms already filled from the proposal and rater — no AI suggestions needed.'; return; }
+    if (!filled) { note.textContent = overall || 'All terms already filled from the proposal and rater — no AI suggestions needed.'; return; }
     note.style.color = 'var(--ink)';
     note.innerHTML = '<strong>AI suggested ' + filled + ' empty field(s)</strong>, shown in amber — verify before generating.' +
       (overall ? '<br>' + esc(overall) : '') +
