@@ -681,11 +681,13 @@
 
 <!-- Supabase credentials — centralised in /config.js -->
 <script src="/config.js"></script>
+<script src="/shared/inn.js"></script>
 <script>
 // ============================================================
 // STATE
 // ============================================================
 let sb = null;
+if (window.MIG_INN) MIG_INN.attachHint(document.getElementById('es-inn'));
 try {
   if (typeof supabase === 'undefined' || !supabase.createClient) {
     throw new Error('Supabase SDK failed to load. Check your network connection.');
@@ -1323,6 +1325,15 @@ async function saveSubmission() {
   const newPayload = { ...(currentSubmission.payload || {}), fields, attachments: esAttachments };
 
   const btn = document.getElementById('es-save'); btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Saving…';
+  // Optimistic concurrency: warn if another admin changed this submission since it was opened.
+  try {
+    const { data: cur } = await sb.from('submissions').select('updated_at').eq('id', currentSubmission.id).single();
+    if (cur && currentSubmission.updated_at && cur.updated_at !== currentSubmission.updated_at) {
+      if (!confirm('This submission was changed by someone else since you opened it. Overwrite their changes?')) {
+        btn.disabled = false; btn.textContent = 'Save changes'; return;
+      }
+    }
+  } catch (_) { /* non-fatal */ }
   const { error } = await sb.from('submissions').update({
     proposer_name: proposer || null,
     proposer_inn: inn || null,

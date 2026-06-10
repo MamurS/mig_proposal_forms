@@ -89,6 +89,7 @@ function F() {
     premium: stripC($('f-premium').value), premium_due: $('f-premdue').value.trim(),
     period_from: $('f-from').value.trim(), period_to: $('f-to').value.trim(),
     retro: $('f-retro').value.trim(), territory: $('f-territory').value.trim(),
+    fx_rate: stripC($('f-fx-rate').value), fx_date: $('f-fx-date').value.trim(),
   };
   if (TYPE === 'cyber') {
     Object.assign(raw, {
@@ -113,6 +114,8 @@ function F() {
     limit: money('f-limit'), retention: money('f-retention'), premium: money('f-premium'),
     premdue: txt('f-premdue'), from: txt('f-from'), to: txt('f-to'),
     retro: txt('f-retro'), territory: txt('f-territory'),
+    fxRate: (() => { const v = stripC($('f-fx-rate').value); return v ? fmtN(v) : ''; })(),
+    fxDate: $('f-fx-date').value.trim(),
     // cyber
     sl_ext: money('f-sl-ext'), sl_osp: money('f-sl-osp'), sl_fines: money('f-sl-fines'),
     sl_tel: money('f-sl-tel'), sl_cj: money('f-sl-cj'),
@@ -238,7 +241,16 @@ function scheduleRowsCrime(d) {
 
 function scheduleRows() {
   const { d } = F();
-  return TYPE === 'cyber' ? scheduleRowsCyber(d) : scheduleRowsCrime(d);
+  const rows = TYPE === 'cyber' ? scheduleRowsCyber(d) : scheduleRowsCrime(d);
+  // When the premium was converted from the USD-rated amount, record the rate used.
+  if (d.fxRate) {
+    const ru = d.fxRate + (d.fxDate ? ' на ' + d.fxDate : '');
+    const en = d.fxRate + (d.fxDate ? ' as at ' + d.fxDate : '');
+    const i = rows.findIndex(r => r[1] === 'PREMIUM:');
+    const row = ['КУРС ВАЛЮТЫ (USD→UZS):', 'EXCHANGE RATE (USD→UZS):', ru, en];
+    if (i >= 0) rows.splice(i + 1, 0, row); else rows.push(row);
+  }
+  return rows;
 }
 
 // ---------------- preview ----------------
@@ -471,6 +483,22 @@ function policyFileBase() {
   return 'MIG_' + cfg().fileword + '_Policy_' + num;
 }
 
+// Suggest the next sequential policy number for this line/year (editable;
+// the partial-unique index on policy_number still guards against duplicates).
+async function suggestPolicyNumber() {
+  const yr = String(new Date().getFullYear());
+  const prefix = 'MIG-' + (TYPE === 'cyber' ? 'CY' : 'CR') + '-' + yr + '-';
+  let max = 0;
+  try {
+    const { data } = await sb.from(cfg().table).select('policy_number');
+    (data || []).forEach(p => {
+      const n = String(p.policy_number || '');
+      if (n.startsWith(prefix)) { const m = n.slice(prefix.length).match(/^(\d+)/); if (m) max = Math.max(max, parseInt(m[1], 10)); }
+    });
+  } catch (_) { /* best-effort */ }
+  return prefix + String(max + 1).padStart(4, '0');
+}
+
 // ---------------- prefill ----------------
 async function loadSources() {
   const { data: subs } = await sb.from('submissions')
@@ -691,6 +719,7 @@ function selectType(type) {
   $('sub-select').innerHTML = '<option value="">— none / manual —</option>';
   $('quote-select').innerHTML = '<option value="">— none / manual —</option>';
   loadSources();
+  if (!$('f-polnum').value) suggestPolicyNumber().then(n => { if (!$('f-polnum').value) { $('f-polnum').value = n; renderPreview(); } });
   renderPreview();
 }
 
@@ -724,8 +753,9 @@ function selectType(type) {
   const dd = String(today.getDate()).padStart(2, '0'), mm = String(today.getMonth() + 1).padStart(2, '0');
   $('f-poldate').value = dd + '.' + mm + '.' + today.getFullYear();
 
-  ['f-limit','f-retention','f-premium','f-sl-ext','f-sl-osp','f-sl-fines','f-sl-tel','f-sl-cj',
+  ['f-limit','f-retention','f-premium','f-fx-rate','f-sl-ext','f-sl-osp','f-sl-fines','f-sl-tel','f-sl-cj',
    'f-sl-se','f-sl-legal','f-sl-inv','f-sl-data','f-sl-fire'].forEach(id => bindThousands($(id)));
+  if (window.MIG_INN) MIG_INN.attachHint($('f-inn'));
 
   // live preview on any change
   document.querySelectorAll('#app input, #app select, #app textarea').forEach(el => {
