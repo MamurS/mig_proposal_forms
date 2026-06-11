@@ -418,6 +418,11 @@
   .pv-label { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 500; margin-bottom: 3px; }
   .pv-value { font-size: 15px; color: var(--ink); word-break: break-word; line-height: 1.45; }
   .pv-value.empty { color: #c8c4b8; font-style: italic; }
+  /* form-style view: the proposal form's own typography for section structure */
+  .fv-secnum { font-family: 'Fraunces', serif; font-size: 12px; color: #b8865b; letter-spacing: 0.18em; margin: 28px 0 2px; }
+  .fv-secnum:first-child { margin-top: 4px; }
+  .fv-sectitle { font-family: 'Fraunces', serif; font-weight: 500; font-size: 26px; line-height: 1.15; letter-spacing: -0.01em; color: var(--mig); margin: 0 0 8px; }
+  .fv-subtitle { font-family: 'Fraunces', serif; font-weight: 500; font-size: 17px; color: var(--mig); margin: 16px 0 10px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
   /* key fields — same boxed-amber highlight used on the form */
   .pv-field.is-key {
     background: #fff8ec; border: 1px solid #ecd9b0; border-radius: 8px;
@@ -1021,23 +1026,19 @@ function renderDetail(s) {
   document.getElementById('detail-inn').textContent = s.proposer_inn || (s.payload?.fields?.proposer_inn) || '—';
   renderDetailAttachments(s.payload?.attachments || []);
 
-  // The submission is shown EXACTLY as the proposal form renders it: the real
-  // /proposal/ page in read-only ?view= mode, embedded same-origin so the frame
-  // grows to its content and the page scrolls as one. (renderFields remains as
-  // the data model for the key-terms band and the edit modal.)
+  // The fields are rendered in the proposal form's OWN structure — sections,
+  // sub-sections, labels and order are parsed once from /proposal/index.html
+  // (so they can't drift from the real form), then drawn natively here with the
+  // form's typography. Only fields the customer actually filled appear. Falls
+  // back to the generic grid if the form can't be fetched.
   const fields = s.payload?.fields || {};
   const dfHost = document.getElementById('detail-fields');
-  dfHost.innerHTML = '<iframe id="form-view-frame" src="/proposal/?view=' + encodeURIComponent(s.id) + '"' +
-    ' style="width:100%; height:70vh; border:1px solid var(--border); border-radius:8px; background:#fff;"' +
-    ' title="Submitted proposal — form view"></iframe>' +
-    '<div style="font-size:12px; color:var(--muted); margin-top:6px;">Shown exactly as the online Proposal Form (read-only). ' +
-    '<a href="/proposal/?view=' + encodeURIComponent(s.id) + '" target="_blank" rel="noopener">Open full screen ↗</a></div>';
-  const fvf = document.getElementById('form-view-frame');
-  fvf.addEventListener('load', () => {
-    try {
-      const fit = () => { const h = fvf.contentDocument.documentElement.scrollHeight; if (h > 200) fvf.style.height = (h + 24) + 'px'; };
-      fit(); setTimeout(fit, 800); setTimeout(fit, 2500);   // re-fit after async populate
-    } catch (_) { /* keep the 70vh fallback */ }
+  dfHost.innerHTML = '<div style="color:var(--muted); padding:24px 0;">Loading…</div>';
+  ensureFormSchema().then(schema => {
+    dfHost.innerHTML =
+      '<div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Laid out as the online Proposal Form · ' +
+      '<a href="/proposal/?view=' + encodeURIComponent(s.id) + '" target="_blank" rel="noopener">open as the real form ↗</a></div>' +
+      (schema ? renderFormView(fields, schema) : renderFields(fields, s.products || []));
   });
 
   // AI analysis
@@ -1088,6 +1089,103 @@ const SECTION_FOR = [
 function sectionFor(k) {
   for (const [re, name] of SECTION_FOR) if (re.test(k)) return name;
   return 'General Information';
+}
+
+// ============================================================
+// FORM-STYLE VIEW — structure, labels & order come from the real form
+// ============================================================
+// The proposal form's HTML is fetched once and parsed: every named field's
+// label, sub-section (A.1 …) and section (SECTION A · General Information) are
+// recorded in form order. The detail view then renders the submitted values in
+// that exact structure with the form's typography — an adapted native version
+// (no iframe), immune to drift because the schema IS the form.
+let _formSchemaPromise = null;
+function ensureFormSchema() {
+  if (_formSchemaPromise) return _formSchemaPromise;
+  _formSchemaPromise = (async () => {
+    try {
+      const html = await (await fetch('/proposal/index.html')).text();
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      const seen = new Set();
+      const entries = [];
+      doc.querySelectorAll('#proposal-form [name]').forEach(el => {
+        const name = el.getAttribute('name');
+        if (!name || seen.has(name) || name === 'hp_website') return;
+        seen.add(name);
+        const section = el.closest('section');
+        const secNum = section?.querySelector('.section-num')?.textContent.trim() || '';
+        const secTitle = section?.querySelector('.section-title')?.textContent.trim() || 'General';
+        // nearest preceding sub-title (A.1 …) within the section
+        let sub = '';
+        if (section) {
+          for (const h3 of section.querySelectorAll('h3.sub-title')) {
+            if (h3.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING) sub = h3.textContent.replace(/\s+/g, ' ').trim();
+          }
+        }
+        // label: the .field-label in the field's own wrapper (walk up a little),
+        // else the wrapping <label> text (checkboxes), else humanise the name
+        let label = '';
+        let p = el.parentElement;
+        for (let i = 0; i < 3 && p && !label; i++) {
+          const fl = [...p.children].find(c => c.classList && c.classList.contains('field-label'));
+          if (fl) label = fl.textContent.replace(/\s+/g, ' ').trim();
+          p = p.parentElement;
+        }
+        if (!label) label = (el.closest('label')?.textContent || '').replace(/\s+/g, ' ').trim();
+        if (!label) label = humanizeFieldName(name);
+        entries.push({ name, secNum, secTitle, sub, label });
+      });
+      if (!entries.length) return null;
+      const byName = {};
+      entries.forEach((e, i) => { e.order = i; byName[e.name] = e; });
+      return { entries, byName };
+    } catch (_) {
+      return null;   // caller falls back to the generic grid
+    }
+  })();
+  return _formSchemaPromise;
+}
+
+function renderFormView(fields, schema) {
+  const filled = (k, v) => !(v == null || v === '' || v === false || String(v).trim() === '0') && !k.startsWith('_');
+  const fmt = (k, v) => v === true ? 'Yes' : formatValue(v, k);
+  const fieldHtml = (k, v, label) => {
+    const cat = keyTermCat(k, v);
+    const cls = cat ? ` is-key cat-${cat.cat}` : '';
+    return `<div class="pv-field${cls}">
+      <div class="pv-label" title="${escapeHtml(k)}">${escapeHtml(label)}</div>
+      <div class="pv-value">${escapeHtml(fmt(k, v))}</div>
+    </div>`;
+  };
+  let html = '', curSec = null, curSub = null, gridOpen = false;
+  const closeGrid = () => { if (gridOpen) { html += '</div>'; gridOpen = false; } };
+  const openGrid = () => { if (!gridOpen) { html += '<div class="pv-fields">'; gridOpen = true; } };
+  for (const e of schema.entries) {
+    const v = fields[e.name];
+    if (!filled(e.name, v)) continue;
+    if (e.secTitle !== curSec) {
+      closeGrid();
+      curSec = e.secTitle; curSub = null;
+      html += `<div class="fv-secnum">${escapeHtml(e.secNum)}</div><h2 class="fv-sectitle">${escapeHtml(e.secTitle)}</h2>`;
+    }
+    if (e.sub !== curSub) {
+      closeGrid();
+      curSub = e.sub;
+      if (e.sub) html += `<h3 class="fv-subtitle">${escapeHtml(e.sub)}</h3>`;
+    }
+    openGrid();
+    html += fieldHtml(e.name, v, e.label);
+  }
+  closeGrid();
+  // anything filled that the current form doesn't carry (intake extras,
+  // dynamic loss/previous-insurance rows) — appended in their own block
+  const extras = Object.entries(fields).filter(([k, v]) => filled(k, v) && !schema.byName[k]);
+  if (extras.length) {
+    html += `<div class="fv-secnum">ADDITIONAL DATA</div><h2 class="fv-sectitle">Other declared details</h2><div class="pv-fields">`;
+    html += extras.map(([k, v]) => fieldHtml(k, v, humanizeFieldName(k))).join('');
+    html += '</div>';
+  }
+  return html || '<em style="color: var(--muted);">No data captured.</em>';
 }
 
 function renderFields(fields, products) {
