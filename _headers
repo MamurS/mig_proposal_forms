@@ -15,11 +15,13 @@
   #   frame-ancestors 'none'    — prevents this page from being iframed by another site (clickjacking)
   #   base-uri 'self'           — prevents <base> tag hijacking
   #   form-action 'self'        — form submissions can only target same-origin
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co https://*.supabase.in; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co https://*.supabase.in; frame-ancestors 'self'; base-uri 'self'; form-action 'self'
 
   # === Clickjacking ===
-  # Belt-and-suspenders with the CSP frame-ancestors above.
-  X-Frame-Options: DENY
+  # Belt-and-suspenders with the CSP frame-ancestors above. SAMEORIGIN (not
+  # DENY): the admin Submissions page embeds /proposal/?view=… in an iframe —
+  # same-origin framing must be allowed; other sites still cannot frame us.
+  X-Frame-Options: SAMEORIGIN
 
   # === MIME sniffing ===
   # Prevents the browser from guessing content types (e.g. running text/plain as JS)
