@@ -159,7 +159,7 @@
             <div><label class="fl">Policy date (dd.mm.yyyy)</label><input type="text" id="f-poldate" /></div>
           </div>
           <div class="row2">
-            <div><label class="fl">Currency</label><select id="f-currency"><option>UZS</option><option>USD</option></select></div>
+            <div><label class="fl">Currency</label><select id="f-currency"><option>UZS</option><option>USD</option><option>EUR</option><option>RUB</option><option>CNY</option></select></div>
             <div><label class="fl">Broker</label><input type="text" id="f-broker" placeholder="N/A" /></div>
           </div>
           <label class="fl">Policyholder (name) <span class="prefill-badge hidden" id="pf-name">auto</span></label>
@@ -197,8 +197,10 @@
             <div><label class="fl">Premium <span class="prefill-badge hidden" id="pf-prem">quote</span></label><input type="text" class="num" id="f-premium" /></div>
             <div><label class="fl">Premium payment due (dd.mm.yyyy)</label><input type="text" id="f-premdue" /></div>
           </div>
+          <!-- shown when the loaded values' currency differs from the policy currency and no rate is set -->
+          <div id="fx-warn" class="err-banner" style="display:none; margin:8px 0 4px;"></div>
           <div class="row2">
-            <div><label class="fl">Exchange rate USD→UZS <span style="text-transform:none; color:var(--muted);">(if converted)</span></label><input type="text" class="num" id="f-fx-rate" /></div>
+            <div><label class="fl" id="lbl-fx">Exchange rate USD→UZS <span style="text-transform:none; color:var(--muted);">(if converted)</span></label><input type="text" class="num" id="f-fx-rate" /></div>
             <div><label class="fl">Exchange-rate date (dd.mm.yyyy)</label><input type="text" id="f-fx-date" /></div>
           </div>
           <div class="row2">
@@ -288,6 +290,7 @@
 <script src="/shared/inn.js"></script>
 <script src="/shared/storage.js"></script>
 <script src="/shared/recommend.js"></script>
+<script src="/shared/money.js"></script>
 <script defer src="/admin/policy/policy_app.js"></script>
 </body>
 </html>

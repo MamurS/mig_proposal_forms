@@ -148,6 +148,7 @@
 <script src="/shared/inn.js"></script>
 <script src="/shared/storage.js"></script>
 <script src="/shared/recommend.js"></script>
+<script src="/shared/money.js"></script>
 <script>
 let sb = null, submission = null, fields = {};
 if (window.MIG_INN) MIG_INN.attachHint(document.getElementById('q-inn'));
@@ -196,7 +197,7 @@ function prefill(code) {
   const aggregate = code === 'cyber' ? f.cy_req_aggregate : f[L.P + '_req_aggregate'];
   const deductible = code === 'cyber' ? f.cy_deductible : (code === 'pi' ? f.pi_req_retention : f[L.P + '_req_deductible']);
   const sublimits = f[L.P + '_req_sublimits'] || '';
-  const currency = f[L.P + '_req_currency'] || 'USD';
+  const currency = f[L.P + '_req_currency'] || f.proposal_currency || 'USD';
   const pf = f[L.PER + '_period_from'] || '', pt = f[L.PER + '_period_to'] || '';
   const period = (pf || pt) ? (pf + ' – ' + pt) : '';
   const territory = deriveTerritory(L.PER) || 'Republic of Uzbekistan & CIS';
@@ -322,6 +323,13 @@ function buildBuilder() {
     host.appendChild(card);
     card.querySelector('.ln-include').addEventListener('change', e => { card.classList.toggle('off', !e.target.checked); recomputeTotal(); });
     card.querySelector('[data-k="premium"]').addEventListener('input', recomputeTotal);
+    // Currency code in front of every sum on this line (display only); follows
+    // the line's own Currency field.
+    if (window.MIG_MONEY) {
+      const lineCur = () => ((card.querySelector('[data-k="currency"]') || {}).value || 'USD');
+      ['limit', 'aggregate', 'deductible', 'premium'].forEach(k => MIG_MONEY.decorate(card.querySelector('[data-k="' + k + '"]'), lineCur));
+      card.querySelector('[data-k="currency"]').addEventListener('input', () => MIG_MONEY.refresh(card));
+    }
   });
   recomputeTotal();
 }

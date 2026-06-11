@@ -465,6 +465,16 @@
             <div class="field-label" data-i18n="fl_company_inn">1a. INN (Company Taxpayer ID)</div>
             <input type="text" name="proposer_inn" inputmode="numeric" />
           </div>
+          <div class="md:col-span-2">
+            <div class="field-label" data-i18n="fl_proposal_currency">1b. Currency of this proposal (all sums below are in this currency)</div>
+            <select name="proposal_currency">
+              <option value="USD">USD — US Dollar</option>
+              <option value="EUR">EUR — Euro</option>
+              <option value="UZS">UZS — Uzbek so'm</option>
+              <option value="RUB">RUB — Russian rouble</option>
+              <option value="CNY">CNY — Chinese yuan</option>
+            </select>
+          </div>
           <div>
             <div class="field-label" data-i18n="fl_date_of_incorporation_2">2. Date of Incorporation</div>
             <input type="text" name="incorporation_date" placeholder="dd.mm.yyyy" pattern="\d{2}\.\d{2}\.\d{4}" inputmode="numeric" data-date />
@@ -3340,6 +3350,7 @@ window.__MIG_INLINE_TRANSLATIONS = {
     "fs_uploaded": "Загружено ✓",
     "fl_name_of_proposer_company_1": "1. Наименование Страхователя (компании)",
     "fl_company_inn": "1a. ИНН (идентификационный номер налогоплательщика)",
+    "fl_proposal_currency": "1b. Валюта данного заявления (все суммы ниже указываются в этой валюте)",
     "fl_date_of_incorporation_2": "2. Дата регистрации",
     "fl_web_site_3": "3. Веб-сайт",
     "fl_registered_address_4": "4. Юридический адрес",
@@ -3973,6 +3984,7 @@ window.__MIG_INLINE_TRANSLATIONS = {
     "fs_uploaded": "Yuklandi ✓",
     "fl_name_of_proposer_company_1": "1. Sug'urtalanuvchining nomi (kompaniya)",
     "fl_company_inn": "1a. STIR (soliq to'lovchining identifikatsiya raqami)",
+    "fl_proposal_currency": "1b. Ushbu arizaning valyutasi (quyidagi barcha summalar shu valyutada ko'rsatiladi)",
     "fl_date_of_incorporation_2": "2. Ro'yxatdan o'tgan sana",
     "fl_web_site_3": "3. Veb-sayt",
     "fl_registered_address_4": "4. Yuridik manzil",
@@ -4591,8 +4603,35 @@ window.__MIG_INLINE_TRANSLATIONS = {
 <script src="/config.js"></script>
 <script src="/shared/auth.js"></script>
 <script src="/shared/inn.js"></script>
+<script src="/shared/money.js"></script>
 <script>
 if (window.MIG_INN) MIG_INN.attachHint(document.querySelector('[name="proposer_inn"]'));
+
+// ── Proposal currency ─────────────────────────────────────────────────
+// One dropdown sets the currency for the whole proposal. Every sum field shows
+// the code in front (display only — the customer types just the number), and
+// the per-line requested-cover currency fields follow the choice unless the
+// customer already typed something else there.
+(function () {
+  const curSel = document.querySelector('[name="proposal_currency"]');
+  if (!curSel) return;
+  const MONEY_RE = /limit|aggregate|deduct|retention|turnover|revenue|sublimit|value|cost|amount|sum|wage|salar|loss|fee|premium|cash|money|indemnity|payroll/i;
+  if (window.MIG_MONEY) {
+    document.querySelectorAll('#proposal-form input.js-thousands[name]').forEach(i => {
+      if (MONEY_RE.test(i.name)) MIG_MONEY.decorate(i, () => curSel.value);
+    });
+  }
+  let prev = curSel.value;
+  const syncLineCurrencies = () => {
+    document.querySelectorAll('#proposal-form input[name$="_req_currency"]').forEach(i => {
+      const v = i.value.trim().toUpperCase();
+      if (!v || v === prev) i.value = curSel.value;
+    });
+    prev = curSel.value;
+    if (window.MIG_MONEY) MIG_MONEY.refresh();
+  };
+  curSel.addEventListener('change', syncLineCurrencies);
+})();
 // ============================================================
 // ============================================================
 // EMBEDDED MIG LOGO (PNG, base64)
@@ -6118,6 +6157,7 @@ document.getElementById('btn-submit').addEventListener('click', async () => {
   }
   editingId = row.id;
   populateFormData(row.payload && row.payload.fields);
+  if (window.MIG_MONEY) MIG_MONEY.refresh();   // currency prefixes follow the restored proposal_currency
   const submitBtn = document.getElementById('btn-submit');
   if (submitBtn) submitBtn.textContent = T('btn_update_proposal', 'Update Proposal');
   toast(T('toast_editing', 'Editing your proposal — make changes and submit to update.'), 'success');

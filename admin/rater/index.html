@@ -316,6 +316,7 @@
 <script src="/config.js"></script>
 <script src="/shared/auth.js"></script>
 <script src="/shared/recommend.js"></script>
+<script src="/shared/money.js"></script>
 
 <script>
 // ============================================================
@@ -768,6 +769,8 @@ function wireInputs() {
     el.addEventListener('change', recalc);
   });
   ['in-revenue','in-retention','in-employees','in-locations'].forEach(id => bindThousands($(id)));
+  // The rate tables are USD-based — show the code in front of the money inputs.
+  if (window.MIG_MONEY) { MIG_MONEY.decorate($('in-revenue'), 'USD'); MIG_MONEY.decorate($('in-retention'), 'USD'); }
 }
 
 // ---------- input gathering ----------
@@ -994,6 +997,11 @@ async function loadFromSubmission() {
     const fraud = String(subField(f, 'cr_fraud_policy', 'crime_fraud_policy'));
     if (fraud) $('in-fraud').value = /yes|true/i.test(fraud) ? 'yes' : 'no';
     $('load-note').textContent = 'Loaded name, employees, locations, claims band. Occupation, controls & region mix are underwriter judgment.';
+  }
+  // The rate tables are USD-based — flag proposals filled in another currency.
+  const propCur = String(f.proposal_currency || 'USD').toUpperCase();
+  if (propCur !== 'USD') {
+    $('load-note').textContent += '  ⚠ The proposal sums are in ' + propCur + ' — the rater rates in USD, convert the revenue/retention inputs to USD before saving.';
   }
   recalc();
   aiRecommendRater();   // recommend empty limit / retention-deductible with Claude (amber)
