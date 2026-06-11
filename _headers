@@ -42,6 +42,15 @@
 # HTML stays default (revalidated each deploy); local JS gets a short browser
 # cache so page-to-page navigation doesn't re-fetch it, while deploys still
 # propagate within minutes. The wording bundles change rarely → longer cache.
+# The app scripts must always revalidate — without a Cache-Control header,
+# browsers cache them heuristically and keep running stale code for days
+# (seen live: fresh HTML + week-old policy_app.js). Etag makes this cheap.
+/admin/policy/policy_app.js
+  Cache-Control: public, max-age=0, must-revalidate
+
+/admin/quote/quote_docx.js
+  Cache-Control: public, max-age=0, must-revalidate
+
 /shared/*
   Cache-Control: public, max-age=600
 
