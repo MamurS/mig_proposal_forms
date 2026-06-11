@@ -27,22 +27,23 @@
   header h1 { font-size: 17px; font-weight: 600; }
   header a, header button.lnk { color: #cdd9ee; font-size: 13px; text-decoration: none; background: none; border: none; cursor: pointer; margin-left: 16px; }
   header a:hover { color: white; }
-  .wrap { max-width: 1560px; margin: 10px auto; padding: 0 16px; }
+  .wrap { max-width: 1880px; margin: 10px auto; padding: 0 16px; }
   /* Two columns: the form (incl. the Insurance-type card) on the left, the
      document preview on the right. stretch + the flex column below make the
      preview start level with the type card and end level with the form.
      The form column is wide enough for 3-field rows so the whole form fits on
      one screen; the preview takes the rest. */
-  .cols { display: grid; grid-template-columns: 760px 1fr; gap: 18px; align-items: stretch; }
+  .cols { display: grid; grid-template-columns: 900px 1fr; gap: 18px; align-items: stretch; }
+  @media (max-width: 1750px) { .cols { grid-template-columns: 760px 1fr; } }
   #preview-col { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
   /* no trailing margin on the form's last card, so the preview ends flush with it */
   #policy-form > .card:last-child { margin-bottom: 0; }
   @media (max-width: 1280px) { .cols { grid-template-columns: 1fr; } #preview-col { min-height: 60vh; } }
   .card { background: var(--card); border: 1px solid #e5e2d8; border-radius: 8px; padding: 11px 14px; margin-bottom: 8px; }
   .card h2 { font-size: 14px; color: var(--mig); margin-bottom: 8px; padding-bottom: 5px; border-bottom: 2px solid var(--mig); }
-  label.fl { display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin: 6px 0 2px; }
-  input[type=text], select, textarea { width: 100%; padding: 6px 8px; border: 1px solid var(--rule); border-radius: 5px; font-family: inherit; font-size: 13px; background: white; color: var(--ink); }
-  textarea { min-height: 32px; resize: vertical; }
+  label.fl { display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin: 5px 0 1px; }
+  input[type=text], select, textarea { width: 100%; padding: 4px 8px; border: 1px solid var(--rule); border-radius: 5px; font-family: inherit; font-size: 13px; background: white; color: var(--ink); }
+  textarea { min-height: 30px; resize: vertical; }
   input.num { text-align: right; }
   input:focus, select:focus, textarea:focus { outline: none; border-color: var(--mig); }
   /* align-items:end bottom-aligns each cell, so when one label wraps to two
@@ -50,8 +51,9 @@
   .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: end; }
   .row3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; align-items: end; }
   .row4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; align-items: end; }
-  input[type=text], select { height: 30px; }
-  .typesel select { font-size: 15px; font-weight: 600; color: var(--mig); max-width: 280px; }
+  .row5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; align-items: end; }
+  input[type=text], select { height: 28px; }
+  .typesel select { font-size: 13px; font-weight: 600; color: var(--mig); max-width: 280px; }
   .btn { padding: 8px 16px; border-radius: 6px; border: 1px solid var(--rule); background: white; cursor: pointer; font-family: inherit; font-size: 13px; color: var(--mig); }
   .btn:hover { border-color: var(--mig); }
   .btn.primary { background: var(--mig); color: white; border-color: var(--mig); }
@@ -75,7 +77,8 @@
      the document scrolls inside. */
   #preview-scroll { background: #888; border-radius: 8px; padding: 18px; overflow: auto; flex: 1 1 0; height: 0; min-height: 320px; }
   /* the A4 sheet is 794px wide; scaled so the narrower pane shows the full page width */
-  #preview-scroll .sheet { zoom: 0.85; }
+  #preview-scroll .sheet { zoom: 0.9; }
+  @media (max-width: 1500px) { #preview-scroll .sheet { zoom: 0.62; } }
   .sheet { background: white; width: 794px; min-height: 1123px; margin: 0 auto 18px; padding: 57px 60px; box-shadow: 0 2px 8px rgba(0,0,0,0.35); font-family: 'Times New Roman', Georgia, serif; font-size: 12.5px; color: #111; }
   .sheet .doc-head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid #ccc; padding-bottom: 12px; margin-bottom: 18px; }
   .sheet .doc-head img.logo { width: 132px; height: 52px; }
@@ -188,10 +191,10 @@
         <div class="card">
           <h2>3 · Cover &amp; money</h2>
 
-          <!-- cyber-only insured covers -->
+          <!-- cyber-only insured covers (one line on the wide form) -->
           <div id="cy-covers">
             <label class="fl">Insured covers <span class="prefill-badge hidden" id="pf-covers">quote</span></label>
-            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:3px 10px; font-size:12.5px; margin:2px 0 4px">
+            <div style="display:flex; flex-wrap:wrap; gap:3px 16px; font-size:12.5px; margin:2px 0 4px">
               <label><input type="checkbox" checked disabled /> 1.1 Incident response</label>
               <label><input type="checkbox" id="f-cov-bi" /> 1.2 Business interruption</label>
               <label><input type="checkbox" id="f-cov-ext" /> 1.3 Cyber extortion</label>
@@ -231,30 +234,24 @@
           <label class="fl" style="margin-top:10px">Sublimits
             <span class="note" style="margin-left:8px; text-transform:none; letter-spacing:0;">empty fields are suggested automatically from the limit — amber until you edit</span>
           </label>
-          <!-- cyber sublimits -->
+          <!-- cyber sublimits — all five on one row of the wide form -->
           <div id="cy-sublimits">
-            <div class="row3">
+            <div class="row5">
               <div><label class="fl">Cyber extortion <span class="prefill-badge ai hidden" id="pf-sl-ext">AI</span></label><input type="text" class="num" id="f-sl-ext" /></div>
               <div><label class="fl">Dependent BI (OSP) <span class="prefill-badge ai hidden" id="pf-sl-osp">AI</span></label><input type="text" class="num" id="f-sl-osp" /></div>
               <div><label class="fl">Fines &amp; PCI-DSS <span class="prefill-badge ai hidden" id="pf-sl-fines">AI</span></label><input type="text" class="num" id="f-sl-fines" /></div>
-            </div>
-            <div class="row3">
               <div><label class="fl">Telephone hacking <span class="prefill-badge ai hidden" id="pf-sl-tel">AI</span></label><input type="text" class="num" id="f-sl-tel" /></div>
               <div><label class="fl">Cryptojacking <span class="prefill-badge ai hidden" id="pf-sl-cj">AI</span></label><input type="text" class="num" id="f-sl-cj" /></div>
-              <div></div>
             </div>
           </div>
           <!-- crime sublimits -->
           <div id="cr-sublimits" class="hidden">
-            <div class="row3">
+            <div class="row5">
               <div><label class="fl">Social engineering <span class="prefill-badge ai hidden" id="pf-sl-se">AI</span></label><input type="text" class="num" id="f-sl-se" /></div>
               <div><label class="fl">Legal fees <span class="prefill-badge ai hidden" id="pf-sl-legal">AI</span></label><input type="text" class="num" id="f-sl-legal" /></div>
               <div><label class="fl">Investigation costs <span class="prefill-badge ai hidden" id="pf-sl-inv">AI</span></label><input type="text" class="num" id="f-sl-inv" /></div>
-            </div>
-            <div class="row3">
               <div><label class="fl">Data reconstitution <span class="prefill-badge ai hidden" id="pf-sl-data">AI</span></label><input type="text" class="num" id="f-sl-data" /></div>
-              <div><label class="fl">Fire damage to money <span class="prefill-badge ai hidden" id="pf-sl-fire">AI</span></label><input type="text" class="num" id="f-sl-fire" /></div>
-              <div></div>
+              <div><label class="fl">Fire damage <span class="prefill-badge ai hidden" id="pf-sl-fire">AI</span></label><input type="text" class="num" id="f-sl-fire" /></div>
             </div>
           </div>
           <!-- generate actions live at the bottom of this card to keep the form short -->
