@@ -52,8 +52,11 @@ For EACH requested line, recommend quotation terms grounded in the data:
 - sublimits: short string or ""
 - note: 1 sentence of reasoning / caveats
 
+For the cyber line also include "sublimits_detail": {"extortion":N,"osp_bi":N,"fines_pci":N,"telephone":N,"cryptojacking":N} — integer USD sub-limits for cyber extortion, dependent business interruption (OSP), data-protection fines & PCI-DSS, telephone hacking, cryptojacking (typical market practice: 50/25/50/5/5% of the limit, adjusted for the risk).
+For the crime line also include "sublimits_detail": {"social_engineering":N,"legal_fees":N,"investigation":N,"data_reconstitution":N,"fire_money":N} (typical: 10/5/5/5/5% of the limit, adjusted for the risk).
+
 Return ONLY a JSON object, no markdown:
-{"lines":[{"code":"cyber","limit":2000000,"deductible":50000,"premium":18000,"territory":"...","sublimits":"...","note":"..."}],"note":"<overall 1-sentence caveat; always end: 'Underwriter to verify.'>"}
+{"lines":[{"code":"cyber","limit":2000000,"deductible":50000,"premium":18000,"territory":"...","sublimits":"...","sublimits_detail":{"extortion":1000000,"osp_bi":500000,"fines_pci":1000000,"telephone":100000,"cryptojacking":100000},"note":"..."}],"note":"<overall 1-sentence caveat; always end: 'Underwriter to verify.'>"}
 Use only these codes where requested: ${LINE_CODES.join(", ")}. Output ONLY the JSON object.`;
 }
 
@@ -129,7 +132,7 @@ Return the JSON object with a "lines" entry for EACH requested line code: ${prod
     const r = await fetch(ANTHROPIC_API_URL, {
       method: "POST",
       headers: { "x-api-key": KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-      body: JSON.stringify({ model: ANTHROPIC_MODEL, max_tokens: 1500, system: systemPrompt(), messages: [{ role: "user", content: userPrompt }] }),
+      body: JSON.stringify({ model: ANTHROPIC_MODEL, max_tokens: 2000, system: systemPrompt(), messages: [{ role: "user", content: userPrompt }] }),
     });
     if (!r.ok) { console.error("Anthropic", r.status); return json({ error: "Recommendation service unavailable" }, 502); }
     const d = await r.json();
@@ -144,12 +147,29 @@ Return the JSON object with a "lines" entry for EACH requested line code: ${prod
   } catch (_e) { return json({ error: "Could not parse recommendations. Try again." }, 502); }
 
   const num = (v: unknown) => { const x = Number(String(v ?? "").replace(/[^\d.\-]/g, "")); return isFinite(x) && x > 0 ? Math.round(x) : null; };
+  const SL_KEYS: Record<string, string[]> = {
+    cyber: ["extortion", "osp_bi", "fines_pci", "telephone", "cryptojacking"],
+    crime: ["social_engineering", "legal_fees", "investigation", "data_reconstitution", "fire_money"],
+  };
   const lines = (Array.isArray(parsed.lines) ? parsed.lines : [])
-    .map((l: Record<string, unknown>) => ({
-      code: String(l.code || "").toLowerCase(),
-      limit: num(l.limit), deductible: num(l.deductible), premium: num(l.premium),
-      territory: clean(l.territory).slice(0, 120), sublimits: clean(l.sublimits).slice(0, 200), note: clean(l.note).slice(0, 300),
-    }))
+    .map((l: Record<string, unknown>) => {
+      const code = String(l.code || "").toLowerCase();
+      let sublimits_detail: Record<string, number> | undefined;
+      if (SL_KEYS[code] && l.sublimits_detail && typeof l.sublimits_detail === "object") {
+        sublimits_detail = {};
+        for (const k of SL_KEYS[code]) {
+          const v = num((l.sublimits_detail as Record<string, unknown>)[k]);
+          if (v) sublimits_detail[k] = v;
+        }
+        if (!Object.keys(sublimits_detail).length) sublimits_detail = undefined;
+      }
+      return {
+        code,
+        limit: num(l.limit), deductible: num(l.deductible), premium: num(l.premium),
+        territory: clean(l.territory).slice(0, 120), sublimits: clean(l.sublimits).slice(0, 200),
+        sublimits_detail, note: clean(l.note).slice(0, 300),
+      };
+    })
     .filter((l) => products.includes(l.code));
 
   return json({ lines, note: clean(parsed.note).slice(0, 300) });

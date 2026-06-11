@@ -251,10 +251,11 @@ function scheduleRows() {
     if (i >= 0) rows.splice(i + 1, 0, row); else rows.push(row);
   }
   // Drop optional rows the underwriter left blank, so the document doesn't carry
-  // empty "____________" lines (e.g. no broker, no retroactive date). Beneficiary
-  // is kept — it shows "N/A" by default rather than being removed.
-  const isBlank = v => { const s = String(v || '').trim(); return s === '' || /^[_\s]+$/.test(s); };
-  const DROP_IF_BLANK = new Set(['INSURANCE BROKER:', 'RETROACTIVE DATE:']);
+  // empty "____________" or N/A lines (no broker, no retroactive date, no
+  // beneficiary). The beneficiary field defaults to N/A → row omitted unless a
+  // real beneficiary is entered.
+  const isBlank = v => { const s = String(v || '').trim(); return s === '' || /^[_\s]+$/.test(s) || /^n\/?a$/i.test(s) || s === '—' || s === '-'; };
+  const DROP_IF_BLANK = new Set(['INSURANCE BROKER:', 'RETROACTIVE DATE:', 'THE BENEFICIARY:']);
   return rows.filter(r => !(DROP_IF_BLANK.has(r[1]) && isBlank(r[2]) && isBlank(r[3])));
 }
 
@@ -611,6 +612,21 @@ async function aiRecommendPolicy() {
     filled += put('f-premium', 'pf-prem', r.premium) ? 1 : 0;
     filled += put('f-territory', 'pf-terr', r.territory) ? 1 : 0;
     filled += aiFillSublimits();
+    // Claude's per-field sub-limit recommendations refine the %-of-limit
+    // defaults — but never a value the underwriter typed themselves.
+    const SL_MAP = TYPE === 'cyber'
+      ? { extortion: 'f-sl-ext', osp_bi: 'f-sl-osp', fines_pci: 'f-sl-fines', telephone: 'f-sl-tel', cryptojacking: 'f-sl-cj' }
+      : { social_engineering: 'f-sl-se', legal_fees: 'f-sl-legal', investigation: 'f-sl-inv', data_reconstitution: 'f-sl-data', fire_money: 'f-sl-fire' };
+    const det = r.sublimits_detail || {};
+    Object.entries(SL_MAP).forEach(([k, id]) => {
+      const v = Math.round(Number(det[k]) || 0);
+      if (!v) return;
+      const el = $(id);
+      const untouched = !String(el.value || '').trim() || el.dataset.aiSug === '1';
+      if (!untouched) return;
+      if (String(v) !== String(el.value)) { el.value = String(v); filled++; }
+      markSuggested(id, 'AI recommended sub-limit — verify');
+    });
     note.textContent = filled
       ? 'AI suggested ' + filled + ' empty field(s), shown in amber. Verify every value before issuing.'
       : base;
@@ -620,11 +636,30 @@ async function aiRecommendPolicy() {
   }
 }
 
+// Mark a field as carrying a recommended (not underwriter-entered) value:
+// amber input + an amber "AI" pill next to the label, same visual language as
+// the green auto/quote badges. A real keystroke makes the value the
+// underwriter's own — mark, pill and tracking flag all clear.
+function markSuggested(id, tip) {
+  const el = $(id);
+  el.classList.add('ai-rec');
+  el.title = tip;
+  const b = $('pf-' + id.slice(2));   // f-sl-ext -> pf-sl-ext
+  if (b) { b.classList.remove('hidden'); b.title = tip; }
+  if (el.dataset.aiSug === '1') return;   // clear-listener already attached
+  el.dataset.aiSug = '1';
+  el.addEventListener('input', () => {
+    el.dataset.aiSug = ''; el.classList.remove('ai-rec'); el.title = '';
+    if (b) b.classList.add('hidden');
+  }, { once: true });
+}
+
 // Fill the granular sub-limits from the limit using standard market
 // percentages, marking each amber. No button — runs whenever the limit is set
-// or changed (including manual entry). Only touches fields that are empty or
-// still carrying an earlier auto-suggestion; anything the underwriter typed is
-// never overwritten, and editing a field clears its amber mark for good.
+// or changed (including manual entry); Claude's per-field recommendations
+// (aiRecommendPolicy) then refine these where available. Only touches fields
+// that are empty or still carrying an earlier auto-suggestion; anything the
+// underwriter typed is never overwritten.
 function aiFillSublimits() {
   const limit = Number(stripC($('f-limit').value)) || 0;
   if (!limit || !TYPE) return 0;
@@ -638,13 +673,7 @@ function aiFillSublimits() {
     const untouched = !String(el.value || '').trim() || el.dataset.aiSug === '1';
     if (!untouched) return;
     el.value = String(Math.round(limit * p));
-    if (el.dataset.aiSug !== '1') {
-      el.dataset.aiSug = '1';
-      el.classList.add('ai-rec');
-      el.title = 'Suggested sub-limit (' + Math.round(p * 100) + '% of limit) — verify';
-      // A real keystroke makes the value the underwriter's own.
-      el.addEventListener('input', () => { el.dataset.aiSug = ''; el.classList.remove('ai-rec'); el.title = ''; }, { once: true });
-    }
+    markSuggested(id, 'Suggested sub-limit (' + Math.round(p * 100) + '% of limit) — verify');
     n++;
   });
   if (n) { markDraft(); renderPreview(); }
