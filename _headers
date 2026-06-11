@@ -37,3 +37,19 @@
   # Tells the browser to always use HTTPS for this domain.
   # max-age = 1 year. Only enable preload after you're sure the site is stable.
   Strict-Transport-Security: max-age=31536000; includeSubDomains
+
+# === Caching ===
+# HTML stays default (revalidated each deploy); local JS gets a short browser
+# cache so page-to-page navigation doesn't re-fetch it, while deploys still
+# propagate within minutes. The wording bundles change rarely → longer cache.
+/shared/*
+  Cache-Control: public, max-age=600
+
+/config.js
+  Cache-Control: public, max-age=600
+
+/admin/cyber/policy/wording_content.js
+  Cache-Control: public, max-age=3600
+
+/admin/crime/policy/wording_content.js
+  Cache-Control: public, max-age=3600

@@ -4,6 +4,9 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>MIG Admin — Proposal Submissions</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+<!-- Hint only; the canonical Supabase URL lives in /config.js -->
+<link rel="preconnect" href="https://iyazmdzqyogyrvexpasf.supabase.co" crossorigin />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -432,7 +435,10 @@
 <!-- ============================================================ -->
 <!-- VIEW 1: LOGIN SCREEN -->
 <!-- ============================================================ -->
-<div id="view-login" class="login-wrap">
+<!-- Neutral placeholder while the session restores — the login form only
+     appears if there is genuinely no session (prevents the login flash). -->
+<div id="view-checking" style="text-align:center; padding:64px 0; color:#6b7280; font-size:14px;">Loading…</div>
+<div id="view-login" class="login-wrap hidden">
   <div class="login-card">
     <h1>MIG Admin</h1>
     <div class="subtitle">Proposal submissions dashboard</div>
@@ -681,6 +687,7 @@
 
 <!-- Supabase credentials — centralised in /config.js -->
 <script src="/config.js"></script>
+<script src="/shared/auth.js"></script>
 <script src="/shared/inn.js"></script>
 <script>
 // ============================================================
@@ -712,7 +719,7 @@ let allSubmissions = [];
 // UTILITY
 // ============================================================
 function show(viewId) {
-  ['view-login', 'view-list', 'view-detail'].forEach(id => {
+  ['view-checking', 'view-login', 'view-list', 'view-detail'].forEach(id => {
     document.getElementById(id).classList.toggle('hidden', id !== viewId);
   });
 }
@@ -799,6 +806,7 @@ document.getElementById('pw-signin').addEventListener('click', async () => {
 // administrator (and gated by the mig_staff list), so there is no sign-up handler.
 
 async function signOut() {
+  MIG_AUTH.clear();
   await sb.auth.signOut();
   currentUser = null;
   show('view-login');
@@ -824,8 +832,8 @@ async function enterApp(session, fresh) {
   if (enteringApp) return;
   enteringApp = true;
   try {
-    const { data: isStaff, error: staffErr } = await sb.rpc('is_mig_staff');
-    if (staffErr || !isStaff) {
+    const isStaff = await MIG_AUTH.isStaff(sb, session.user.id);   // cached per tab
+    if (!isStaff) {
       const email = session.user.email || 'this account';
       // Do NOT signOut() here — it revokes the shared session for every page/tab.
       show('view-login');

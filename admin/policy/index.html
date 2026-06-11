@@ -4,13 +4,18 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>MIG · Policy Issuance</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+<!-- Hint only; the canonical Supabase URL lives in /config.js -->
+<link rel="preconnect" href="https://iyazmdzqyogyrvexpasf.supabase.co" crossorigin />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-<!-- Both wordings are loaded; the active one is chosen by the type selector.
-     The cyber file also sets window.MIG_LOGO_B64 (shared letterhead logo). -->
-<script src="/admin/cyber/policy/wording_content.js"></script>
-<script src="/admin/crime/policy/wording_content.js"></script>
+<!-- Heavy document assets are deferred (execute in order after parse) so the
+     page paints immediately; policy_app.js is deferred too and runs last. -->
+<script defer src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<!-- Both wordings are loaded; the active one is chosen by the type selector. -->
+<script defer src="/admin/cyber/policy/wording_content.js"></script>
+<script defer src="/admin/crime/policy/wording_content.js"></script>
+<script defer src="/shared/logo.js"></script>
 <style>
   :root {
     --mig: #1f3864; --bg: #fafaf7; --ink: #0b1424; --muted: #6b7280;
@@ -92,10 +97,15 @@
 
 <div class="wrap">
   <div class="gate" id="auth-gate">
+    <!-- Neutral while the session restores — the login card only appears if
+         there is genuinely no session (prevents the login flash on every nav). -->
+    <div id="gate-checking" class="note" style="text-align:center; padding:48px 0;">Loading…</div>
+    <div id="gate-login" style="display:none">
     <div class="card">
       <h2>Sign in required</h2>
       <p class="note" style="margin:10px 0 16px">Use your MIG admin account. Log in on the admin page first — the session is shared.</p>
       <a class="btn primary" href="/admin/" style="text-decoration:none">Go to admin login</a>
+    </div>
     </div>
   </div>
 
@@ -268,9 +278,10 @@
 
 <!-- Supabase credentials — centralised in /config.js -->
 <script src="/config.js"></script>
+<script src="/shared/auth.js"></script>
 <script src="/shared/inn.js"></script>
 <script src="/shared/storage.js"></script>
 <script src="/shared/recommend.js"></script>
-<script src="./policy_app.js"></script>
+<script defer src="/admin/policy/policy_app.js"></script>
 </body>
 </html>

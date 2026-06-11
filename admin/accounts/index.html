@@ -4,6 +4,9 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>MIG Admin — Accounts</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+<!-- Hint only; the canonical Supabase URL lives in /config.js -->
+<link rel="preconnect" href="https://iyazmdzqyogyrvexpasf.supabase.co" crossorigin />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -132,10 +135,15 @@
 
 <!-- Sign-in / authorization gate -->
 <div class="gate" id="auth-gate">
+  <!-- Neutral while the session restores — the login card only appears if
+       there is genuinely no session (prevents the login flash on every nav). -->
+  <div id="gate-checking" class="muted" style="text-align:center; padding:48px 0;">Loading…</div>
+  <div id="gate-login" style="display:none">
   <div class="panel" style="border-radius: 12px; padding: 28px;">
     <h3 id="gate-title" style="border: none; padding: 0; font-size: 18px; text-transform: none; letter-spacing: 0; color: var(--mig);">Sign in required</h3>
     <p class="muted" id="gate-body" style="margin: 10px 0 18px;">Use your MIG admin account. If you are not signed in, log in on the admin page first — the session is shared.</p>
     <a class="btn" href="/admin/" style="text-decoration: none;">Go to admin login</a>
+  </div>
   </div>
 </div>
 
@@ -240,6 +248,7 @@
 
 <!-- Supabase credentials — centralised in /config.js -->
 <script src="/config.js"></script>
+<script src="/shared/auth.js"></script>
 <script src="/shared/inn.js"></script>
 <script>
 let sb = null;
@@ -262,6 +271,8 @@ function toast(msg, type = 'success') {
 function showGate(title, body) {
   $('app').classList.add('hidden');
   $('auth-gate').classList.remove('hidden');
+  $('gate-checking').style.display = 'none';
+  $('gate-login').style.display = '';
   $('gate-title').textContent = title;
   $('gate-body').textContent = body;
 }
@@ -276,21 +287,21 @@ function showGate(title, body) {
 
   const { data } = await sb.auth.getSession();
   const session = data.session;
-  if (!session) return; // sign-in gate stays as-is
+  if (!session) { $('gate-checking').style.display = 'none'; $('gate-login').style.display = ''; return; }
 
-  const { data: isStaff } = await sb.rpc('is_mig_staff');
+  const isStaff = await MIG_AUTH.isStaff(sb, session.user.id);   // cached per tab
   if (!isStaff) {
     const email = (session.user.email || 'This account');
     // Do NOT signOut() here — it revokes the shared session for every page/tab.
     showGate('Account not authorized', email + ' is not on the MIG staff list. Sign in with an authorized account.');
     return;
   }
-  const { data: isAdmin } = await sb.rpc('is_mig_admin', { uid: session.user.id });
+  const isAdmin = await MIG_AUTH.isAdmin(sb, session.user.id);   // cached per tab
   if (!isAdmin) {
     showGate('Admin access required', 'Account provisioning is limited to administrators. Ask an admin if you need an account created.');
     $('user-email').textContent = session.user.email || '';
     $('btn-signout').classList.remove('hidden');
-    $('btn-signout').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+    $('btn-signout').onclick = async () => { MIG_AUTH.clear(); await sb.auth.signOut(); location.reload(); };
     return;
   }
 
@@ -300,7 +311,7 @@ function showGate(title, body) {
   $('app').classList.remove('hidden');
   $('user-email').textContent = session.user.email || '';
   $('btn-signout').classList.remove('hidden');
-  $('btn-signout').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+  $('btn-signout').onclick = async () => { MIG_AUTH.clear(); await sb.auth.signOut(); location.reload(); };
   loadUsers();
 })();
 
