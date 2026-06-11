@@ -38,7 +38,9 @@ window.MIG_MONEY = {
     const s = document.createElement('style');
     s.id = 'mig-money-css';
     s.textContent =
-      '.mig-money{position:relative;display:block;min-width:0;}' +
+      // width/flex constraints matter inside table/flex cells — without them the
+      // wrapper sizes to the input's intrinsic width and overflows the column.
+      '.mig-money{position:relative;display:block;min-width:0;width:100%;flex:1 1 auto;}' +
       '.mig-money .mig-cur{position:absolute;left:9px;top:50%;transform:translateY(-50%);' +
       'font-size:11px;font-weight:600;letter-spacing:.03em;color:#8a8f99;pointer-events:none;user-select:none;}';
     document.head.appendChild(s);
