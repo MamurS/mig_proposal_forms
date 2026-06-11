@@ -29,7 +29,10 @@
   input[type=text], input[type=number], select { width: 100%; padding: 7px 9px; border: 1px solid var(--rule); border-radius: 5px; font-family: inherit; font-size: 14px; background: white; color: var(--ink); }
   input.num { text-align: right; }
   input:focus, select:focus { outline: none; border-color: var(--mig); }
-  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  /* align-items:end keeps neighbouring input borders on one line even when a
+     label wraps to two lines. */
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: end; }
+  input[type=text], input[type=number], select { height: 34px; }
   .row3 { display: grid; grid-template-columns: 2fr 1fr 38px; gap: 8px; align-items: end; }
   .srow { display: grid; grid-template-columns: 2fr 100px 38px; gap: 8px; align-items: center; margin-bottom: 6px; }
   .srow.with-hz { grid-template-columns: 1.4fr 0.8fr 100px 38px; }
