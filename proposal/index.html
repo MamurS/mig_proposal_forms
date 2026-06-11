@@ -6114,6 +6114,31 @@ document.getElementById('btn-submit').addEventListener('click', async () => {
   }
 });
 
+// Freeze the whole form for ?view= mode: every control keeps its filled look
+// but cannot be changed, every action button disappears, and a banner says
+// what is being viewed. The layout/labels/fonts stay exactly the form's own.
+function enterReadOnlyView(row) {
+  const form = document.getElementById('proposal-form');
+  (form || document).querySelectorAll('input, select, textarea').forEach(el => {
+    if (el.tagName === 'SELECT' || el.type === 'checkbox' || el.type === 'radio' || el.type === 'file') el.disabled = true;
+    else el.readOnly = true;
+    el.tabIndex = -1;
+  });
+  const st = document.createElement('style');
+  st.textContent =
+    // keep the filled look — no greyed-out text on disabled controls
+    '#proposal-form input:disabled, #proposal-form select:disabled, #proposal-form textarea:disabled { opacity: 1; color: inherit; }' +
+    // no buttons in a read-only view (submit, add-row, uploads, PDF, etc.)
+    '#proposal-form button, #btn-submit { display: none !important; }';
+  document.head.appendChild(st);
+  const banner = document.createElement('div');
+  banner.style.cssText = 'position:sticky; top:0; z-index:80; background:#1f3864; color:#fff; padding:7px 16px; font-size:13px; text-align:center;';
+  const when = row.created_at ? new Date(row.created_at).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+  banner.textContent = 'Read-only view of the submitted proposal' + (when ? ' · submitted ' + when : '') + (row.status ? ' · status: ' + row.status : '');
+  document.body.prepend(banner);
+  document.title = 'MIG — Submitted Proposal (read-only)';
+}
+
 // ============================================================
 // AUTH GATE — account-only access.
 // ============================================================
@@ -6123,6 +6148,26 @@ document.getElementById('btn-submit').addEventListener('click', async () => {
   if (!supabaseClient) return; // misconfigured — submit would be unavailable anyway
   const { data: { session } } = await supabaseClient.auth.getSession();
   if (!session) { window.location.replace('/portal/'); return; }
+
+  // Read-only VIEW mode (?view=<id>) — the admin Submissions page embeds this
+  // so a submission is shown EXACTLY as the proposal form renders it (same
+  // layout, labels, fonts). Staff may view any submission; customers their own
+  // (RLS enforces the row either way). Must run BEFORE the customer-only gate,
+  // or staff get bounced to the portal.
+  const viewId = new URLSearchParams(window.location.search).get('view');
+  if (viewId) {
+    const isStaffV = await MIG_AUTH.isStaff(supabaseClient, session.user.id);
+    const isCustV = isStaffV ? false : await MIG_AUTH.isCustomer(supabaseClient, session.user.id);
+    if (!isStaffV && !isCustV) { window.location.replace('/portal/'); return; }
+    const { data: row, error } = await supabaseClient.from('submissions')
+      .select('id, created_at, status, proposer_name, payload').eq('id', viewId).single();
+    if (error || !row) { toast('Could not load that submission.', 'error'); return; }
+    populateFormData(row.payload && row.payload.fields);
+    if (window.MIG_MONEY && MIG_MONEY.refresh) MIG_MONEY.refresh();
+    enterReadOnlyView(row);
+    return;   // no account prefill, no edit mode, no submitting
+  }
+
   const isCust = await MIG_AUTH.isCustomer(supabaseClient, session.user.id);   // cached per tab
   if (!isCust) { window.location.replace('/portal/'); return; }
   customerSession = session;
