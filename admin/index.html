@@ -687,8 +687,8 @@
 
 <!-- Supabase credentials — centralised in /config.js -->
 <script src="/config.js"></script>
-<script src="/shared/auth.js"></script>
-<script src="/shared/inn.js"></script>
+<script src="/shared/auth.js?v=2"></script>
+<script src="/shared/inn.js?v=2"></script>
 <script>
 // ============================================================
 // STATE
@@ -1081,6 +1081,9 @@ function renderFields(fields, products) {
   for (const [k, v] of Object.entries(fields)) {
     if (k.startsWith('_')) continue;
     if (v == null || v === '' || v === false) continue;
+    // The view mirrors what the customer actually filled in: numeric fields
+    // left at 0 (unused regions, empty percentages, etc.) are not shown.
+    if (String(v).trim() === '0') continue;
     const sec = sectionFor(k);
     (sections[sec] = sections[sec] || []).push([k, v]);
   }

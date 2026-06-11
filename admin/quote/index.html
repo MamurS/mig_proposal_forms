@@ -15,7 +15,7 @@
 <script defer src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <!-- /shared/logo.js sets window.MIG_LOGO_B64 (letterhead) — replaces the full 190KB wording bundle -->
-<script defer src="/shared/logo.js"></script>
+<script defer src="/shared/logo.js?v=2"></script>
 <style>
   :root {
     --bg:#fafaf7; --surface:#fff; --surface-alt:#f4f3ee; --border:#e5e2d8; --border-strong:#d8d2c2;
@@ -144,11 +144,11 @@
 
 <!-- Supabase credentials — centralised in /config.js -->
 <script src="/config.js"></script>
-<script src="/shared/auth.js"></script>
-<script src="/shared/inn.js"></script>
-<script src="/shared/storage.js"></script>
-<script src="/shared/recommend.js"></script>
-<script src="/shared/money.js"></script>
+<script src="/shared/auth.js?v=2"></script>
+<script src="/shared/inn.js?v=2"></script>
+<script src="/shared/storage.js?v=2"></script>
+<script src="/shared/recommend.js?v=2"></script>
+<script src="/shared/money.js?v=2"></script>
 <script>
 let sb = null, submission = null, fields = {};
 if (window.MIG_INN) MIG_INN.attachHint(document.getElementById('q-inn'));
@@ -247,14 +247,19 @@ async function loadList() {
 
 async function loadSubmission(id) {
   msg('', ''); $('builder').classList.add('hidden');
-  const { data, error } = await sb.from('submissions').select('*').eq('id', id).single();
-  if (error || !data) { msg('Could not load submission: ' + (error && error.message), 'error'); return; }
-  submission = data;
-  fields = (data.payload && data.payload.fields) || {};
-  buildBuilder();
-  $('builder').classList.remove('hidden');
-  await fillFromRaterQuotes();   // overlay the underwriter's saved rater premiums/limits
-  aiSuggest();                   // fill any still-empty terms with Claude recommendations (amber)
+  try {
+    const { data, error } = await sb.from('submissions').select('*').eq('id', id).single();
+    if (error || !data) { msg('Could not load submission: ' + (error && error.message), 'error'); return; }
+    submission = data;
+    fields = (data.payload && data.payload.fields) || {};
+    buildBuilder();
+    $('builder').classList.remove('hidden');
+    await fillFromRaterQuotes();   // overlay the underwriter's saved rater premiums/limits
+    aiSuggest();                   // fill any still-empty terms with Claude recommendations (amber)
+  } catch (e) {
+    // Never die silently — a hidden builder with no message is undebuggable.
+    msg('Could not build the quotation form: ' + (e && e.message ? e.message : e) + '. Try a hard refresh (Ctrl+F5).', 'error');
+  }
 }
 
 // Pre-fill limit / deductible / premium from the saved rater quote (cyber/crime),
@@ -330,13 +335,15 @@ function buildBuilder() {
     // the line's own Currency field. Money inputs get live thousands separators
     // (numeric content only — free-text entries are left untouched), and any
     // pre-filled value is formatted immediately.
-    if (window.MIG_MONEY) {
+    // Feature-check each method, not just the object — a stale cached money.js
+    // (old version without bindThousands/fmt) must degrade, not throw.
+    if (window.MIG_MONEY && MIG_MONEY.decorate) {
       const lineCur = () => ((card.querySelector('[data-k="currency"]') || {}).value || 'USD');
       ['limit', 'aggregate', 'deductible', 'premium'].forEach(k => {
         const el = card.querySelector('[data-k="' + k + '"]');
         MIG_MONEY.decorate(el, lineCur);
-        MIG_MONEY.bindThousands(el);
-        if (el.value) el.value = MIG_MONEY.fmt(el.value);
+        if (MIG_MONEY.bindThousands) MIG_MONEY.bindThousands(el);
+        if (MIG_MONEY.fmt && el.value) el.value = MIG_MONEY.fmt(el.value);
       });
       card.querySelector('[data-k="currency"]').addEventListener('input', () => MIG_MONEY.refresh(card));
     }

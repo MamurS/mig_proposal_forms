@@ -93,14 +93,12 @@
   }
   .hub-intro p { margin: 0; color: var(--muted); font-size: 13px; }
 
-  .group { margin-bottom: 28px; }
-  .group-head {
-    font-size: 11px; font-weight: 600;
+  /* small category eyebrow on each tile (replaces the old group headings) */
+  .tile-cat {
+    font-size: 10px; font-weight: 600;
     text-transform: uppercase; letter-spacing: 0.06em;
     color: var(--muted);
-    margin: 0 0 10px 0;
-    padding-bottom: 6px;
-    border-bottom: 1px solid var(--border);
+    margin-bottom: 6px;
   }
   .grid {
     display: grid;
@@ -200,110 +198,79 @@
     <p>Every tool in one place. Pick where you're headed.</p>
   </div>
 
-  <!-- Submissions -->
-  <div class="group">
-    <div class="group-head">Submissions</div>
-    <div class="grid">
-      <a class="tile" href="/admin/">
-        <div class="tile-top">
-          <span class="tile-title">Proposal Submissions</span>
-          <span class="tile-mark">📥</span>
-        </div>
-        <div class="tile-desc">Review inbox with AI triage — read incoming proposals, set status, and run underwriting analysis.</div>
-      </a>
-      <a class="tile" href="/admin/intake/">
-        <div class="tile-top">
-          <span class="tile-title">Manual intake (AI scrape)</span>
-          <span class="tile-mark">✎</span>
-        </div>
-        <div class="tile-desc">Upload a manually-filled proposal form and/or emailed financial statements — Claude transcribes them into a submission, as if filled online.</div>
-      </a>
-    </div>
-  </div>
-
-  <!-- Raters -->
-  <div class="group">
-    <div class="group-head">Raters · premium calculators</div>
-    <div class="grid">
-      <a class="tile" href="/admin/rater/">
-        <div class="tile-top">
-          <span class="tile-title">Premium Rater</span>
-          <span class="tile-mark">R</span>
-        </div>
-        <div class="tile-desc">Calculate premiums for any line — pick the insurance type inside the form, set the risk inputs, and save the quote.</div>
-      </a>
-    </div>
-  </div>
-
-  <!-- Policy issuance -->
-  <div class="group">
-    <div class="group-head">Policy issuance · fill schedule → issue → download DOCX</div>
-    <div class="grid">
-      <a class="tile" href="/admin/policy/">
-        <div class="tile-top">
-          <span class="tile-title">Policy Issuance</span>
-          <span class="tile-mark">P</span>
-        </div>
-        <div class="tile-desc">Pick the insurance type inside the form, fill the schedule, issue the policy, and download the finished Word document.</div>
-        <div class="tile-note">✦ includes full bilingual wording</div>
-      </a>
-    </div>
-  </div>
-
-  <!-- Quotations -->
-  <div class="group">
-    <div class="group-head">Quotations · underwriter terms → download DOCX</div>
-    <div class="grid">
-      <a class="tile" href="/admin/quote/">
-        <div class="tile-top">
-          <span class="tile-title">Quotation Generator</span>
-          <span class="tile-mark">Q</span>
-        </div>
-        <div class="tile-desc">Open a submission, set the underwriter's limits/premiums per line, and generate the MIG quotation document.</div>
-      </a>
-    </div>
-  </div>
-
-  <!-- Customers -->
-  <div class="group">
-    <div class="group-head">Customers</div>
-    <div class="grid">
-      <a class="tile" href="/admin/customers/">
-        <div class="tile-top">
-          <span class="tile-title">Customers</span>
-          <span class="tile-mark">👥</span>
-        </div>
-        <div class="tile-desc">Directory of all customer accounts — open one to see their proposals, quotations and policies.</div>
-      </a>
-      <a class="tile" href="/portal/" target="_blank" rel="noopener">
-        <div class="tile-top">
-          <span class="tile-title">Customer Portal</span>
-          <span class="tile-mark">↗</span>
-        </div>
-        <div class="tile-desc">The customer-facing sign-in (account required). Share this link with provisioned customers.</div>
-        <div class="tile-ext">↗ opens in a new tab</div>
-      </a>
-    </div>
-  </div>
-
-  <!-- Administration (admins only) -->
-  <div class="group hidden" id="group-admin">
-    <div class="group-head">Administration</div>
-    <div class="grid">
-      <a class="tile" href="/admin/accounts/">
-        <div class="tile-top">
-          <span class="tile-title">Accounts</span>
-          <span class="tile-mark">⚙</span>
-        </div>
-        <div class="tile-desc">Create customer and staff sign-in accounts and copy their credentials.</div>
-      </a>
-    </div>
+  <!-- One compact 3×3 grid — every tool visible without scrolling; the former
+       group headings live on as small category eyebrows on each tile. -->
+  <div class="grid">
+    <a class="tile" href="/admin/">
+      <div class="tile-cat">Submissions</div>
+      <div class="tile-top">
+        <span class="tile-title">Proposal Submissions</span>
+        <span class="tile-mark">📥</span>
+      </div>
+      <div class="tile-desc">Review inbox with AI triage — read incoming proposals, set status, and run underwriting analysis.</div>
+    </a>
+    <a class="tile" href="/admin/intake/">
+      <div class="tile-cat">Submissions</div>
+      <div class="tile-top">
+        <span class="tile-title">Manual intake (AI scrape)</span>
+        <span class="tile-mark">✎</span>
+      </div>
+      <div class="tile-desc">Upload a manually-filled proposal form and/or financial statements — Claude transcribes them into a submission.</div>
+    </a>
+    <a class="tile" href="/admin/rater/">
+      <div class="tile-cat">Raters · premium calculators</div>
+      <div class="tile-top">
+        <span class="tile-title">Premium Rater</span>
+        <span class="tile-mark">R</span>
+      </div>
+      <div class="tile-desc">Calculate premiums for any line — pick the insurance type inside the form, set the risk inputs, and save the quote.</div>
+    </a>
+    <a class="tile" href="/admin/policy/">
+      <div class="tile-cat">Policy issuance · DOCX</div>
+      <div class="tile-top">
+        <span class="tile-title">Policy Issuance</span>
+        <span class="tile-mark">P</span>
+      </div>
+      <div class="tile-desc">Fill the schedule, issue the policy, and download the finished Word document. ✦ full bilingual wording</div>
+    </a>
+    <a class="tile" href="/admin/quote/">
+      <div class="tile-cat">Quotations · DOCX</div>
+      <div class="tile-top">
+        <span class="tile-title">Quotation Generator</span>
+        <span class="tile-mark">Q</span>
+      </div>
+      <div class="tile-desc">Open a submission, set the underwriter's limits/premiums per line, and generate the MIG quotation document.</div>
+    </a>
+    <a class="tile" href="/admin/customers/">
+      <div class="tile-cat">Customers</div>
+      <div class="tile-top">
+        <span class="tile-title">Customers</span>
+        <span class="tile-mark">👥</span>
+      </div>
+      <div class="tile-desc">Directory of all customer accounts — open one to see their proposals, quotations and policies.</div>
+    </a>
+    <a class="tile" href="/portal/" target="_blank" rel="noopener">
+      <div class="tile-cat">Customers</div>
+      <div class="tile-top">
+        <span class="tile-title">Customer Portal</span>
+        <span class="tile-mark">↗</span>
+      </div>
+      <div class="tile-desc">The customer-facing sign-in (account required). Share this link with provisioned customers. ↗ new tab</div>
+    </a>
+    <a class="tile hidden" id="group-admin" href="/admin/accounts/">
+      <div class="tile-cat">Administration</div>
+      <div class="tile-top">
+        <span class="tile-title">Accounts</span>
+        <span class="tile-mark">⚙</span>
+      </div>
+      <div class="tile-desc">Create customer and staff sign-in accounts and copy their credentials.</div>
+    </a>
   </div>
 </div>
 
 <!-- Supabase credentials — centralised in /config.js -->
 <script src="/config.js"></script>
-<script src="/shared/auth.js"></script>
+<script src="/shared/auth.js?v=2"></script>
 <script>
 // ============================================================
 // AUTH — same pattern as admin/cyber/index.html: create the
