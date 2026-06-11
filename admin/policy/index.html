@@ -27,26 +27,30 @@
   header h1 { font-size: 17px; font-weight: 600; }
   header a, header button.lnk { color: #cdd9ee; font-size: 13px; text-decoration: none; background: none; border: none; cursor: pointer; margin-left: 16px; }
   header a:hover { color: white; }
-  .wrap { max-width: 1500px; margin: 20px auto; padding: 0 16px; }
+  .wrap { max-width: 1560px; margin: 10px auto; padding: 0 16px; }
   /* Two columns: the form (incl. the Insurance-type card) on the left, the
      document preview on the right. stretch + the flex column below make the
-     preview start level with the type card and end level with the form. */
-  .cols { display: grid; grid-template-columns: 460px 1fr; gap: 20px; align-items: stretch; }
+     preview start level with the type card and end level with the form.
+     The form column is wide enough for 3-field rows so the whole form fits on
+     one screen; the preview takes the rest. */
+  .cols { display: grid; grid-template-columns: 760px 1fr; gap: 18px; align-items: stretch; }
   #preview-col { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
   /* no trailing margin on the form's last card, so the preview ends flush with it */
   #policy-form > .card:last-child { margin-bottom: 0; }
-  @media (max-width: 1100px) { .cols { grid-template-columns: 1fr; } #preview-col { min-height: 60vh; } }
-  .card { background: var(--card); border: 1px solid #e5e2d8; border-radius: 8px; padding: 18px; margin-bottom: 16px; }
-  .card h2 { font-size: 14px; color: var(--mig); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid var(--mig); }
-  label.fl { display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin: 10px 0 3px; }
+  @media (max-width: 1280px) { .cols { grid-template-columns: 1fr; } #preview-col { min-height: 60vh; } }
+  .card { background: var(--card); border: 1px solid #e5e2d8; border-radius: 8px; padding: 11px 14px; margin-bottom: 8px; }
+  .card h2 { font-size: 14px; color: var(--mig); margin-bottom: 8px; padding-bottom: 5px; border-bottom: 2px solid var(--mig); }
+  label.fl { display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin: 6px 0 2px; }
   input[type=text], select, textarea { width: 100%; padding: 6px 8px; border: 1px solid var(--rule); border-radius: 5px; font-family: inherit; font-size: 13px; background: white; color: var(--ink); }
-  textarea { min-height: 54px; resize: vertical; }
+  textarea { min-height: 32px; resize: vertical; }
   input.num { text-align: right; }
   input:focus, select:focus, textarea:focus { outline: none; border-color: var(--mig); }
   /* align-items:end bottom-aligns each cell, so when one label wraps to two
      lines the neighbouring inputs still share the same border line. */
   .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: end; }
-  input[type=text], select { height: 32px; }
+  .row3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; align-items: end; }
+  .row4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; align-items: end; }
+  input[type=text], select { height: 30px; }
   .typesel select { font-size: 15px; font-weight: 600; color: var(--mig); max-width: 280px; }
   .btn { padding: 8px 16px; border-radius: 6px; border: 1px solid var(--rule); background: white; cursor: pointer; font-family: inherit; font-size: 13px; color: var(--mig); }
   .btn:hover { border-color: var(--mig); }
@@ -70,6 +74,8 @@
   /* flex:1 + height:0 → fills the column exactly down to the form's last card;
      the document scrolls inside. */
   #preview-scroll { background: #888; border-radius: 8px; padding: 18px; overflow: auto; flex: 1 1 0; height: 0; min-height: 320px; }
+  /* the A4 sheet is 794px wide; scaled so the narrower pane shows the full page width */
+  #preview-scroll .sheet { zoom: 0.85; }
   .sheet { background: white; width: 794px; min-height: 1123px; margin: 0 auto 18px; padding: 57px 60px; box-shadow: 0 2px 8px rgba(0,0,0,0.35); font-family: 'Times New Roman', Georgia, serif; font-size: 12.5px; color: #111; }
   .sheet .doc-head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid #ccc; padding-bottom: 12px; margin-bottom: 18px; }
   .sheet .doc-head img.logo { width: 132px; height: 52px; }
@@ -129,10 +135,10 @@
     <div class="cols" id="main-cols">
     <!-- ============ LEFT: type + data sources + manual fields ============ -->
     <div>
-    <div class="card">
-      <h2>Insurance type</h2>
-      <div class="typesel">
-        <select id="policy-type">
+    <div class="card" style="display:flex; align-items:center; gap:14px; padding:9px 14px;">
+      <h2 style="margin:0; padding:0; border:none; white-space:nowrap;">Insurance type</h2>
+      <div class="typesel" style="flex:1" title="Choose the line — the matching schedule, sublimits and bilingual wording are used.">
+        <select id="policy-type" style="width:100%; max-width:320px;">
           <option value="" selected>Choose insurance type…</option>
           <option value="auto">Commercial Automobile</option>
           <option value="property">Property</option>
@@ -144,7 +150,6 @@
           <option value="cyber">Cyber</option>
         </select>
       </div>
-      <p class="note" style="margin-top:8px">Choose the line — the matching schedule, sublimits and bilingual wording are used.</p>
     </div>
 
     <div class="card hidden" id="policy-msg"></div>
@@ -152,35 +157,32 @@
     <div class="hidden" id="policy-form">
         <div class="card">
           <h2>1 · Data sources</h2>
-          <label class="fl" id="sub-label">Submission (auto-fill)</label>
-          <select id="sub-select"><option value="">— none / manual —</option></select>
-          <label class="fl">Saved rater quote (limit · retention · premium)</label>
-          <select id="quote-select"><option value="">— none / manual —</option></select>
-          <div style="margin-top:10px">
+          <div class="row2">
+            <div><label class="fl" id="sub-label">Submission (auto-fill)</label><select id="sub-select"><option value="">— none / manual —</option></select></div>
+            <div><label class="fl">Saved rater quote (limit · retention · premium)</label><select id="quote-select"><option value="">— none / manual —</option></select></div>
+          </div>
+          <div style="margin-top:6px">
             <span class="note" id="load-note">Choosing a submission and/or a saved quote auto-fills the policy.</span>
           </div>
         </div>
 
         <div class="card">
           <h2>2 · Policy details</h2>
-          <div class="row2">
+          <div class="row4">
             <div><label class="fl">Policy number</label><input type="text" id="f-polnum" placeholder="MIG-CY-2026-____" /></div>
             <div><label class="fl">Policy date (dd.mm.yyyy)</label><input type="text" id="f-poldate" /></div>
-          </div>
-          <div class="row2">
             <div><label class="fl">Currency</label><select id="f-currency"><option>UZS</option><option>USD</option><option>EUR</option><option>RUB</option><option>CNY</option></select></div>
             <div><label class="fl">Broker</label><input type="text" id="f-broker" placeholder="N/A" /></div>
           </div>
-          <label class="fl">Policyholder (name) <span class="prefill-badge hidden" id="pf-name">auto</span></label>
-          <input type="text" id="f-insured" />
-          <label class="fl">Policyholder INN <span class="prefill-badge hidden" id="pf-inn">auto</span></label>
-          <input type="text" id="f-inn" placeholder="Taxpayer ID" />
-          <label class="fl">Policyholder address <span class="prefill-badge hidden" id="pf-addr">auto</span></label>
-          <textarea id="f-address"></textarea>
-          <label class="fl">Beneficiary (name &amp; address) <span class="prefill-badge hidden" id="pf-ben">auto</span></label>
-          <textarea id="f-beneficiary" placeholder="N/A — left empty, the Beneficiary row is omitted from the policy document"></textarea>
-          <label class="fl">Business description <span class="prefill-badge hidden" id="pf-biz">auto</span></label>
-          <textarea id="f-business"></textarea>
+          <div class="row2">
+            <div><label class="fl">Policyholder (name) <span class="prefill-badge hidden" id="pf-name">auto</span></label><input type="text" id="f-insured" /></div>
+            <div><label class="fl">Policyholder INN <span class="prefill-badge hidden" id="pf-inn">auto</span></label><input type="text" id="f-inn" placeholder="Taxpayer ID" /></div>
+          </div>
+          <div class="row3">
+            <div><label class="fl">Policyholder address <span class="prefill-badge hidden" id="pf-addr">auto</span></label><textarea id="f-address"></textarea></div>
+            <div><label class="fl">Beneficiary <span class="prefill-badge hidden" id="pf-ben">auto</span></label><textarea id="f-beneficiary" placeholder="N/A — empty: row omitted from the document"></textarea></div>
+            <div><label class="fl">Business description <span class="prefill-badge hidden" id="pf-biz">auto</span></label><textarea id="f-business"></textarea></div>
+          </div>
         </div>
 
         <div class="card">
@@ -189,93 +191,79 @@
           <!-- cyber-only insured covers -->
           <div id="cy-covers">
             <label class="fl">Insured covers <span class="prefill-badge hidden" id="pf-covers">quote</span></label>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px 10px; font-size:13px; margin:2px 0 4px">
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:3px 10px; font-size:12.5px; margin:2px 0 4px">
               <label><input type="checkbox" checked disabled /> 1.1 Incident response</label>
-              <label><input type="checkbox" checked disabled /> 1.4 Security &amp; privacy liability</label>
               <label><input type="checkbox" id="f-cov-bi" /> 1.2 Business interruption</label>
               <label><input type="checkbox" id="f-cov-ext" /> 1.3 Cyber extortion</label>
+              <label><input type="checkbox" checked disabled /> 1.4 Security &amp; privacy</label>
               <label><input type="checkbox" id="f-cov-media" /> 1.5 Media liability</label>
             </div>
           </div>
 
-          <div class="row2">
+          <div class="row4">
             <div><label class="fl">Limit of liability <span class="prefill-badge hidden" id="pf-limit">quote</span></label><input type="text" class="num" id="f-limit" /></div>
             <div><label class="fl" id="lbl-retention">Retention <span class="prefill-badge hidden" id="pf-ret">quote</span></label><input type="text" class="num" id="f-retention" /></div>
-          </div>
-          <div class="row2">
             <div><label class="fl">Premium <span class="prefill-badge hidden" id="pf-prem">quote</span></label><input type="text" class="num" id="f-premium" /></div>
-            <div><label class="fl">Premium payment due (dd.mm.yyyy)</label><input type="text" id="f-premdue" /></div>
+            <div><label class="fl">Premium due</label><input type="text" id="f-premdue" placeholder="dd.mm.yyyy" /></div>
           </div>
           <!-- shown when the loaded values' currency differs from the policy currency and no rate is set -->
           <div id="fx-warn" class="err-banner" style="display:none; margin:8px 0 4px;"></div>
-          <div class="row2">
-            <div><label class="fl" id="lbl-fx">Exchange rate USD→UZS <span style="text-transform:none; color:var(--muted);">(if converted)</span></label><input type="text" class="num" id="f-fx-rate" /></div>
-            <div><label class="fl">Exchange-rate date (dd.mm.yyyy)</label><input type="text" id="f-fx-date" /></div>
-          </div>
-          <div class="row2">
+          <div class="row4">
+            <div><label class="fl" id="lbl-fx">Exchange rate USD→UZS</label><input type="text" class="num" id="f-fx-rate" /></div>
+            <div><label class="fl">Exchange-rate date</label><input type="text" id="f-fx-date" placeholder="dd.mm.yyyy" /></div>
             <div><label class="fl">Period from <span class="prefill-badge hidden" id="pf-from">auto</span></label><input type="text" id="f-from" placeholder="dd.mm.yyyy" /></div>
             <div><label class="fl">Period to <span class="prefill-badge hidden" id="pf-to">auto</span></label><input type="text" id="f-to" placeholder="dd.mm.yyyy" /></div>
           </div>
-          <div class="row2">
+          <div class="row3">
             <div><label class="fl">Retroactive date</label><input type="text" id="f-retro" placeholder="dd.mm.yyyy" /></div>
-            <div><label class="fl">Territory <span class="prefill-badge hidden" id="pf-terr">auto</span></label><input type="text" id="f-territory" value="The Republic of Uzbekistan / Республика Узбекистан" /></div>
+            <div style="grid-column: span 2;"><label class="fl">Territory <span class="prefill-badge hidden" id="pf-terr">auto</span></label><input type="text" id="f-territory" value="The Republic of Uzbekistan / Республика Узбекистан" /></div>
           </div>
 
           <!-- cyber-only extra fields -->
           <div id="cy-extra">
-            <div class="row2">
-              <div><label class="fl">Waiting period (hours, Cover 1.2)</label><input type="text" class="num" id="f-waiting" value="12" /></div>
-              <div></div>
-            </div>
-            <div class="row2">
+            <div class="row3">
+              <div><label class="fl">Waiting period (hrs, 1.2)</label><input type="text" class="num" id="f-waiting" value="12" /></div>
               <div><label class="fl">Emergency contact phone</label><input type="text" id="f-em-phone" placeholder="+998 __ ___ __ __" /></div>
               <div><label class="fl">Emergency contact e-mail</label><input type="text" id="f-em-email" placeholder="cyber@mosaic-insurance.org" /></div>
             </div>
           </div>
 
-          <label class="fl" style="margin-top:14px">Sublimits
+          <label class="fl" style="margin-top:10px">Sublimits
             <span class="note" style="margin-left:8px; text-transform:none; letter-spacing:0;">empty fields are suggested automatically from the limit — amber until you edit</span>
           </label>
           <!-- cyber sublimits -->
           <div id="cy-sublimits">
-            <div class="row2">
+            <div class="row3">
               <div><label class="fl">Cyber extortion <span class="prefill-badge ai hidden" id="pf-sl-ext">AI</span></label><input type="text" class="num" id="f-sl-ext" /></div>
               <div><label class="fl">Dependent BI (OSP) <span class="prefill-badge ai hidden" id="pf-sl-osp">AI</span></label><input type="text" class="num" id="f-sl-osp" /></div>
+              <div><label class="fl">Fines &amp; PCI-DSS <span class="prefill-badge ai hidden" id="pf-sl-fines">AI</span></label><input type="text" class="num" id="f-sl-fines" /></div>
             </div>
-            <div class="row2">
-              <div><label class="fl">Data protection fines &amp; PCI-DSS <span class="prefill-badge ai hidden" id="pf-sl-fines">AI</span></label><input type="text" class="num" id="f-sl-fines" /></div>
+            <div class="row3">
               <div><label class="fl">Telephone hacking <span class="prefill-badge ai hidden" id="pf-sl-tel">AI</span></label><input type="text" class="num" id="f-sl-tel" /></div>
-            </div>
-            <div class="row2">
               <div><label class="fl">Cryptojacking <span class="prefill-badge ai hidden" id="pf-sl-cj">AI</span></label><input type="text" class="num" id="f-sl-cj" /></div>
               <div></div>
             </div>
           </div>
           <!-- crime sublimits -->
           <div id="cr-sublimits" class="hidden">
-            <div class="row2">
-              <div><label class="fl">Social engineering fraud <span class="prefill-badge ai hidden" id="pf-sl-se">AI</span></label><input type="text" class="num" id="f-sl-se" /></div>
+            <div class="row3">
+              <div><label class="fl">Social engineering <span class="prefill-badge ai hidden" id="pf-sl-se">AI</span></label><input type="text" class="num" id="f-sl-se" /></div>
               <div><label class="fl">Legal fees <span class="prefill-badge ai hidden" id="pf-sl-legal">AI</span></label><input type="text" class="num" id="f-sl-legal" /></div>
-            </div>
-            <div class="row2">
               <div><label class="fl">Investigation costs <span class="prefill-badge ai hidden" id="pf-sl-inv">AI</span></label><input type="text" class="num" id="f-sl-inv" /></div>
-              <div><label class="fl">Data reconstitution <span class="prefill-badge ai hidden" id="pf-sl-data">AI</span></label><input type="text" class="num" id="f-sl-data" /></div>
             </div>
-            <div class="row2">
+            <div class="row3">
+              <div><label class="fl">Data reconstitution <span class="prefill-badge ai hidden" id="pf-sl-data">AI</span></label><input type="text" class="num" id="f-sl-data" /></div>
               <div><label class="fl">Fire damage to money <span class="prefill-badge ai hidden" id="pf-sl-fire">AI</span></label><input type="text" class="num" id="f-sl-fire" /></div>
               <div></div>
             </div>
           </div>
-        </div>
-
-        <div class="card">
-          <h2>4 · Generate</h2>
-          <div class="actionbar">
+          <!-- generate actions live at the bottom of this card to keep the form short -->
+          <div class="actionbar" style="margin-top:9px; padding-top:8px; border-top:1px solid var(--rule);">
             <button class="btn" id="btn-docx">Download DOCX (preview copy)</button>
             <button class="btn primary" id="btn-confirm">Confirm &amp; issue</button>
             <button class="btn green hidden" id="btn-final">Download DOCX (issued copy)</button>
           </div>
-          <p class="note" style="margin-top:8px" id="gen-note">Review the document preview on the right. The Word version can be downloaded at any time for checking. Confirming saves the policy record and unlocks the issued copy.</p>
+          <p class="note" style="margin-top:6px" id="gen-note">Review the preview on the right; the Word copy can be downloaded at any time. Confirming saves the policy record and unlocks the issued copy.</p>
         </div>
     </div><!-- /policy-form -->
     </div><!-- /left column -->
