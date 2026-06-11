@@ -269,7 +269,10 @@ async function fillFromRaterQuotes() {
       const q = data[0], inp = q.inputs || {};
       const card = document.querySelector('#lines .line-card[data-code="' + code + '"]');
       if (!card) continue;
-      const set = (k, v) => { const el = card.querySelector('[data-k="' + k + '"]'); if (el && v != null && v !== '') el.value = v; };
+      const set = (k, v) => {
+        const el = card.querySelector('[data-k="' + k + '"]');
+        if (el && v != null && v !== '') { el.value = v; el.dispatchEvent(new Event('input')); }   // input → thousands separators + total
+      };
       set('limit', inp.limit);
       set('deductible', code === 'cyber' ? inp.retention : inp.deductible);
       set('premium', Math.round(q.final_premium));
@@ -324,10 +327,17 @@ function buildBuilder() {
     card.querySelector('.ln-include').addEventListener('change', e => { card.classList.toggle('off', !e.target.checked); recomputeTotal(); });
     card.querySelector('[data-k="premium"]').addEventListener('input', recomputeTotal);
     // Currency code in front of every sum on this line (display only); follows
-    // the line's own Currency field.
+    // the line's own Currency field. Money inputs get live thousands separators
+    // (numeric content only — free-text entries are left untouched), and any
+    // pre-filled value is formatted immediately.
     if (window.MIG_MONEY) {
       const lineCur = () => ((card.querySelector('[data-k="currency"]') || {}).value || 'USD');
-      ['limit', 'aggregate', 'deductible', 'premium'].forEach(k => MIG_MONEY.decorate(card.querySelector('[data-k="' + k + '"]'), lineCur));
+      ['limit', 'aggregate', 'deductible', 'premium'].forEach(k => {
+        const el = card.querySelector('[data-k="' + k + '"]');
+        MIG_MONEY.decorate(el, lineCur);
+        MIG_MONEY.bindThousands(el);
+        if (el.value) el.value = MIG_MONEY.fmt(el.value);
+      });
       card.querySelector('[data-k="currency"]').addEventListener('input', () => MIG_MONEY.refresh(card));
     }
   });
@@ -391,6 +401,7 @@ async function aiSuggest() {
         const el = card.querySelector('[data-k="' + k + '"]');
         if (!el || v == null || v === '' || String(el.value).trim()) return false;  // empty-only
         el.value = v;
+        el.dispatchEvent(new Event('input'));   // thousands separators + total (before mark, so the amber survives)
         MIG_REC.mark(el, l.note || 'AI recommended — verify');
         const lbl = el.closest('.field') && el.closest('.field').querySelector('label');
         if (lbl && !lbl.querySelector('.ai-badge')) { const b = document.createElement('span'); b.className = 'ai-badge'; b.textContent = 'AI'; lbl.appendChild(b); }

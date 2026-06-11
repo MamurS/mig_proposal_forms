@@ -646,7 +646,7 @@ async function aiRecommendPolicy() {
         const el = $(id);
         const untouched = !String(el.value || '').trim() || el.dataset.aiSug === '1';
         if (!untouched) return;
-        if (String(v) !== String(el.value)) { el.value = String(v); filled++; }
+        if (Number(stripC(el.value)) !== v) { el.value = fmtN(v); filled++; }   // thousands separators
         markSuggested(id, 'AI recommended sub-limit — verify');
       });
     }
@@ -695,7 +695,7 @@ function aiFillSublimits() {
     const el = $(id);
     const untouched = !String(el.value || '').trim() || el.dataset.aiSug === '1';
     if (!untouched) return;
-    el.value = String(Math.round(limit * p));
+    el.value = fmtN(Math.round(limit * p));   // thousands separators, same as typed values
     markSuggested(id, 'Suggested sub-limit (' + Math.round(p * 100) + '% of limit) — verify');
     n++;
   });

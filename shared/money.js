@@ -8,6 +8,31 @@
 // selection changes (call MIG_MONEY.refresh()).
 // ============================================================
 window.MIG_MONEY = {
+  // "1200000000" / 1200000000 → "1,200,000,000" (non-numeric strings pass through)
+  fmt(n) {
+    const s = String(n == null ? '' : n).trim();
+    if (s === '') return '';
+    const x = Number(s.replace(/[,\s]/g, ''));
+    return isFinite(x) ? x.toLocaleString('en-US', { maximumFractionDigits: 2 }) : s;
+  },
+  // Live thousands separators while typing. Only reformats purely numeric
+  // content — free-text entries ("1,000,000 per claim") are left untouched.
+  // Safe to call twice: binds once per input.
+  bindThousands(input) {
+    if (!input || input.dataset.thousands) return;
+    input.dataset.thousands = '1';
+    input.addEventListener('input', () => {
+      const v = String(input.value);
+      if (!/^[\d,.\s]*$/.test(v)) return;
+      const raw = v.replace(/[,\s]/g, '');
+      if (raw === '') return;
+      let [i, d] = raw.split('.');
+      i = (i || '0').replace(/^0+(\d)/, '$1');
+      let out = i.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      if (d !== undefined) out += '.' + d;
+      input.value = out;
+    });
+  },
   ensureCss() {
     if (document.getElementById('mig-money-css')) return;
     const s = document.createElement('style');

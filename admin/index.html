@@ -1097,7 +1097,7 @@ function renderFields(fields, products) {
     html += items.map(([k, v]) => {
       const cat = keyTermCat(k, v);
       const cls = cat ? ` is-key cat-${cat.cat}` : '';
-      const val = formatValue(v);
+      const val = formatValue(v, k);
       return `<div class="pv-field${cls}">
         <div class="pv-label" title="${escapeHtml(k)}">${escapeHtml(humanizeFieldName(k))}</div>
         <div class="pv-value ${val ? '' : 'empty'}">${val ? escapeHtml(val) : '(empty)'}</div>
@@ -1126,11 +1126,14 @@ function humanizeFieldName(k) {
   return s.split('_').map(t => TOK[t] || (t.charAt(0).toUpperCase() + t.slice(1))).join(' ').trim() || k;
 }
 
-function formatValue(v) {
+function formatValue(v, k) {
   if (v === true) return 'Yes';
   if (v === false) return 'No';
   if (v == null) return '';
   const s = String(v);
+  // Identifier-like numbers (INN, phone, account, SWIFT, postal, years) must
+  // not get thousands separators — they're codes, not sums.
+  if (k && /inn|phone|tel(_|$)|account|swift|mfo|postal|zip|passport|reg_no|year/i.test(k)) return s;
   // Group large pure numbers (>= 5 digits) for readability; leave dates/years alone.
   if (/^\d{5,}(\.\d+)?$/.test(s)) {
     const [i, d] = s.split('.');
