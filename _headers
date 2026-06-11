@@ -15,7 +15,9 @@
   #   frame-ancestors 'none'    — prevents this page from being iframed by another site (clickjacking)
   #   base-uri 'self'           — prevents <base> tag hijacking
   #   form-action 'self'        — form submissions can only target same-origin
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co https://*.supabase.in; frame-ancestors 'self'; base-uri 'self'; form-action 'self'
+  # object-src/frame-src allow blob: — the admin Submissions page shows the
+  # submitted proposal PDF inline from an in-memory blob URL.
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; object-src 'self' blob:; frame-src 'self' blob:; connect-src 'self' https://*.supabase.co https://*.supabase.in; frame-ancestors 'self'; base-uri 'self'; form-action 'self'
 
   # === Clickjacking ===
   # Belt-and-suspenders with the CSP frame-ancestors above. SAMEORIGIN (not
