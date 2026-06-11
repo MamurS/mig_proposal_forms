@@ -15,7 +15,7 @@
 <!-- Both wordings are loaded; the active one is chosen by the type selector. -->
 <script defer src="/admin/cyber/policy/wording_content.js"></script>
 <script defer src="/admin/crime/policy/wording_content.js"></script>
-<script defer src="/shared/logo.js"></script>
+<script defer src="/shared/logo.js?v=2"></script>
 <style>
   :root {
     --mig: #1f3864; --bg: #fafaf7; --ink: #0b1424; --muted: #6b7280;
@@ -79,6 +79,7 @@
   /* the A4 sheet is 794px wide; scaled so the narrower pane shows the full page width */
   #preview-scroll .sheet { zoom: 0.9; }
   @media (max-width: 1500px) { #preview-scroll .sheet { zoom: 0.62; } }
+  .pagecap { text-align:center; color:#ddd; font-size:11px; font-family:Arial,sans-serif; margin:-8px 0 14px; }
   .sheet { background: white; width: 794px; min-height: 1123px; margin: 0 auto 18px; padding: 57px 60px; box-shadow: 0 2px 8px rgba(0,0,0,0.35); font-family: 'Times New Roman', Georgia, serif; font-size: 12.5px; color: #111; }
   .sheet .doc-head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid #ccc; padding-bottom: 12px; margin-bottom: 18px; }
   .sheet .doc-head img.logo { width: 132px; height: 52px; }
@@ -254,23 +255,24 @@
               <div><label class="fl">Fire damage <span class="prefill-badge ai hidden" id="pf-sl-fire">AI</span></label><input type="text" class="num" id="f-sl-fire" /></div>
             </div>
           </div>
-          <!-- generate actions live at the bottom of this card to keep the form short -->
-          <div class="actionbar" style="margin-top:9px; padding-top:8px; border-top:1px solid var(--rule);">
-            <button class="btn" id="btn-docx">Download DOCX (preview copy)</button>
-            <button class="btn primary" id="btn-confirm">Confirm &amp; issue</button>
-            <button class="btn green hidden" id="btn-final">Download DOCX (issued copy)</button>
-          </div>
-          <p class="note" style="margin-top:6px" id="gen-note">Review the preview on the right; the Word copy can be downloaded at any time. Confirming saves the policy record and unlocks the issued copy.</p>
         </div>
     </div><!-- /policy-form -->
     </div><!-- /left column -->
 
     <!-- ============ RIGHT: live document preview — starts level with the
-         Insurance-type card and stretches to the bottom of the form. ============ -->
+         Insurance-type card and stretches to the bottom of the form. The
+         generate/issue actions live in its header. ============ -->
     <div class="hidden" id="preview-col">
-      <div class="card" style="padding:10px 14px; display:flex; justify-content:space-between; align-items:center">
-        <h2 style="border:none; margin:0; padding:0">Document preview (Word layout)</h2>
-        <span class="note" id="pv-note">updates live</span>
+      <div class="card" style="padding:8px 14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+          <h2 style="border:none; margin:0; padding:0; white-space:nowrap;">Document preview <span class="note" id="pv-note">updates live</span></h2>
+          <div class="actionbar">
+            <button class="btn" id="btn-docx">Download DOCX (preview copy)</button>
+            <button class="btn primary" id="btn-confirm">Confirm &amp; issue</button>
+            <button class="btn green hidden" id="btn-final">Download DOCX (issued copy)</button>
+          </div>
+        </div>
+        <p class="note" style="margin:4px 0 0;" id="gen-note">Review the preview below; the Word copy can be downloaded at any time. Confirming saves the policy record and unlocks the issued copy.</p>
       </div>
       <div id="preview-scroll">
         <div id="doc-root"></div>
@@ -282,13 +284,13 @@
 
 <!-- Supabase credentials — centralised in /config.js -->
 <script src="/config.js"></script>
-<script src="/shared/auth.js"></script>
-<script src="/shared/inn.js"></script>
-<script src="/shared/storage.js"></script>
-<script src="/shared/recommend.js"></script>
-<script src="/shared/money.js"></script>
+<script src="/shared/auth.js?v=2"></script>
+<script src="/shared/inn.js?v=2"></script>
+<script src="/shared/storage.js?v=2"></script>
+<script src="/shared/recommend.js?v=2"></script>
+<script src="/shared/money.js?v=2"></script>
 <!-- ?v= busts browsers' heuristic cache — bump it whenever policy_app.js changes,
      or stale copies keep running for days (seen live: new HTML + old JS). -->
-<script defer src="/admin/policy/policy_app.js?v=5"></script>
+<script defer src="/admin/policy/policy_app.js?v=6"></script>
 </body>
 </html>

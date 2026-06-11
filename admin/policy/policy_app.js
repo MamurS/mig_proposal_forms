@@ -314,7 +314,63 @@ function renderPreview() {
   h += '</table>';
   h += '<div class="foot">' + esc(c.footer) + '</div>';
   h += '</div>';
-  $('doc-root').innerHTML = h;
+  paginatePreview(h);
+}
+
+// Split the one long sheet into A4-sized pages so the underwriter can see what
+// lands on which page (tables break row by row, like Word does). The breaks are
+// an approximation — Word does its own layout — but close enough to judge
+// table placement. Heights are measured at zoom 1 in an off-screen sheet.
+function paginatePreview(sheetHtml) {
+  const root = $('doc-root');
+  const PAGE_H = 1009;   // 1123px A4 height − 2×57px vertical padding
+  // measure off-screen with real .sheet styles (body has no zoom)
+  const meas = document.createElement('div');
+  meas.style.cssText = 'position:absolute; left:-99999px; top:0;';
+  meas.innerHTML = sheetHtml;
+  document.body.appendChild(meas);
+  const src = meas.querySelector('.sheet');
+  // flatten into units: blocks, or single rows of the splittable tables
+  const units = [];
+  [...src.children].forEach(el => {
+    if (el.tagName === 'TABLE' && (el.classList.contains('sched') || el.classList.contains('wrd'))) {
+      el.querySelectorAll('tr').forEach(tr => units.push({ row: true, cls: el.className, el: tr }));
+    } else {
+      units.push({ row: false, el });
+    }
+  });
+  units.forEach(u => {
+    u.h = u.el.getBoundingClientRect().height;
+    if (!u.row) {   // rect height excludes margins — count them or pages overflow
+      const cs = getComputedStyle(u.el);
+      u.h += (parseFloat(cs.marginTop) || 0) + (parseFloat(cs.marginBottom) || 0);
+    }
+  });
+  // flow units into pages
+  const pages = [];
+  let page = null, used = 0, curTable = null;
+  const newPage = () => { page = document.createElement('div'); page.className = 'sheet'; pages.push(page); used = 0; curTable = null; };
+  newPage();
+  for (const u of units) {
+    if (used > 0 && used + Math.min(u.h, PAGE_H) > PAGE_H) newPage();
+    if (u.row) {
+      if (!curTable) { curTable = document.createElement('table'); curTable.className = u.cls; page.appendChild(curTable); }
+      curTable.appendChild(u.el);
+    } else {
+      curTable = null;
+      page.appendChild(u.el);
+    }
+    used += u.h;
+  }
+  meas.remove();
+  root.innerHTML = '';
+  pages.forEach((p, i) => {
+    root.appendChild(p);
+    const cap = document.createElement('div');
+    cap.className = 'pagecap';
+    cap.textContent = 'Page ' + (i + 1) + ' of ' + pages.length + ' · page breaks are approximate (Word lays out its own)';
+    root.appendChild(cap);
+  });
 }
 
 // ---------------- DOCX generation ----------------
