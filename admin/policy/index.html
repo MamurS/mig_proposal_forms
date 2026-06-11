@@ -28,8 +28,14 @@
   header a, header button.lnk { color: #cdd9ee; font-size: 13px; text-decoration: none; background: none; border: none; cursor: pointer; margin-left: 16px; }
   header a:hover { color: white; }
   .wrap { max-width: 1500px; margin: 20px auto; padding: 0 16px; }
-  .cols { display: grid; grid-template-columns: 460px 1fr; gap: 20px; align-items: start; }
-  @media (max-width: 1100px) { .cols { grid-template-columns: 1fr; } }
+  /* Two columns: the form (incl. the Insurance-type card) on the left, the
+     document preview on the right. stretch + the flex column below make the
+     preview start level with the type card and end level with the form. */
+  .cols { display: grid; grid-template-columns: 460px 1fr; gap: 20px; align-items: stretch; }
+  #preview-col { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+  /* no trailing margin on the form's last card, so the preview ends flush with it */
+  #policy-form > .card:last-child { margin-bottom: 0; }
+  @media (max-width: 1100px) { .cols { grid-template-columns: 1fr; } #preview-col { min-height: 60vh; } }
   .card { background: var(--card); border: 1px solid #e5e2d8; border-radius: 8px; padding: 18px; margin-bottom: 16px; }
   .card h2 { font-size: 14px; color: var(--mig); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid var(--mig); }
   label.fl { display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin: 10px 0 3px; }
@@ -61,7 +67,9 @@
   .status-pill.issued { background: #e6f4ea; color: #2e7d32; }
 
   /* ============ DOCUMENT PREVIEW (styled as the Word doc) ============ */
-  #preview-scroll { background: #888; border-radius: 8px; padding: 18px; max-height: calc(100vh - 130px); overflow: auto; }
+  /* flex:1 + height:0 → fills the column exactly down to the form's last card;
+     the document scrolls inside. */
+  #preview-scroll { background: #888; border-radius: 8px; padding: 18px; overflow: auto; flex: 1 1 0; height: 0; min-height: 320px; }
   .sheet { background: white; width: 794px; min-height: 1123px; margin: 0 auto 18px; padding: 57px 60px; box-shadow: 0 2px 8px rgba(0,0,0,0.35); font-family: 'Times New Roman', Georgia, serif; font-size: 12.5px; color: #111; }
   .sheet .doc-head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid #ccc; padding-bottom: 12px; margin-bottom: 18px; }
   .sheet .doc-head img.logo { width: 132px; height: 52px; }
@@ -118,6 +126,9 @@
   <div id="app" class="hidden">
     <div class="err-banner" id="err-banner"></div>
 
+    <div class="cols" id="main-cols">
+    <!-- ============ LEFT: type + data sources + manual fields ============ -->
+    <div>
     <div class="card">
       <h2>Insurance type</h2>
       <div class="typesel">
@@ -138,9 +149,7 @@
 
     <div class="card hidden" id="policy-msg"></div>
 
-    <div class="cols hidden" id="policy-form">
-      <!-- ============ LEFT: data sources + manual fields ============ -->
-      <div>
+    <div class="hidden" id="policy-form">
         <div class="card">
           <h2>1 · Data sources</h2>
           <label class="fl" id="sub-label">Submission (auto-fill)</label>
@@ -268,19 +277,21 @@
           </div>
           <p class="note" style="margin-top:8px" id="gen-note">Review the document preview on the right. The Word version can be downloaded at any time for checking. Confirming saves the policy record and unlocks the issued copy.</p>
         </div>
-      </div>
+    </div><!-- /policy-form -->
+    </div><!-- /left column -->
 
-      <!-- ============ RIGHT: live document preview ============ -->
-      <div>
-        <div class="card" style="padding:10px 14px; display:flex; justify-content:space-between; align-items:center">
-          <h2 style="border:none; margin:0; padding:0">Document preview (Word layout)</h2>
-          <span class="note" id="pv-note">updates live</span>
-        </div>
-        <div id="preview-scroll">
-          <div id="doc-root"></div>
-        </div>
+    <!-- ============ RIGHT: live document preview — starts level with the
+         Insurance-type card and stretches to the bottom of the form. ============ -->
+    <div class="hidden" id="preview-col">
+      <div class="card" style="padding:10px 14px; display:flex; justify-content:space-between; align-items:center">
+        <h2 style="border:none; margin:0; padding:0">Document preview (Word layout)</h2>
+        <span class="note" id="pv-note">updates live</span>
+      </div>
+      <div id="preview-scroll">
+        <div id="doc-root"></div>
       </div>
     </div>
+    </div><!-- /main-cols -->
   </div>
 </div>
 
@@ -293,6 +304,6 @@
 <script src="/shared/money.js"></script>
 <!-- ?v= busts browsers' heuristic cache — bump it whenever policy_app.js changes,
      or stale copies keep running for days (seen live: new HTML + old JS). -->
-<script defer src="/admin/policy/policy_app.js?v=4"></script>
+<script defer src="/admin/policy/policy_app.js?v=5"></script>
 </body>
 </html>

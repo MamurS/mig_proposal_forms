@@ -859,6 +859,7 @@ function selectType(type) {
   // No type chosen yet — show only the picker.
   if (!TYPE) {
     $('policy-form').classList.add('hidden');
+    $('preview-col').classList.add('hidden');
     $('policy-msg').classList.add('hidden');
     renderPreview();
     return;
@@ -866,6 +867,7 @@ function selectType(type) {
   // Listed but no bilingual wording configured.
   if (!POLICY_BUILT.includes(TYPE)) {
     $('policy-form').classList.add('hidden');
+    $('preview-col').classList.add('hidden');
     $('policy-msg').classList.remove('hidden');
     $('policy-msg').innerHTML = '<h2>' + esc(POLICY_LABELS[TYPE] || TYPE) + '</h2>' +
       '<p class="note">Policy issuance for this line isn’t configured yet — only <strong>Cyber</strong> and <strong>Crime</strong> have bilingual wording. ' +
@@ -876,6 +878,7 @@ function selectType(type) {
   // built (cyber / crime)
   $('policy-msg').classList.add('hidden');
   $('policy-form').classList.remove('hidden');
+  $('preview-col').classList.remove('hidden');
   const isCyber = TYPE === 'cyber';
   $('cy-covers').classList.toggle('hidden', !isCyber);
   $('cy-extra').classList.toggle('hidden', !isCyber);
