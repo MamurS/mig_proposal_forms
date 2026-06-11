@@ -726,6 +726,7 @@ try {
 let currentUser = null;
 let currentSubmission = null;
 let allSubmissions = [];
+let _detailPdfUrl = null;   // blob URL of the inline submitted-proposal PDF (revoked on next open)
 
 // ============================================================
 // UTILITY
@@ -1041,12 +1042,33 @@ function renderDetail(s) {
   const fields = s.payload?.fields || {};
   const dfHost = document.getElementById('detail-fields');
   dfHost.innerHTML = '<div style="color:var(--muted); padding:24px 0;">Loading…</div>';
-  ensureFormSchema().then(schema => {
-    dfHost.innerHTML =
-      '<div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Laid out as the online Proposal Form · ' +
-      '<a href="/proposal/?view=' + encodeURIComponent(s.id) + '" target="_blank" rel="noopener">open as the real form ↗</a></div>' +
-      (schema ? renderFormView(fields, schema) : renderFields(fields, s.products || []));
-  });
+  // The submitted PDF IS the filled form, byte for byte (sections A/C/D +
+  // declaration, exactly as the customer saw them) — show it inline whenever
+  // the submission carries one. The parsed form-style view stays as the
+  // fallback for submissions without a stored PDF (e.g. older AI-intake rows).
+  if (_detailPdfUrl) { URL.revokeObjectURL(_detailPdfUrl); _detailPdfUrl = null; }
+  const pdfB64 = s.payload?.pdfBase64;
+  let pdfShown = false;
+  if (pdfB64) {
+    try {
+      const bytes = Uint8Array.from(atob(pdfB64), c => c.charCodeAt(0));
+      _detailPdfUrl = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+      dfHost.innerHTML =
+        '<div style="font-size:12px; color:var(--muted); margin-bottom:8px;">The submitted proposal exactly as the customer filled it (PDF generated at submission).</div>' +
+        '<object data="' + _detailPdfUrl + '" type="application/pdf"' +
+        ' style="width:100%; height:88vh; border:1px solid var(--border); border-radius:8px; background:#fff;">' +
+        '<p style="padding:16px;">Your browser cannot display PDFs inline — use the <strong>Download PDF</strong> button above.</p></object>';
+      pdfShown = true;
+    } catch (_) { /* corrupt base64 → fall through to the form-style view */ }
+  }
+  if (!pdfShown) {
+    ensureFormSchema().then(schema => {
+      dfHost.innerHTML =
+        '<div style="font-size:12px; color:var(--muted); margin-bottom:10px;">No stored PDF on this submission — laid out as the online Proposal Form instead · ' +
+        '<a href="/proposal/?view=' + encodeURIComponent(s.id) + '" target="_blank" rel="noopener">open as the real form ↗</a></div>' +
+        (schema ? renderFormView(fields, schema) : renderFields(fields, s.products || []));
+    });
+  }
 
   // AI analysis
   if (s.ai_analysis) {
