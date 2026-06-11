@@ -621,22 +621,22 @@
         <div class="grid md:grid-cols-2 gap-x-8 gap-y-5">
           <div>
             <div class="field-label"><span data-i18n="fl_fs_year">Full year</span> · <span class="fs-label" data-fs-label="fs_year_1">—</span></div>
-            <input type="file" data-fs="fs_year_1" accept=".pdf,.xlsx,.xls,.docx,.png,.jpg,.jpeg" />
+            <input type="file" data-fs="fs_year_1" accept=".pdf,.xls,.xlsx,.xlsm,.xlsb,.xlt,.xltx,.xltm,.csv,.docx,.png,.jpg,.jpeg" />
             <div class="text-xs mt-1" data-fs-msg="fs_year_1" style="color: var(--muted);"></div>
           </div>
           <div>
             <div class="field-label"><span data-i18n="fl_fs_year">Full year</span> · <span class="fs-label" data-fs-label="fs_year_2">—</span></div>
-            <input type="file" data-fs="fs_year_2" accept=".pdf,.xlsx,.xls,.docx,.png,.jpg,.jpeg" />
+            <input type="file" data-fs="fs_year_2" accept=".pdf,.xls,.xlsx,.xlsm,.xlsb,.xlt,.xltx,.xltm,.csv,.docx,.png,.jpg,.jpeg" />
             <div class="text-xs mt-1" data-fs-msg="fs_year_2" style="color: var(--muted);"></div>
           </div>
           <div>
             <div class="field-label"><span data-i18n="fl_fs_year">Full year</span> · <span class="fs-label" data-fs-label="fs_year_3">—</span></div>
-            <input type="file" data-fs="fs_year_3" accept=".pdf,.xlsx,.xls,.docx,.png,.jpg,.jpeg" />
+            <input type="file" data-fs="fs_year_3" accept=".pdf,.xls,.xlsx,.xlsm,.xlsb,.xlt,.xltx,.xltm,.csv,.docx,.png,.jpg,.jpeg" />
             <div class="text-xs mt-1" data-fs-msg="fs_year_3" style="color: var(--muted);"></div>
           </div>
           <div>
             <div class="field-label"><span data-i18n="fl_fs_interim">Latest interim</span> · <span class="fs-label" data-fs-label="fs_interim">—</span></div>
-            <input type="file" data-fs="fs_interim" accept=".pdf,.xlsx,.xls,.docx,.png,.jpg,.jpeg" />
+            <input type="file" data-fs="fs_interim" accept=".pdf,.xls,.xlsx,.xlsm,.xlsb,.xlt,.xltx,.xltm,.csv,.docx,.png,.jpg,.jpeg" />
             <div class="text-xs mt-1" data-fs-msg="fs_interim" style="color: var(--muted);"></div>
           </div>
         </div>
@@ -3344,7 +3344,7 @@ window.__MIG_INLINE_TRANSLATIONS = {
     "p_fs_accept": "Принимаются: PDF, Excel, Word, PNG, JPG — до 10 МБ каждый.",
     "fl_fs_year": "Полный год",
     "fl_fs_interim": "Последний промежуточный период",
-    "err_fs_type": "Неподдерживаемый тип файла. Используйте PDF, Excel, Word, PNG или JPG.",
+    "err_fs_type": "Неподдерживаемый тип файла. Используйте PDF, Excel (xls/xlsx/xlsm/xlsb/xlt/xltx/xltm), CSV, Word, PNG или JPG.",
     "err_fs_size": "Файл слишком большой — максимум 10 МБ.",
     "err_fs_failed": "Ошибка загрузки",
     "err_fs_login": "Пожалуйста, войдите, чтобы загрузить финансовую отчётность.",
@@ -3978,7 +3978,7 @@ window.__MIG_INLINE_TRANSLATIONS = {
     "p_fs_accept": "Qabul qilinadi: PDF, Excel, Word, PNG, JPG — har biri 10 MB gacha.",
     "fl_fs_year": "To'liq yil",
     "fl_fs_interim": "So'nggi oraliq davr",
-    "err_fs_type": "Qo'llab-quvvatlanmaydigan fayl turi. PDF, Excel, Word, PNG yoki JPG dan foydalaning.",
+    "err_fs_type": "Qo'llab-quvvatlanmaydigan fayl turi. PDF, Excel (xls/xlsx/xlsm/xlsb/xlt/xltx/xltm), CSV, Word, PNG yoki JPG dan foydalaning.",
     "err_fs_size": "Fayl juda katta — maksimal 10 MB.",
     "err_fs_failed": "Yuklash amalga oshmadi",
     "err_fs_login": "Moliyaviy hisobotni yuklash uchun tizimga kiring.",
@@ -5226,7 +5226,24 @@ const fsUploads = {};   // field -> storage path
 const fsLabels = {};    // field -> computed period label
 const FS_FIELDS = ['fs_year_1', 'fs_year_2', 'fs_year_3', 'fs_interim'];
 const FS_MAX = 10 * 1024 * 1024;
-const FS_EXT = ['pdf', 'xlsx', 'xls', 'docx', 'png', 'jpg', 'jpeg'];
+// Every Excel flavour is accepted (xls/xlsx/xlsm/xlsb and the xlt/xltx/xltm
+// templates) plus CSV. FS_MIME backs up the browser when it reports no MIME
+// type for the rarer ones — without it the upload would default to text/plain
+// and the bucket's allow-list would reject the file.
+const FS_EXT = ['pdf', 'xlsx', 'xls', 'xlsm', 'xlsb', 'xlt', 'xltx', 'xltm', 'csv', 'docx', 'png', 'jpg', 'jpeg'];
+const FS_MIME = {
+  pdf: 'application/pdf',
+  xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  xls: 'application/vnd.ms-excel',
+  xlsm: 'application/vnd.ms-excel.sheet.macroEnabled.12',
+  xlsb: 'application/vnd.ms-excel.sheet.binary.macroEnabled.12',
+  xlt: 'application/vnd.ms-excel',
+  xltx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.template',
+  xltm: 'application/vnd.ms-excel.template.macroEnabled.12',
+  csv: 'text/csv',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg',
+};
 
 function computeFsLabels() {
   const now = new Date();
@@ -5248,7 +5265,7 @@ function fsMsg(field, text, kind) {
 }
 async function uploadFS(field, file) {
   const ext = (file.name.split('.').pop() || '').toLowerCase();
-  if (!FS_EXT.includes(ext)) { fsMsg(field, T('err_fs_type', 'Unsupported file type. Use PDF, Excel, Word, PNG or JPG.'), 'error'); return; }
+  if (!FS_EXT.includes(ext)) { fsMsg(field, T('err_fs_type', 'Unsupported file type. Use PDF, Excel (xls/xlsx/xlsm/xlsb/xlt/xltx/xltm), CSV, Word, PNG or JPG.'), 'error'); return; }
   if (file.size > FS_MAX) { fsMsg(field, T('err_fs_size', 'File too large — maximum 10 MB.'), 'error'); return; }
   if (!supabaseClient) { fsMsg(field, T('err_fs_failed', 'Upload failed') + ': not configured', 'error'); return; }
   if (!customerSession) { const { data } = await supabaseClient.auth.getSession(); customerSession = data.session; }
@@ -5257,7 +5274,7 @@ async function uploadFS(field, file) {
   const uid = customerSession.user.id;
   const safe = file.name.replace(/[^\w.\-]+/g, '_');
   const path = uid + '/' + field + '_' + Date.now() + '_' + safe;
-  const { error } = await supabaseClient.storage.from('financial-statements').upload(path, file, { upsert: true, contentType: file.type || undefined });
+  const { error } = await supabaseClient.storage.from('financial-statements').upload(path, file, { upsert: true, contentType: file.type || FS_MIME[ext] });
   if (error) { fsMsg(field, T('err_fs_failed', 'Upload failed') + ': ' + error.message, 'error'); return; }
   fsUploads[field] = path;
   fsMsg(field, T('fs_uploaded', 'Uploaded ✓') + ' — ' + file.name, 'ok');
