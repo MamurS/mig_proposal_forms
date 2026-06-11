@@ -1038,6 +1038,7 @@ function renderDetail(s) {
 
 // Field-name patterns that flag an important term (summary band + inline highlight).
 const KEY_PATTERNS = [
+  { cat: 'currency',   label: 'Currency',    re: /^proposal_currency$|(^|_)req_currency$/ },
   { cat: 'limit',      label: 'Limit',       re: /(^|_)(limit|loi|indemnity|csl|agg|aggregate)(_|$)|(^|_)tpl(_|$)|_agg$|_csl(_|$)|_occ$/ },
   { cat: 'deductible', label: 'Deductible',  re: /(^|_)(deductible|ded|retention|retent|excess)(_|$)/ },
   { cat: 'sum',        label: 'Sum insured', re: /(^|_)si(_|$)|sum_insured/ },

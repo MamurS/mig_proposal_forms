@@ -6,6 +6,11 @@
 let sb = null, session = null, loadedSubmissionId = null, loadedQuoteId = null, loadedCustomerId = null;
 let issued = false, policyRecordId = null;
 let TYPE = 'cyber';
+// Original monetary values as loaded (rater quote / AI are USD-rated) so the
+// limit/retention/premium can be re-derived whenever the policy currency or the
+// exchange rate changes — conversion always starts from the source numbers,
+// never from already-converted ones.
+let srcMoney = null;
 
 // Read a submission field across BOTH naming schemes (online proposal form + AI-intake scraper).
 function subField(f, ...keys) { for (const k of keys) { const v = f[k]; if (v !== undefined && v !== null && v !== '') return v; } return ''; }
@@ -242,12 +247,14 @@ function scheduleRowsCrime(d) {
 function scheduleRows() {
   const { d } = F();
   const rows = TYPE === 'cyber' ? scheduleRowsCyber(d) : scheduleRowsCrime(d);
-  // When the premium was converted from the USD-rated amount, record the rate used.
+  // When the sums were converted from the source currency, record the rate used.
   if (d.fxRate) {
-    const ru = d.fxRate + (d.fxDate ? ' на ' + d.fxDate : '');
-    const en = d.fxRate + (d.fxDate ? ' as at ' + d.fxDate : '');
+    const src = (srcMoney && srcMoney.currency) || 'USD';
+    const tgt = $('f-currency').value;
+    const ru = '1 ' + src + ' = ' + d.fxRate + ' ' + tgt + (d.fxDate ? ' на ' + d.fxDate : '');
+    const en = '1 ' + src + ' = ' + d.fxRate + ' ' + tgt + (d.fxDate ? ' as at ' + d.fxDate : '');
     const i = rows.findIndex(r => r[1] === 'PREMIUM:');
-    const row = ['КУРС ВАЛЮТЫ (USD→UZS):', 'EXCHANGE RATE (USD→UZS):', ru, en];
+    const row = ['КУРС ВАЛЮТЫ (' + src + '→' + tgt + '):', 'EXCHANGE RATE (' + src + '→' + tgt + '):', ru, en];
     if (i >= 0) rows.splice(i + 1, 0, row); else rows.push(row);
   }
   // Drop optional rows the underwriter left blank, so the document doesn't carry
@@ -568,8 +575,11 @@ async function loadAndFill() {
       setVal('f-limit', data.inputs.limit, 'pf-limit');
       setVal('f-retention', TYPE === 'cyber' ? data.inputs.retention : data.inputs.deductible, 'pf-ret');
       setVal('f-premium', Math.round(data.final_premium), 'pf-prem');
-      // Currency stays at the UZS default (rater premiums are USD-rated — set the
-      // USD→UZS exchange rate below, or switch the currency to USD, before issuing).
+      // Rater sums are USD-rated; remember them so applyFx() can convert into
+      // the policy currency (UZS default) at the underwriter's exchange rate.
+      recordSrcMoney('limit', data.inputs.limit, 'USD');
+      recordSrcMoney('retention', TYPE === 'cyber' ? data.inputs.retention : data.inputs.deductible, 'USD');
+      recordSrcMoney('premium', Math.round(data.final_premium), 'USD');
       if (TYPE === 'cyber') {
         const ext = data.inputs.extensions || {};
         $('f-cov-bi').checked = !!ext.business_interruption;
@@ -582,6 +592,7 @@ async function loadAndFill() {
   $('load-note').textContent = 'Loaded. Verify every field, then complete the manual ones.';
   markDraft();
   renderPreview();
+  applyFx();             // convert USD-rated sums into the policy currency (or warn)
   aiRecommendPolicy();   // fill still-empty terms with Claude recommendations (amber)
 }
 
@@ -607,26 +618,38 @@ async function aiRecommendPolicy() {
       MIG_REC.mark($(id), 'AI recommended — verify'); return true;
     };
     let filled = 0;
-    filled += put('f-limit', 'pf-limit', r.limit) ? 1 : 0;
-    filled += put('f-retention', 'pf-ret', r.deductible) ? 1 : 0;
-    filled += put('f-premium', 'pf-prem', r.premium) ? 1 : 0;
+    // Claude's sums are USD-rated — record them so applyFx() converts properly.
+    if (put('f-limit', 'pf-limit', r.limit)) { filled++; recordSrcMoney('limit', r.limit, 'USD'); }
+    if (put('f-retention', 'pf-ret', r.deductible)) { filled++; recordSrcMoney('retention', r.deductible, 'USD'); }
+    if (put('f-premium', 'pf-prem', r.premium)) { filled++; recordSrcMoney('premium', r.premium, 'USD'); }
     filled += put('f-territory', 'pf-terr', r.territory) ? 1 : 0;
     filled += aiFillSublimits();
+    // AI sums are USD — convert into the policy currency (or warn) BEFORE
+    // applying the per-field details, so they aren't overwritten by the
+    // %-of-limit re-suggestion that the converted limit triggers.
+    if (filled) applyFx();
     // Claude's per-field sub-limit recommendations refine the %-of-limit
-    // defaults — but never a value the underwriter typed themselves.
-    const SL_MAP = TYPE === 'cyber'
-      ? { extortion: 'f-sl-ext', osp_bi: 'f-sl-osp', fines_pci: 'f-sl-fines', telephone: 'f-sl-tel', cryptojacking: 'f-sl-cj' }
-      : { social_engineering: 'f-sl-se', legal_fees: 'f-sl-legal', investigation: 'f-sl-inv', data_reconstitution: 'f-sl-data', fire_money: 'f-sl-fire' };
-    const det = r.sublimits_detail || {};
-    Object.entries(SL_MAP).forEach(([k, id]) => {
-      const v = Math.round(Number(det[k]) || 0);
-      if (!v) return;
-      const el = $(id);
-      const untouched = !String(el.value || '').trim() || el.dataset.aiSug === '1';
-      if (!untouched) return;
-      if (String(v) !== String(el.value)) { el.value = String(v); filled++; }
-      markSuggested(id, 'AI recommended sub-limit — verify');
-    });
+    // defaults — scaled into the policy currency, and never overwriting a value
+    // the underwriter typed themselves. Skipped while the exchange rate is
+    // missing (the %-of-the-converted-limit suggestions remain).
+    const tgtCur = $('f-currency').value;
+    const srcCur = (srcMoney && srcMoney.currency) || 'USD';
+    const fxMult = srcCur === tgtCur ? 1 : (Number(stripC($('f-fx-rate').value)) || 0);
+    if (fxMult > 0) {
+      const SL_MAP = TYPE === 'cyber'
+        ? { extortion: 'f-sl-ext', osp_bi: 'f-sl-osp', fines_pci: 'f-sl-fines', telephone: 'f-sl-tel', cryptojacking: 'f-sl-cj' }
+        : { social_engineering: 'f-sl-se', legal_fees: 'f-sl-legal', investigation: 'f-sl-inv', data_reconstitution: 'f-sl-data', fire_money: 'f-sl-fire' };
+      const det = r.sublimits_detail || {};
+      Object.entries(SL_MAP).forEach(([k, id]) => {
+        const v = Math.round((Number(det[k]) || 0) * fxMult);
+        if (!v) return;
+        const el = $(id);
+        const untouched = !String(el.value || '').trim() || el.dataset.aiSug === '1';
+        if (!untouched) return;
+        if (String(v) !== String(el.value)) { el.value = String(v); filled++; }
+        markSuggested(id, 'AI recommended sub-limit — verify');
+      });
+    }
     note.textContent = filled
       ? 'AI suggested ' + filled + ' empty field(s), shown in amber. Verify every value before issuing.'
       : base;
@@ -680,6 +703,50 @@ function aiFillSublimits() {
   return n;
 }
 
+// ---------------- currency conversion ----------------
+// Loaded limit/retention/premium are USD-rated (rater quote, Claude). The
+// policy is usually issued in UZS, so the sums must be CONVERTED, not copied.
+// The underwriter provides the rate (1 <source> = X <policy currency>); fields
+// recompute from srcMoney whenever the rate or the currency changes. Without a
+// rate while currencies differ, a warning shows and generation is blocked.
+function fxBlocked() {
+  if (!srcMoney) return null;
+  const src = srcMoney.currency || 'USD', tgt = $('f-currency').value;
+  if (src === tgt) return null;
+  const rate = Number(stripC($('f-fx-rate').value)) || 0;
+  if (rate > 0) return null;
+  return 'The loaded sums are in ' + src + ' but the policy currency is ' + tgt +
+    '. Enter the exchange rate (1 ' + src + ' = … ' + tgt + ') to convert them, or switch the policy currency to ' + src + '.';
+}
+function applyFx() {
+  const tgt = $('f-currency').value;
+  const src = srcMoney ? (srcMoney.currency || 'USD') : 'USD';
+  // dynamic label + warning banner
+  $('lbl-fx').innerHTML = 'Exchange rate ' + esc(src) + '→' + esc(tgt) +
+    ' <span style="text-transform:none; color:var(--muted);">(1 ' + esc(src) + ' = … ' + esc(tgt) + ')</span>';
+  const warn = $('fx-warn'), msg = fxBlocked();
+  warn.textContent = msg || '';
+  warn.style.display = msg ? 'block' : 'none';
+  if (window.MIG_MONEY) MIG_MONEY.refresh();
+  if (!srcMoney) { renderPreview(); return; }
+  const rate = src === tgt ? 1 : (Number(stripC($('f-fx-rate').value)) || 0);
+  if (!rate) { renderPreview(); return; }   // waiting for the rate; warning shown
+  [['limit', 'f-limit'], ['retention', 'f-retention'], ['premium', 'f-premium']].forEach(([k, id]) => {
+    if (srcMoney[k] == null) return;
+    setVal(id, Math.round(srcMoney[k] * rate));   // dispatches input → sublimits re-suggest from the new limit
+  });
+  if (rate !== 1) $('load-note').textContent = 'Sums converted ' + src + '→' + tgt + ' at ' + fmtN(rate) + '. Verify every value.';
+  markDraft(); renderPreview();
+}
+// Record a loaded source value (currency defaults to USD — rater/AI are USD-rated).
+function recordSrcMoney(k, v, currency) {
+  const n = Number(stripC(String(v ?? ''))) || 0;
+  if (!n) return;
+  srcMoney = srcMoney || { currency: currency || 'USD' };
+  if (currency) srcMoney.currency = currency;
+  srcMoney[k] = n;
+}
+
 // Resolve the owning customer for a policy: loaded submission/quote, else by INN, else company name.
 async function resolvePolicyCustomerId(inn, name) {
   if (loadedCustomerId) return loadedCustomerId;
@@ -719,6 +786,8 @@ function blobToBase64(blob) {
 }
 
 async function confirmIssue() {
+  const fxMsg = fxBlocked();
+  if (fxMsg) { alert(fxMsg); $('fx-warn').style.display = 'block'; return; }
   const r = F().raw;
   const missing = [];
   if (!r.policy_number) missing.push('policy number');
@@ -781,6 +850,7 @@ function selectType(type) {
   // reset the issuance state on any switch — a different type targets a different table
   loadedSubmissionId = null; loadedQuoteId = null; loadedCustomerId = null;
   issued = false; policyRecordId = null;
+  srcMoney = null; $('fx-warn').style.display = 'none';
   $('status-pill').textContent = 'draft'; $('status-pill').classList.remove('issued');
   $('btn-final').classList.add('hidden');
   $('load-note').textContent = '';
@@ -869,7 +939,22 @@ function selectType(type) {
   // No button: whenever the limit is set or changed, empty sub-limits are
   // suggested automatically (standard % of limit) and shown amber until edited.
   $('f-limit').addEventListener('input', aiFillSublimits);
+  // Currency conversion: re-derive the loaded sums whenever the rate or the
+  // policy currency changes (see applyFx).
+  $('f-fx-rate').addEventListener('input', applyFx);
+  $('f-currency').addEventListener('change', applyFx);
+  // Currency code shown in front of every sum (display only — the user types
+  // just the number; the code follows the policy-currency selector).
+  if (window.MIG_MONEY) {
+    const policyCur = () => $('f-currency').value;
+    ['f-limit', 'f-retention', 'f-premium',
+     'f-sl-ext', 'f-sl-osp', 'f-sl-fines', 'f-sl-tel', 'f-sl-cj',
+     'f-sl-se', 'f-sl-legal', 'f-sl-inv', 'f-sl-data', 'f-sl-fire'].forEach(id => MIG_MONEY.decorate($(id), policyCur));
+  }
+  applyFx();   // initialise the FX label for the default currency
   $('btn-docx').onclick = async () => {
+    const fxMsg = fxBlocked();
+    if (fxMsg) { alert(fxMsg); $('fx-warn').style.display = 'block'; return; }
     $('btn-docx').disabled = true; $('gen-note').textContent = 'Generating Word document…';
     try {
       const blob = await generateDocx();
