@@ -261,7 +261,7 @@ function scheduleRows() {
   // empty "____________" or N/A lines (no broker, no retroactive date, no
   // beneficiary). The beneficiary field defaults to N/A → row omitted unless a
   // real beneficiary is entered.
-  const isBlank = v => { const s = String(v || '').trim(); return s === '' || /^[_\s]+$/.test(s) || /^n\/?a$/i.test(s) || s === '—' || s === '-'; };
+  const isBlank = v => { const s = String(v || '').trim(); return s === '' || /^[_\s]+$/.test(s) || /^n\/?a$/i.test(s) || /^н\/?д$/i.test(s) || s === '—' || s === '-'; };
   const DROP_IF_BLANK = new Set(['INSURANCE BROKER:', 'RETROACTIVE DATE:', 'THE BENEFICIARY:']);
   return rows.filter(r => !(DROP_IF_BLANK.has(r[1]) && isBlank(r[2]) && isBlank(r[3])));
 }
