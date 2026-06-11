@@ -620,21 +620,34 @@ async function aiRecommendPolicy() {
   }
 }
 
-// Fill empty granular sub-limits from the limit using standard market
-// percentages, marking each amber. Returns how many were filled.
+// Fill the granular sub-limits from the limit using standard market
+// percentages, marking each amber. No button — runs whenever the limit is set
+// or changed (including manual entry). Only touches fields that are empty or
+// still carrying an earlier auto-suggestion; anything the underwriter typed is
+// never overwritten, and editing a field clears its amber mark for good.
 function aiFillSublimits() {
   const limit = Number(stripC($('f-limit').value)) || 0;
-  if (!limit) return 0;
+  if (!limit || !TYPE) return 0;
+  if (window.MIG_REC) MIG_REC.ensureCss();
   const pct = TYPE === 'cyber'
     ? [['f-sl-ext', .50], ['f-sl-osp', .25], ['f-sl-fines', .50], ['f-sl-tel', .05], ['f-sl-cj', .05]]
     : [['f-sl-se', .10], ['f-sl-legal', .05], ['f-sl-inv', .05], ['f-sl-data', .05], ['f-sl-fire', .05]];
   let n = 0;
   pct.forEach(([id, p]) => {
-    if (String($(id).value || '').trim()) return;
-    setVal(id, Math.round(limit * p));
-    MIG_REC.mark($(id), 'Suggested sub-limit (' + Math.round(p * 100) + '% of limit) — verify');
+    const el = $(id);
+    const untouched = !String(el.value || '').trim() || el.dataset.aiSug === '1';
+    if (!untouched) return;
+    el.value = String(Math.round(limit * p));
+    if (el.dataset.aiSug !== '1') {
+      el.dataset.aiSug = '1';
+      el.classList.add('ai-rec');
+      el.title = 'Suggested sub-limit (' + Math.round(p * 100) + '% of limit) — verify';
+      // A real keystroke makes the value the underwriter's own.
+      el.addEventListener('input', () => { el.dataset.aiSug = ''; el.classList.remove('ai-rec'); el.title = ''; }, { once: true });
+    }
     n++;
   });
+  if (n) { markDraft(); renderPreview(); }
   return n;
 }
 
@@ -654,25 +667,6 @@ function applyTerritory(geo) {
   } else if (geo.length) {
     setVal('f-territory', geo.join(', '), 'pf-terr');
   }
-}
-
-function suggestSublimits() {
-  const limit = Number(stripC($('f-limit').value)) || 0;
-  if (!limit) { $('gen-note').textContent = 'Enter the limit of liability first.'; return; }
-  if (TYPE === 'cyber') {
-    setVal('f-sl-ext', Math.round(limit * 0.50));
-    setVal('f-sl-osp', Math.round(limit * 0.25));
-    setVal('f-sl-fines', Math.round(limit * 0.50));
-    setVal('f-sl-tel', Math.round(limit * 0.05));
-    setVal('f-sl-cj', Math.round(limit * 0.05));
-  } else {
-    setVal('f-sl-se', Math.round(limit * 0.10));
-    setVal('f-sl-legal', Math.round(limit * 0.05));
-    setVal('f-sl-inv', Math.round(limit * 0.05));
-    setVal('f-sl-data', Math.round(limit * 0.05));
-    setVal('f-sl-fire', Math.round(limit * 0.05));
-  }
-  markDraft(); renderPreview();
 }
 
 // ---------------- confirm / issue ----------------
@@ -843,7 +837,9 @@ function selectType(type) {
   const onPick = () => { if ($('sub-select').value || $('quote-select').value) loadAndFill(); };
   $('sub-select').addEventListener('change', onPick);
   $('quote-select').addEventListener('change', onPick);
-  $('btn-suggest-sl').onclick = suggestSublimits;
+  // No button: whenever the limit is set or changed, empty sub-limits are
+  // suggested automatically (standard % of limit) and shown amber until edited.
+  $('f-limit').addEventListener('input', aiFillSublimits);
   $('btn-docx').onclick = async () => {
     $('btn-docx').disabled = true; $('gen-note').textContent = 'Generating Word document…';
     try {
