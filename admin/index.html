@@ -418,11 +418,18 @@
   .pv-label { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 500; margin-bottom: 3px; }
   .pv-value { font-size: 15px; color: var(--ink); word-break: break-word; line-height: 1.45; }
   .pv-value.empty { color: #c8c4b8; font-style: italic; }
-  /* form-style view: the proposal form's own typography for section structure */
-  .fv-secnum { font-family: 'Fraunces', serif; font-size: 12px; color: #b8865b; letter-spacing: 0.18em; margin: 28px 0 2px; }
-  .fv-secnum:first-child { margin-top: 4px; }
-  .fv-sectitle { font-family: 'Fraunces', serif; font-weight: 500; font-size: 26px; line-height: 1.15; letter-spacing: -0.01em; color: var(--mig); margin: 0 0 8px; }
-  .fv-subtitle { font-family: 'Fraunces', serif; font-weight: 500; font-size: 17px; color: var(--mig); margin: 16px 0 10px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+  /* form-style view: replicates the FILLED proposal form — same paper, fonts,
+     two-column layout and underlined values as /proposal/ itself. */
+  .fv-wrap { background: #fbfaf6; border: 1px solid var(--border); border-radius: 8px; padding: 26px 32px 32px; }
+  .fv-secnum { font-family: 'Fraunces', serif; font-size: 13px; color: #b8865b; letter-spacing: 0.18em; margin: 36px 0 2px; }
+  .fv-wrap > .fv-secnum:first-child { margin-top: 0; }
+  .fv-sectitle { font-family: 'Fraunces', serif; font-weight: 500; font-size: 32px; line-height: 1.15; letter-spacing: -0.01em; color: var(--mig); margin: 0 0 10px; }
+  .fv-subtitle { font-family: 'Fraunces', serif; font-weight: 500; font-size: 21px; color: var(--mig); margin: 20px 0 16px; padding-bottom: 6px; border-bottom: 1px solid var(--border-strong); }
+  .fvf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 48px; }
+  @media (max-width: 800px) { .fvf-grid { grid-template-columns: 1fr; } }
+  .fvf-field { min-width: 0; }
+  .fvf-label { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 500; margin-bottom: 3px; }
+  .fvf-value { font-size: 15px; color: var(--ink); padding: 7px 0; border-bottom: 1px solid #cfc8b5; white-space: pre-wrap; word-break: break-word; min-height: 32px; }
   /* key fields — same boxed-amber highlight used on the form */
   .pv-field.is-key {
     background: #fff8ec; border: 1px solid #ecd9b0; border-radius: 8px;
@@ -1149,17 +1156,16 @@ function ensureFormSchema() {
 function renderFormView(fields, schema) {
   const filled = (k, v) => !(v == null || v === '' || v === false || String(v).trim() === '0') && !k.startsWith('_');
   const fmt = (k, v) => v === true ? 'Yes' : formatValue(v, k);
-  const fieldHtml = (k, v, label) => {
-    const cat = keyTermCat(k, v);
-    const cls = cat ? ` is-key cat-${cat.cat}` : '';
-    return `<div class="pv-field${cls}">
-      <div class="pv-label" title="${escapeHtml(k)}">${escapeHtml(label)}</div>
-      <div class="pv-value">${escapeHtml(fmt(k, v))}</div>
+  // Rendered like a filled form field: small uppercase label, the value on the
+  // form's underline. (No admin highlight boxes — the form doesn't have them;
+  // the key-terms band above keeps the highlighted summary.)
+  const fieldHtml = (k, v, label) => `<div class="fvf-field">
+      <div class="fvf-label" title="${escapeHtml(k)}">${escapeHtml(label)}</div>
+      <div class="fvf-value">${escapeHtml(fmt(k, v))}</div>
     </div>`;
-  };
   let html = '', curSec = null, curSub = null, gridOpen = false;
   const closeGrid = () => { if (gridOpen) { html += '</div>'; gridOpen = false; } };
-  const openGrid = () => { if (!gridOpen) { html += '<div class="pv-fields">'; gridOpen = true; } };
+  const openGrid = () => { if (!gridOpen) { html += '<div class="fvf-grid">'; gridOpen = true; } };
   for (const e of schema.entries) {
     const v = fields[e.name];
     if (!filled(e.name, v)) continue;
@@ -1181,11 +1187,12 @@ function renderFormView(fields, schema) {
   // dynamic loss/previous-insurance rows) — appended in their own block
   const extras = Object.entries(fields).filter(([k, v]) => filled(k, v) && !schema.byName[k]);
   if (extras.length) {
-    html += `<div class="fv-secnum">ADDITIONAL DATA</div><h2 class="fv-sectitle">Other declared details</h2><div class="pv-fields">`;
+    html += `<div class="fv-secnum">ADDITIONAL DATA</div><h2 class="fv-sectitle">Other declared details</h2><div class="fvf-grid">`;
     html += extras.map(([k, v]) => fieldHtml(k, v, humanizeFieldName(k))).join('');
     html += '</div>';
   }
-  return html || '<em style="color: var(--muted);">No data captured.</em>';
+  if (!html) return '<em style="color: var(--muted);">No data captured.</em>';
+  return '<div class="fv-wrap">' + html + '</div>';
 }
 
 function renderFields(fields, products) {
