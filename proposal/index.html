@@ -218,6 +218,8 @@
   input.js-thousands { text-align: right; }
   /* In tables specifically, also let the input fill the cell width */
   .grid-table input.js-thousands { width: 100%; padding-right: 6px; }
+  /* percentage columns read as numbers — align them right like the sums */
+  .grid-table input[name$="_pct"] { width: 100%; text-align: right; padding-right: 6px; }
   .grid-table input:focus { border-bottom-color: var(--mig); outline: none; }
 
   /* Zebra striping rules — generated for every column count used by tables in
@@ -530,34 +532,34 @@
           <div class="th" data-i18n="th_of_revenue_211">% of Revenue</div>
 
           <div data-i18n="lbl_domestic_uzbekistan_449">Domestic (Uzbekistan)</div>
-          <div><input type="text" name="region_dom_turnover" class="js-thousands" /></div>
-          <div><input type="text" name="region_dom_locations" class="js-thousands" /></div>
-          <div><input type="text" name="region_dom_employees" class="js-thousands" /></div>
-          <div><input type="text" name="region_dom_pct" /></div>
+          <div><input type="text" name="region_dom_turnover" class="js-thousands" placeholder="e.g. 650,000" /></div>
+          <div><input type="text" name="region_dom_locations" class="js-thousands" placeholder="e.g. 1" /></div>
+          <div><input type="text" name="region_dom_employees" class="js-thousands" placeholder="e.g. 25" /></div>
+          <div><input type="text" name="region_dom_pct" placeholder="e.g. 92" /></div>
 
           <div data-i18n="lbl_cis">CIS</div>
-          <div><input type="text" name="region_cis_turnover" class="js-thousands" /></div>
-          <div><input type="text" name="region_cis_locations" class="js-thousands" /></div>
-          <div><input type="text" name="region_cis_employees" class="js-thousands" /></div>
-          <div><input type="text" name="region_cis_pct" /></div>
+          <div><input type="text" name="region_cis_turnover" class="js-thousands" placeholder="e.g. 650,000" /></div>
+          <div><input type="text" name="region_cis_locations" class="js-thousands" placeholder="e.g. 1" /></div>
+          <div><input type="text" name="region_cis_employees" class="js-thousands" placeholder="e.g. 25" /></div>
+          <div><input type="text" name="region_cis_pct" placeholder="e.g. 92" /></div>
 
           <div data-i18n="lbl_european_union_450">European Union</div>
-          <div><input type="text" name="region_eu_turnover" class="js-thousands" /></div>
-          <div><input type="text" name="region_eu_locations" class="js-thousands" /></div>
-          <div><input type="text" name="region_eu_employees" class="js-thousands" /></div>
-          <div><input type="text" name="region_eu_pct" /></div>
+          <div><input type="text" name="region_eu_turnover" class="js-thousands" placeholder="e.g. 650,000" /></div>
+          <div><input type="text" name="region_eu_locations" class="js-thousands" placeholder="e.g. 1" /></div>
+          <div><input type="text" name="region_eu_employees" class="js-thousands" placeholder="e.g. 25" /></div>
+          <div><input type="text" name="region_eu_pct" placeholder="e.g. 92" /></div>
 
           <div data-i18n="lbl_united_states_canada_451">United States &amp; Canada</div>
-          <div><input type="text" name="region_us_turnover" class="js-thousands" /></div>
-          <div><input type="text" name="region_us_locations" class="js-thousands" /></div>
-          <div><input type="text" name="region_us_employees" class="js-thousands" /></div>
-          <div><input type="text" name="region_us_pct" /></div>
+          <div><input type="text" name="region_us_turnover" class="js-thousands" placeholder="e.g. 650,000" /></div>
+          <div><input type="text" name="region_us_locations" class="js-thousands" placeholder="e.g. 1" /></div>
+          <div><input type="text" name="region_us_employees" class="js-thousands" placeholder="e.g. 25" /></div>
+          <div><input type="text" name="region_us_pct" placeholder="e.g. 92" /></div>
 
           <div data-i18n="lbl_rest_of_world_452">Rest of World</div>
-          <div><input type="text" name="region_row_turnover" class="js-thousands" /></div>
-          <div><input type="text" name="region_row_locations" class="js-thousands" /></div>
-          <div><input type="text" name="region_row_employees" class="js-thousands" /></div>
-          <div><input type="text" name="region_row_pct" /></div>
+          <div><input type="text" name="region_row_turnover" class="js-thousands" placeholder="e.g. 650,000" /></div>
+          <div><input type="text" name="region_row_locations" class="js-thousands" placeholder="e.g. 1" /></div>
+          <div><input type="text" name="region_row_employees" class="js-thousands" placeholder="e.g. 25" /></div>
+          <div><input type="text" name="region_row_pct" placeholder="e.g. 92" /></div>
         </div>
       </div>
 
@@ -4603,7 +4605,7 @@ window.__MIG_INLINE_TRANSLATIONS = {
 <script src="/config.js"></script>
 <script src="/shared/auth.js?v=2"></script>
 <script src="/shared/inn.js?v=2"></script>
-<script src="/shared/money.js?v=2"></script>
+<script src="/shared/money.js?v=3"></script>
 <script>
 if (window.MIG_INN) MIG_INN.attachHint(document.querySelector('[name="proposer_inn"]'));
 
