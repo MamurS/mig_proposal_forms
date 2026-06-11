@@ -4589,6 +4589,7 @@ window.__MIG_INLINE_TRANSLATIONS = {
 </script>
 <!-- Supabase credentials — centralised in /config.js -->
 <script src="/config.js"></script>
+<script src="/shared/auth.js"></script>
 <script src="/shared/inn.js"></script>
 <script>
 if (window.MIG_INN) MIG_INN.attachHint(document.querySelector('[name="proposer_inn"]'));
@@ -6083,7 +6084,7 @@ document.getElementById('btn-submit').addEventListener('click', async () => {
   if (!supabaseClient) return; // misconfigured — submit would be unavailable anyway
   const { data: { session } } = await supabaseClient.auth.getSession();
   if (!session) { window.location.replace('/portal/'); return; }
-  const { data: isCust } = await supabaseClient.rpc('is_customer');
+  const isCust = await MIG_AUTH.isCustomer(supabaseClient, session.user.id);   // cached per tab
   if (!isCust) { window.location.replace('/portal/'); return; }
   customerSession = session;
 

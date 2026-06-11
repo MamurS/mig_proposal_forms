@@ -6,6 +6,9 @@
 <title>MIG — Customer Portal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<!-- Hint only; the canonical Supabase URL lives in /config.js -->
+<link rel="preconnect" href="https://iyazmdzqyogyrvexpasf.supabase.co" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
@@ -114,7 +117,10 @@
 <!-- ============================================================ -->
 <!-- LOGIN -->
 <!-- ============================================================ -->
-<div id="view-login" class="login-wrap">
+<!-- Neutral placeholder while the session restores — the login form only
+     appears if there is genuinely no session (prevents the login flash). -->
+<div id="view-checking" style="text-align:center; padding:64px 0; color:#6b7280; font-size:14px;">Loading…</div>
+<div id="view-login" class="login-wrap hidden">
   <div class="login-card">
     <div style="text-align:center; margin-bottom:14px;"><span class="lang-pills" id="lang-pills-login"></span></div>
     <h1 data-i18n="portal_title">MIG Customer Portal</h1>
@@ -201,6 +207,7 @@
 
 <!-- Supabase credentials — centralised in /config.js -->
 <script src="/config.js"></script>
+<script src="/shared/auth.js"></script>
 <script src="/shared/storage.js"></script>
 <script>
 // ============================================================
@@ -283,7 +290,7 @@ function buildLangPills() {
 }
 
 function show(viewId) {
-  ['view-login', 'view-dash'].forEach(id => $(id).classList.toggle('hidden', id !== viewId));
+  ['view-checking', 'view-login', 'view-dash'].forEach(id => $(id).classList.toggle('hidden', id !== viewId));
 }
 function toast(msg, type = 'success') {
   const div = document.createElement('div');
@@ -330,6 +337,7 @@ async function signIn() {
 }
 
 async function signOut() {
+  MIG_AUTH.clear();
   await sb.auth.signOut();
   currentUser = null;
   show('view-login');
@@ -344,8 +352,8 @@ async function enter(session) {
   if (entering) return;
   entering = true;
   try {
-    const { data: isCust, error } = await sb.rpc('is_customer');
-    if (error || !isCust) {
+    const isCust = await MIG_AUTH.isCustomer(sb, session.user.id);   // cached per tab
+    if (!isCust) {
       const email = session.user.email || 'this account';
       // Do NOT signOut() here — a staff member opening /portal/ would otherwise be
       // logged out of their admin session too (shared, globally revoked).

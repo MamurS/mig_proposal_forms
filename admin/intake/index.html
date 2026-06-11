@@ -4,6 +4,9 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>MIG Admin — Manual intake</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+<!-- Hint only; the canonical Supabase URL lives in /config.js -->
+<link rel="preconnect" href="https://iyazmdzqyogyrvexpasf.supabase.co" crossorigin />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -58,10 +61,15 @@
 </div>
 
 <div class="gate" id="auth-gate">
+  <!-- Neutral while the session restores — the login card only appears if
+       there is genuinely no session (prevents the login flash on every nav). -->
+  <div id="gate-checking" class="muted" style="text-align:center; padding:48px 0;">Loading…</div>
+  <div id="gate-login" style="display:none">
   <div class="panel" style="border-radius:12px; padding:28px;">
     <h1 id="gate-title" style="font-size:18px; margin:0 0 8px;">Sign in required</h1>
     <p class="muted" id="gate-body" style="margin:0 0 18px;">Use your MIG staff account. Sign in on the admin page first — the session is shared.</p>
     <a class="btn" href="/admin/">Go to admin login</a>
+  </div>
   </div>
 </div>
 
@@ -140,6 +148,7 @@
 
 <div id="toast-container"></div>
 <script src="/config.js"></script>
+<script src="/shared/auth.js"></script>
 <script>
 let sb = null, session = null;
 let extracted = null;            // last scrape result { proposer_name, products, fields, notes, model }
@@ -149,7 +158,7 @@ const PRODUCTS = [['auto','Auto'],['property','Property'],['cgl','CGL'],['car','
 const $ = id => document.getElementById(id);
 const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function toast(m,t){ const d=document.createElement('div'); d.className='toast '+(t||'success'); d.textContent=m; $('toast-container').appendChild(d); setTimeout(()=>d.remove(),4500); }
-function showGate(t,b){ $('app').classList.add('hidden'); $('auth-gate').classList.remove('hidden'); $('gate-title').textContent=t; $('gate-body').textContent=b; }
+function showGate(t,b){ $('app').classList.add('hidden'); $('auth-gate').classList.remove('hidden'); $('gate-checking').style.display='none'; $('gate-login').style.display=''; $('gate-title').textContent=t; $('gate-body').textContent=b; }
 
 // Read a File into { filename, media_type, data(base64), role }
 function readFile(file, role){
@@ -167,13 +176,13 @@ function readFile(file, role){
   sb = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
   const { data } = await sb.auth.getSession();
   session = data.session;
-  if (!session) return;
-  const { data: isStaff } = await sb.rpc('is_mig_staff');
+  if (!session) { $('gate-checking').style.display='none'; $('gate-login').style.display=''; return; }
+  const isStaff = await MIG_AUTH.isStaff(sb, session.user.id);   // cached per tab
   if (!isStaff) { const e=session.user.email||'This account'; showGate('Account not authorized', e+' is not on the MIG staff list.'); return; }  // no signOut: keeps the shared session
   $('auth-gate').classList.add('hidden'); $('app').classList.remove('hidden');
   $('user-email').textContent = session.user.email||'';
   $('btn-signout').classList.remove('hidden');
-  $('btn-signout').onclick = async ()=>{ await sb.auth.signOut(); location.reload(); };
+  $('btn-signout').onclick = async ()=>{ MIG_AUTH.clear(); await sb.auth.signOut(); location.reload(); };
 
   // Build product checkboxes
   $('r-products').innerHTML = PRODUCTS.map(([c,l]) => '<label><input type="checkbox" value="'+c+'" class="r-prod"> '+esc(l)+'</label>').join('');

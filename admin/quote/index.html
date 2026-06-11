@@ -7,11 +7,15 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<!-- Hint only; the canonical Supabase URL lives in /config.js -->
+<link rel="preconnect" href="https://iyazmdzqyogyrvexpasf.supabase.co" crossorigin>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-<!-- wording_content.js sets window.MIG_LOGO_B64 (reused for the letterhead) -->
-<script src="/admin/cyber/policy/wording_content.js"></script>
+<!-- Document-generation assets are deferred — only needed at Generate time. -->
+<script defer src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<!-- /shared/logo.js sets window.MIG_LOGO_B64 (letterhead) — replaces the full 190KB wording bundle -->
+<script defer src="/shared/logo.js"></script>
 <style>
   :root {
     --bg:#fafaf7; --surface:#fff; --surface-alt:#f4f3ee; --border:#e5e2d8; --border-strong:#d8d2c2;
@@ -73,10 +77,15 @@
 </div>
 
 <div class="gate" id="auth-gate">
+  <!-- Neutral while the session restores — the login card only appears if
+       there is genuinely no session (prevents the login flash on every nav). -->
+  <div id="gate-checking" class="muted" style="text-align:center; padding:48px 0;">Loading…</div>
+  <div id="gate-login" style="display:none">
   <div class="panel" style="border-radius:12px; padding:28px;">
     <h2 id="gate-title" style="border:none; padding:0; font-family:'Fraunces',serif;">Sign in required</h2>
     <p class="muted" id="gate-body" style="margin:10px 0 18px;">Use your MIG admin account. Sign in on the admin page first — the session is shared.</p>
     <a class="btn" href="/admin/" style="text-decoration:none;">Go to admin login</a>
+  </div>
   </div>
 </div>
 
@@ -132,6 +141,7 @@
 
 <!-- Supabase credentials — centralised in /config.js -->
 <script src="/config.js"></script>
+<script src="/shared/auth.js"></script>
 <script src="/shared/inn.js"></script>
 <script src="/shared/storage.js"></script>
 <script src="/shared/recommend.js"></script>
@@ -140,7 +150,7 @@ let sb = null, submission = null, fields = {};
 if (window.MIG_INN) MIG_INN.attachHint(document.getElementById('q-inn'));
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function showGate(t, b) { $('app').classList.add('hidden'); $('auth-gate').classList.remove('hidden'); $('gate-title').textContent = t; $('gate-body').textContent = b; }
+function showGate(t, b) { $('app').classList.add('hidden'); $('auth-gate').classList.remove('hidden'); $('gate-checking').style.display = 'none'; $('gate-login').style.display = ''; $('gate-title').textContent = t; $('gate-body').textContent = b; }
 function msg(text, kind) { $('msg').innerHTML = text ? '<div class="msg-' + kind + '">' + esc(text) + '</div>' : ''; }
 function num(v) { const n = Number(String(v == null ? '' : v).replace(/[^\d.\-]/g, '')); return isFinite(n) ? n : 0; }
 function fmtMoney(v, cur) { const n = num(v); if (!n) return ''; return (cur || 'USD') + ' ' + n.toLocaleString('en-US'); }
@@ -197,8 +207,8 @@ function prefill(code) {
   sb = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
   const { data } = await sb.auth.getSession();
   const session = data.session;
-  if (!session) return;
-  const { data: isStaff } = await sb.rpc('is_mig_staff');
+  if (!session) { $('gate-checking').style.display = 'none'; $('gate-login').style.display = ''; return; }
+  const isStaff = await MIG_AUTH.isStaff(sb, session.user.id);   // cached per tab
   if (!isStaff) {
     const email = session.user.email || 'This account';
     // Do NOT signOut() here — it revokes the shared session for every page/tab.
@@ -209,7 +219,7 @@ function prefill(code) {
   $('app').classList.remove('hidden');
   $('user-email').textContent = session.user.email || '';
   $('btn-signout').classList.remove('hidden');
-  $('btn-signout').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+  $('btn-signout').onclick = async () => { MIG_AUTH.clear(); await sb.auth.signOut(); location.reload(); };
   await loadList();
   const id = new URLSearchParams(location.search).get('id');
   if (id) { $('sub-select').value = id; loadSubmission(id); }
@@ -344,7 +354,9 @@ function collectLines() {
   return out;
 }
 
-$('btn-generate').addEventListener('click', generateQuotation);
+// Lambda (not the bare identifier): quote_docx.js is deferred, so
+// generateQuotation isn't defined yet when this listener is attached.
+$('btn-generate').addEventListener('click', () => generateQuotation());
 
 // ── Claude recommended terms (automatic; fills only still-empty fields) ──
 // Runs after the proposal + rater prefill. Each value Claude recommends is
@@ -389,6 +401,6 @@ async function aiSuggest() {
   }
 }
 </script>
-<script src="/admin/quote/quote_docx.js"></script>
+<script defer src="/admin/quote/quote_docx.js"></script>
 </body>
 </html>

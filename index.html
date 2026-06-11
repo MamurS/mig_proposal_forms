@@ -4,6 +4,9 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>MIG Admin — Hub</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+<!-- Hint only; the canonical Supabase URL lives in /config.js -->
+<link rel="preconnect" href="https://iyazmdzqyogyrvexpasf.supabase.co" crossorigin />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -176,10 +179,15 @@
 <!-- SIGN-IN GATE (shown when logged out) -->
 <!-- ============================================================ -->
 <div class="gate" id="auth-gate">
+  <!-- Neutral while the session restores — the login card only appears if
+       there is genuinely no session (prevents the login flash on every nav). -->
+  <div id="gate-checking" class="muted" style="text-align:center; padding:48px 0;">Loading…</div>
+  <div id="gate-login" style="display:none">
   <div class="card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 28px;">
     <h2>Sign in required</h2>
     <p class="muted" style="margin: 10px 0 18px">Use your MIG admin account. If you are not signed in, log in on the admin page first — the session is shared.</p>
     <a class="btn" href="/admin/" style="text-decoration: none;">Go to admin login</a>
+  </div>
   </div>
 </div>
 
@@ -295,6 +303,7 @@
 
 <!-- Supabase credentials — centralised in /config.js -->
 <script src="/config.js"></script>
+<script src="/shared/auth.js"></script>
 <script>
 // ============================================================
 // AUTH — same pattern as admin/cyber/index.html: create the
@@ -315,12 +324,16 @@ let sb = null;
 
   const { data } = await sb.auth.getSession();
   const session = data.session;
-  if (!session) return; // stay on the gate
+  if (!session) {  // genuinely signed out → reveal the login card
+    document.getElementById('gate-checking').style.display = 'none';
+    document.getElementById('gate-login').style.display = '';
+    return;
+  }
 
   // Having a session is NOT enough — the account must be on the MIG staff list.
-  // is_mig_staff() is a SECURITY DEFINER RPC that checks mig_staff for auth.uid().
-  const { data: isStaff, error: staffErr } = await sb.rpc('is_mig_staff');
-  if (staffErr || !isStaff) {
+  // Cached per tab (sessionStorage) so page-to-page navigation is instant.
+  const isStaff = await MIG_AUTH.isStaff(sb, session.user.id);
+  if (!isStaff) {
     const email = (session.user.email || 'This account').replace(/[<>&]/g, '');
     // Do NOT signOut() here — signOut defaults to global scope and revokes the
     // session shared across every admin page/tab, forcing a re-login everywhere.
@@ -338,10 +351,10 @@ let sb = null;
   document.getElementById('user-email').textContent = session.user.email || '';
   const signout = document.getElementById('btn-signout');
   signout.classList.remove('hidden');
-  signout.onclick = async () => { await sb.auth.signOut(); location.reload(); };
+  signout.onclick = async () => { MIG_AUTH.clear(); await sb.auth.signOut(); location.reload(); };
 
   // Account provisioning is admin-only — show the Administration group for admins.
-  const { data: isAdmin } = await sb.rpc('is_mig_admin', { uid: session.user.id });
+  const isAdmin = await MIG_AUTH.isAdmin(sb, session.user.id);   // cached per tab
   if (isAdmin) document.getElementById('group-admin').classList.remove('hidden');
 })();
 </script>

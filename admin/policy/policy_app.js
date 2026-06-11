@@ -807,10 +807,10 @@ function selectType(type) {
   sb = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
   const { data } = await sb.auth.getSession();
   session = data.session;
-  if (!session) return;
-  // A session alone is not enough — require MIG staff membership.
-  const { data: isStaff, error: staffErr } = await sb.rpc('is_mig_staff');
-  if (staffErr || !isStaff) {
+  if (!session) { $('gate-checking').style.display = 'none'; $('gate-login').style.display = ''; return; }
+  // A session alone is not enough — require MIG staff membership (cached per tab).
+  const isStaff = await MIG_AUTH.isStaff(sb, session.user.id);
+  if (!isStaff) {
     const email = (session.user.email || 'This account').replace(/[<>&]/g, '');
     // Do NOT signOut() here — it revokes the shared session for every page/tab.
     $('auth-gate').innerHTML = '<div class="card"><h2>Account not authorized</h2>' +
@@ -821,7 +821,7 @@ function selectType(type) {
   $('auth-gate').classList.add('hidden');
   $('app').classList.remove('hidden');
   $('btn-signout').classList.remove('hidden');
-  $('btn-signout').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+  $('btn-signout').onclick = async () => { MIG_AUTH.clear(); await sb.auth.signOut(); location.reload(); };
 
   // defaults
   const today = new Date();
