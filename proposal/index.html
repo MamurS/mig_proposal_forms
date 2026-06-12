@@ -226,6 +226,9 @@
   .grid-table input.js-thousands { width: 100%; padding-right: 6px; }
   /* percentage columns read as numbers — align them right like the sums */
   .grid-table input[name$="_pct"] { width: 100%; text-align: right; padding-right: 6px; }
+  /* clear air between the wide Annual-Turnover column and Locations — the long
+     underline otherwise runs visually into the next column */
+  .grid-table[data-cols="5"] > div:nth-child(5n+2) { padding-right: 30px; }
   .grid-table input:focus { border-bottom-color: var(--mig); outline: none; }
 
   /* Zebra striping rules — generated for every column count used by tables in
