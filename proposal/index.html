@@ -630,23 +630,27 @@
         <div class="grid md:grid-cols-2 gap-x-8 gap-y-5">
           <div>
             <div class="field-label"><span data-i18n="fl_fs_year">Full year</span> · <span class="fs-label" data-fs-label="fs_year_1">—</span></div>
-            <input type="file" data-fs="fs_year_1" accept=".pdf,.xls,.xlsx,.xlsm,.xlsb,.xlt,.xltx,.xltm,.csv,.docx,.png,.jpg,.jpeg" />
+            <input type="file" data-fs="fs_year_1" accept=".pdf,.xls,.xlsx,.xlsm,.xlsb,.xlt,.xltx,.xltm,.csv,.docx,.png,.jpg,.jpeg" multiple />
             <div class="text-xs mt-1" data-fs-msg="fs_year_1" style="color: var(--muted);"></div>
+            <div data-fs-list="fs_year_1"></div>
           </div>
           <div>
             <div class="field-label"><span data-i18n="fl_fs_year">Full year</span> · <span class="fs-label" data-fs-label="fs_year_2">—</span></div>
-            <input type="file" data-fs="fs_year_2" accept=".pdf,.xls,.xlsx,.xlsm,.xlsb,.xlt,.xltx,.xltm,.csv,.docx,.png,.jpg,.jpeg" />
+            <input type="file" data-fs="fs_year_2" accept=".pdf,.xls,.xlsx,.xlsm,.xlsb,.xlt,.xltx,.xltm,.csv,.docx,.png,.jpg,.jpeg" multiple />
             <div class="text-xs mt-1" data-fs-msg="fs_year_2" style="color: var(--muted);"></div>
+            <div data-fs-list="fs_year_2"></div>
           </div>
           <div>
             <div class="field-label"><span data-i18n="fl_fs_year">Full year</span> · <span class="fs-label" data-fs-label="fs_year_3">—</span></div>
-            <input type="file" data-fs="fs_year_3" accept=".pdf,.xls,.xlsx,.xlsm,.xlsb,.xlt,.xltx,.xltm,.csv,.docx,.png,.jpg,.jpeg" />
+            <input type="file" data-fs="fs_year_3" accept=".pdf,.xls,.xlsx,.xlsm,.xlsb,.xlt,.xltx,.xltm,.csv,.docx,.png,.jpg,.jpeg" multiple />
             <div class="text-xs mt-1" data-fs-msg="fs_year_3" style="color: var(--muted);"></div>
+            <div data-fs-list="fs_year_3"></div>
           </div>
           <div>
             <div class="field-label"><span data-i18n="fl_fs_interim">Latest interim</span> · <span class="fs-label" data-fs-label="fs_interim">—</span></div>
-            <input type="file" data-fs="fs_interim" accept=".pdf,.xls,.xlsx,.xlsm,.xlsb,.xlt,.xltx,.xltm,.csv,.docx,.png,.jpg,.jpeg" />
+            <input type="file" data-fs="fs_interim" accept=".pdf,.xls,.xlsx,.xlsm,.xlsb,.xlt,.xltx,.xltm,.csv,.docx,.png,.jpg,.jpeg" multiple />
             <div class="text-xs mt-1" data-fs-msg="fs_interim" style="color: var(--muted);"></div>
+            <div data-fs-list="fs_interim"></div>
           </div>
         </div>
       </div>
@@ -5231,7 +5235,7 @@ document.getElementById('stamp-clear').addEventListener('click', () => {
 // ============================================================
 // FINANCIAL STATEMENTS UPLOAD (Feature 3) — Supabase Storage
 // ============================================================
-const fsUploads = {};   // field -> storage path
+const fsUploads = {};   // field -> [{ path, name }] (several files per slot)
 const fsLabels = {};    // field -> computed period label
 const FS_FIELDS = ['fs_year_1', 'fs_year_2', 'fs_year_3', 'fs_interim'];
 const FS_MAX = 10 * 1024 * 1024;
@@ -5272,27 +5276,59 @@ function fsMsg(field, text, kind) {
   el.textContent = text;
   el.style.color = kind === 'error' ? 'var(--err, #b53737)' : (kind === 'ok' ? '#2e7d32' : 'var(--muted)');
 }
-async function uploadFS(field, file) {
-  const ext = (file.name.split('.').pop() || '').toLowerCase();
-  if (!FS_EXT.includes(ext)) { fsMsg(field, T('err_fs_type', 'Unsupported file type. Use PDF, Excel (xls/xlsx/xlsm/xlsb/xlt/xltx/xltm), CSV, Word, PNG or JPG.'), 'error'); return; }
-  if (file.size > FS_MAX) { fsMsg(field, T('err_fs_size', 'File too large — maximum 10 MB.'), 'error'); return; }
+// Each slot accepts SEVERAL files (balance sheet, P&L, cash-flow, annexes…) —
+// uploads accumulate in fsUploads[field] and are listed as removable chips.
+const fsEsc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function renderFsList(field) {
+  const host = document.querySelector('[data-fs-list="' + field + '"]');
+  if (!host) return;
+  const arr = fsUploads[field] || [];
+  host.innerHTML = arr.map((f, i) =>
+    '<span style="display:inline-flex; align-items:center; gap:5px; background:#eef2f9; border:1px solid #d8e0ef; border-radius:10px; padding:2px 8px; margin:3px 6px 0 0; font-size:12px;">' +
+    fsEsc(f.name) +
+    '<button type="button" data-fs-del="' + field + '" data-idx="' + i + '" title="Remove" ' +
+    'style="border:none; background:none; cursor:pointer; color:#b53737; font-size:14px; line-height:1; padding:0;">×</button></span>'
+  ).join('');
+}
+async function uploadFS(field, files) {
+  const list = Array.from(files || []);
+  if (!list.length) return;
   if (!supabaseClient) { fsMsg(field, T('err_fs_failed', 'Upload failed') + ': not configured', 'error'); return; }
   if (!customerSession) { const { data } = await supabaseClient.auth.getSession(); customerSession = data.session; }
   if (!customerSession) { fsMsg(field, T('err_fs_login', 'Please sign in to upload financial statements.'), 'error'); return; }
-  fsMsg(field, T('fs_uploading', 'Uploading…'), 'info');
-  const uid = customerSession.user.id;
-  const safe = file.name.replace(/[^\w.\-]+/g, '_');
-  const path = uid + '/' + field + '_' + Date.now() + '_' + safe;
-  const { error } = await supabaseClient.storage.from('financial-statements').upload(path, file, { upsert: true, contentType: file.type || FS_MIME[ext] });
-  if (error) { fsMsg(field, T('err_fs_failed', 'Upload failed') + ': ' + error.message, 'error'); return; }
-  fsUploads[field] = path;
-  fsMsg(field, T('fs_uploaded', 'Uploaded ✓') + ' — ' + file.name, 'ok');
+  fsUploads[field] = fsUploads[field] || [];
+  const failed = [];
+  for (const file of list) {
+    const ext = (file.name.split('.').pop() || '').toLowerCase();
+    if (!FS_EXT.includes(ext)) { failed.push(file.name + ' — ' + T('err_fs_type', 'Unsupported file type. Use PDF, Excel (xls/xlsx/xlsm/xlsb/xlt/xltx/xltm), CSV, Word, PNG or JPG.')); continue; }
+    if (file.size > FS_MAX) { failed.push(file.name + ' — ' + T('err_fs_size', 'File too large — maximum 10 MB.')); continue; }
+    fsMsg(field, T('fs_uploading', 'Uploading…') + ' ' + file.name, 'info');
+    const uid = customerSession.user.id;
+    const safe = file.name.replace(/[^\w.\-]+/g, '_');
+    const path = uid + '/' + field + '_' + Date.now() + '_' + safe;
+    const { error } = await supabaseClient.storage.from('financial-statements').upload(path, file, { upsert: true, contentType: file.type || FS_MIME[ext] });
+    if (error) { failed.push(file.name + ' — ' + error.message); continue; }
+    fsUploads[field].push({ path, name: file.name });
+  }
+  renderFsList(field);
+  if (failed.length) fsMsg(field, T('err_fs_failed', 'Upload failed') + ': ' + failed.join('; '), 'error');
+  else fsMsg(field, T('fs_uploaded', 'Uploaded ✓') + ' — ' + fsUploads[field].length + ' file(s)', 'ok');
 }
 (function wireFsInputs() {
   computeFsLabels();
   FS_FIELDS.forEach(f => {
     const inp = document.querySelector('[data-fs="' + f + '"]');
-    if (inp) inp.addEventListener('change', () => { if (inp.files && inp.files[0]) uploadFS(f, inp.files[0]); });
+    // value reset → choosing the same file again still fires change
+    if (inp) inp.addEventListener('change', () => { uploadFS(f, inp.files); inp.value = ''; });
+  });
+  // removable chips (event delegation — the lists re-render)
+  document.addEventListener('click', e => {
+    const btn = e.target.closest('[data-fs-del]');
+    if (!btn) return;
+    const field = btn.getAttribute('data-fs-del');
+    (fsUploads[field] || []).splice(Number(btn.getAttribute('data-idx')), 1);
+    renderFsList(field);
+    fsMsg(field, (fsUploads[field] || []).length ? T('fs_uploaded', 'Uploaded ✓') + ' — ' + fsUploads[field].length + ' file(s)' : '', 'ok');
   });
 })();
 
@@ -5336,9 +5372,16 @@ function collectFormData() {
   const _cyFP = !!data.cy_cov_first_party, _cyTP = !!data.cy_cov_third_party_liability;
   data.cy_cov_shield = _cyFP || _cyTP;
   data.cy_cov_first_third = _cyFP || _cyTP;
-  // Financial-statements: store the uploaded storage paths + computed period labels.
+  // Financial-statements: store the uploaded storage paths + computed period
+  // labels. Several files per slot: `_paths`/`_names` carry them all; `_path`
+  // keeps the first one for older single-file readers.
   FS_FIELDS.forEach(f => {
-    if (fsUploads[f]) data[f + '_path'] = fsUploads[f];
+    const arr = fsUploads[f] || [];
+    if (arr.length) {
+      data[f + '_path'] = arr[0].path;
+      data[f + '_paths'] = arr.map(x => x.path);
+      data[f + '_names'] = arr.map(x => x.name);
+    }
     if (fsLabels[f]) data[f + '_label'] = fsLabels[f];
   });
   return data;
@@ -5401,6 +5444,21 @@ function populateFormData(fields) {
   if (typeof applyPropertyMode === 'function') applyPropertyMode();
   if (typeof applyAuditVisibility === 'function') applyAuditVisibility();
   if (typeof updateProgressDots === 'function') updateProgressDots();
+
+  // 6. Restore the uploaded financial statements (multi-file `_paths`/`_names`,
+  //    or the legacy single `_path`) so editing a proposal keeps them — they
+  //    used to be silently dropped from the refreshed payload on update.
+  FS_FIELDS.forEach(f => {
+    const paths = Array.isArray(fields[f + '_paths']) ? fields[f + '_paths']
+                : (fields[f + '_path'] ? [fields[f + '_path']] : []);
+    const names = Array.isArray(fields[f + '_names']) ? fields[f + '_names'] : [];
+    fsUploads[f] = paths.map((p, i) => ({
+      path: p,
+      name: names[i] || String(p).split('/').pop().replace(/^[a-z_0-9]+?_\d{13}_/, ''),
+    }));
+    renderFsList(f);
+    if (fsUploads[f].length) fsMsg(f, T('fs_uploaded', 'Uploaded ✓') + ' — ' + fsUploads[f].length + ' file(s)', 'ok');
+  });
 }
 
 // ============================================================
