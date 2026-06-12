@@ -44,7 +44,7 @@ Context: MIG operates in Uzbekistan/CIS; standard net line USD 500,000; halal un
 
 PRICING CALIBRATION. MIG's rate cards (v2) are aligned with international market pricing.
 - CYBER prices to a market rate-on-line of roughly 0.9%–1.6% of the LIMIT: a USD 2M limit ≈ USD 25,000–30,000 total premium; USD 1M ≈ 14,000–20,000; USD 500k ≈ 8,000–12,000. The card computes revenue × segment hazard rate (0.13%–1.9% of revenue for most segments; financial institutions 5%, referral) × geography weight (CIS/Central Asia ≈ 0.5) × adjustments × increased-limit factor (USD 250k→1.00, 500k→1.50, 750k→2.00, 1M→2.25, 2M→3.15) + extensions (BI +25%, extortion +2.5%, media +2.5%), then clamps to the 0.9%–1.6% rate-on-line band.
-- CRIME is employee-count and controls based (typically USD 2,000–10,000 for SMEs).
+- CRIME is employee-count and controls based, floored at a market rate-on-line of 0.5% of the LIMIT (1M limit → at least USD 5,000; 2M → at least USD 10,000; typical SME totals USD 5,000–15,000; cap 2.5% of limit).
 - If a rater premium is given for ANY line, treat it as the house number and anchor to it exactly; keep other lines consistent with its scale.
 - If the requested limit looks disproportionate to turnover (e.g. limit > 200% of revenue), price it normally but flag the disproportion in the note.
 
