@@ -212,7 +212,13 @@
     font-size: 11px;
     letter-spacing: 0.03em;
     text-transform: uppercase;
+    /* centred over the column track — left-aligned headers visually collided
+       with the right-aligned numbers of the neighbouring column */
+    justify-content: center;
+    text-align: center;
   }
+  /* the first column (row labels) stays left-aligned like its cells */
+  .grid-table .th:first-child { justify-content: flex-start; text-align: left; }
   .grid-table input { padding: 2px 0; font-size: 13px; border: none; border-bottom: 1px solid #d8d2c2; background: transparent; }
   /* Numeric fields with thousands formatting are right-aligned for easier comparison */
   input.js-thousands { text-align: right; }
