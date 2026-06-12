@@ -405,7 +405,18 @@
       }
     }
 
-    const final = limitPremium + extTotal;
+    let final = limitPremium + extTotal;
+    // Market rate-on-line band (card-driven, v2+): the premium is kept within
+    // a % band of the LIMIT (e.g. 0.9%–1.6%), mirroring how the international
+    // cyber market prices a limit. Small-revenue accounts hit the floor; very
+    // large revenue hits the cap. v1 cards have no rol_band → no change.
+    let rol_adjust = null;
+    if (T.rol_band && inputs.limit > 0) {
+      const floor = inputs.limit * (Number(T.rol_band.min) || 0);
+      const cap = T.rol_band.max ? inputs.limit * Number(T.rol_band.max) : Infinity;
+      if (final < floor) { rol_adjust = { type: 'floor', rol: Number(T.rol_band.min), from: round2(final) }; final = floor; }
+      else if (final > cap) { rol_adjust = { type: 'cap', rol: Number(T.rol_band.max), from: round2(final) }; final = cap; }
+    }
     return {
       ok: true, warnings,
       inputs: JSON.parse(JSON.stringify(inputs)),
@@ -416,6 +427,7 @@
         adjustment_lines: adjLines, base_premium: round2(basePremium),
         ilf, limit_premium: round2(limitPremium),
         extension_lines: extLines, extensions_total: round2(extTotal),
+        rol_adjust,
         retention: Number(inputs.retention) || 0,
       },
       final_premium: round2(final),
@@ -897,6 +909,10 @@ function recalcCyber() {
   b.extension_lines.forEach(e => {
     html += row('+ ' + e.label + ' (+' + (e.pct * 100).toFixed(1) + '%)', e.premium, '');
   });
+  if (b.rol_adjust) {
+    html += row('<strong>Market rate-on-line ' + b.rol_adjust.type + '</strong> (' + (b.rol_adjust.rol * 100).toFixed(2) + '% of limit)',
+      res.final_premium, 'formula gave ' + fmt(b.rol_adjust.from));
+  }
   table.innerHTML = html;
   $('bd-final').textContent = 'USD ' + fmt(res.final_premium);
   $('bd-rpm').textContent = 'Rate per mil: ' + fmt(res.rate_per_mil) +
